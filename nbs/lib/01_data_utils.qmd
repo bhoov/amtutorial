@@ -18,6 +18,12 @@ import functools as ft
 ```
 
 ```{python}
+#| hide
+# For rendering stuff only
+import matplotlib.pyplot as plt
+```
+
+```{python}
 #| export
 APP_NAME = "amtutorial"
 
@@ -103,6 +109,7 @@ def load_bipolar_mnist():
     return Xtrain, Xtest, Ytrain, Ytest
 ```
 
+
 ```{python}
 Xtrain, Xtest, Ytrain, Ytest = load_bipolar_mnist()
 
@@ -110,6 +117,20 @@ assert Xtest.shape[-2:] == (28, 28)
 assert Xtest.min() == -1 and Xtest.max() == 1
 assert set(np.unique(Xtest)) == set([-1., 1.])
 ```
+
+```{python}
+#| echo: false
+nrows = ncols = 5
+idxs = np.random.choice(np.arange(len(Xtest)), nrows * ncols, replace=False)
+fig, axs = plt.subplots(nrows, ncols, figsize=(nrows*1.2, ncols*1.2))
+for i, ax in enumerate(axs.flat):
+    ax.imshow(Xtest[idxs[i]], cmap='gray')
+    ax.axis('off')
+plt.tight_layout()
+plt.show()
+```
+
+
 
 ## Downloading Pokemon Sprites
 
@@ -435,8 +456,6 @@ def load_bipolar_pokemon_sprites(ds_name:str='processed_adaptive'):
 
 ```{python}
 #| hide
-from einops import rearrange
-import matplotlib.pyplot as plt
 ```
 
 ```{python}

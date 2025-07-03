@@ -13,7 +13,7 @@ import pathlib
 from typing import Optional
 import functools as ft
 
-# %% ../nbs/lib/01_data_utils.qmd 4
+# %% ../nbs/lib/01_data_utils.qmd 5
 APP_NAME = "amtutorial"
 
 @ft.lru_cache()
@@ -31,16 +31,16 @@ def get_cache_dir(
     base_path.mkdir(parents=True, exist_ok=True)
     return base_path
 
-# %% ../nbs/lib/01_data_utils.qmd 7
+# %% ../nbs/lib/01_data_utils.qmd 8
 DATA_DIR = get_cache_dir("data")
 MNIST_DIR = get_cache_dir("data/mnist")
 POKEMON_DIR = get_cache_dir("data/pokemon")
 
-# %% ../nbs/lib/01_data_utils.qmd 9
+# %% ../nbs/lib/01_data_utils.qmd 10
 import datasets
 import numpy as np
 
-# %% ../nbs/lib/01_data_utils.qmd 10
+# %% ../nbs/lib/01_data_utils.qmd 11
 def prepare_bipolar_mnist(force=False):
     """Download and prepare the MNIST dataset"""
     required_files = ["Xtrain.npy", "Xtest.npy", "Ytrain.npy", "Ytest.npy"]
@@ -66,7 +66,7 @@ def prepare_bipolar_mnist(force=False):
 
     print(f"Saved MNIST data to {DATA_DIR}")
 
-# %% ../nbs/lib/01_data_utils.qmd 11
+# %% ../nbs/lib/01_data_utils.qmd 12
 @ft.lru_cache()
 def load_bipolar_mnist():
     """Load the MNIST dataset"""
@@ -78,7 +78,7 @@ def load_bipolar_mnist():
     Ytest = np.load(MNIST_DIR / "Ytest.npy")
     return Xtrain, Xtest, Ytrain, Ytest
 
-# %% ../nbs/lib/01_data_utils.qmd 14
+# %% ../nbs/lib/01_data_utils.qmd 16
 from fastcore.script import *
 import requests
 from bs4 import BeautifulSoup
@@ -86,7 +86,7 @@ import os
 from urllib.parse import urlparse
 import time
 
-# %% ../nbs/lib/01_data_utils.qmd 15
+# %% ../nbs/lib/01_data_utils.qmd 17
 @call_parse
 def download_pokemon_sprites(
     delay:float=0.1,                               # Delay between downloads (seconds) to be nice to server
@@ -158,7 +158,7 @@ def download_pokemon_sprites(
     if verbose:
         print(f"Download complete! Downloaded: {downloaded_count}, Skipped: {skipped_count}, Total found: {len(img_tags)}")
 
-# %% ../nbs/lib/01_data_utils.qmd 19
+# %% ../nbs/lib/01_data_utils.qmd 21
 @call_parse
 def process_pokemon_sprites(
     ds_name:str, # Dataset name
@@ -326,7 +326,7 @@ def scale_to_fit(img, target_size):
     new_height = int(img.height * scale_factor)
     return img.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
-# %% ../nbs/lib/01_data_utils.qmd 21
+# %% ../nbs/lib/01_data_utils.qmd 23
 @call_parse
 def datafy_pokemon_sprites(ds_name:str):
     """Convert Pokemon sprites to numpy arrays and save filenames"""
@@ -341,7 +341,7 @@ def datafy_pokemon_sprites(ds_name:str):
     with open(names_path, 'w') as f: f.write('\n'.join(files))
     return pixels_path, names_path
 
-# %% ../nbs/lib/01_data_utils.qmd 24
+# %% ../nbs/lib/01_data_utils.qmd 26
 @ft.lru_cache()
 def load_bipolar_pokemon_sprites(ds_name:str='processed_adaptive'):
     """Load Pokemon sprites from numpy arrays"""
