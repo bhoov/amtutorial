@@ -7,7 +7,16 @@ authors = [
     { name = "Ben Hoover", email = "24350185+bhoov@users.noreply.github.com" }
 ]
 requires-python=">=3.9"
-dependencies = []
+dependencies = [
+    "beautifulsoup4>=4.13.4",
+    "datasets>=3.6.0",
+    "einops>=0.8.1",
+    "equinox>=0.11.10",
+    "imageio>=2.37.0",
+    "jax>=0.4.30",
+    "matplotlib>=3.9.4",
+    "opencv-python>=4.11.0.86",
+]
 
 [project.scripts]
 amtutorial = "amtutorial:main"

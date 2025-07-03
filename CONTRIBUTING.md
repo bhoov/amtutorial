@@ -10,8 +10,12 @@ The most important ground rule:
 
 > **Do not directly edit anything in `src/`**. This code is automatically generated from the `.qmd` and `.ipynb` files in the `nbs/` directory
 
+Additionally,
+- Use `uv add DEP` or `uv add DEP --dev` to add dependencies to the project
+- Because `uv` is not officially supported by nbdev, we have to manually add requirements to `settings.ini`
 
-## The environment
+
+## Log
 
 The following commands were used to initialize the project:
 
@@ -26,6 +30,6 @@ nbdev_new # Fill out requested details, see below to manually change default .ip
 nbdev_install && nbdev_install_hooks && uv add -e --dev amtutorial
 nbdev_prepare # Turn all nbs into executable src
 ```
-Change from default .ipynb to .qmd ()
-- Add ~readme_nb = index.qmd~ to ~settings.ini~ and reformat/rewrite ~index.ipynb~ to ~index.qmd~
-- Add ~contributing_nb = contributing.qmd~ to ~settings.ini~ if you want to write a CONTRIBUTING.qmd instead of a CONTRIBUTING.md or CONTRIBUTING.ipynb
+
+Then, changed default to .qmd files:
+- Add `readme_nb = index.qmd` to `settings.ini`, remove `core.ipynb` and `index.ipynb`

@@ -33,9 +33,9 @@ website:
     tools:
       - icon: github
         href: https://github.com/bhoov/amhn-tutorial-website
-    left:
-      - href: index.qmd
-        text: Home
+    # left:
+    #   - href: index.qmd
+    #     text: Home
       # - href: content/Chapter01_SmallAMs.qmd
       #   text: Small AMs
       # - href: content/Chapter02_GMMs.qmd
@@ -45,11 +45,11 @@ website:
     style: floating
     # style: "docked"
     # search: true
-    contents: 
-    - section: "Chapters"
-      contents:
-      - href: "content/Hopfield_Nets_2.0.ipynb"
-        text: "Sample Chapter"
+    # contents: 
+    # - section: "Chapters"
+    #   contents:
+    #   - href: "content/Hopfield_Nets_2.0.ipynb"
+    #     text: "Sample Chapter"
       # - href: "content/Chapter01_SmallAMs.ipynb"
       #   text: "Chapter 1: Small Associative Memories"
 # jupyter: 
