@@ -1,0 +1,36 @@
+---
+authors: 
+    - name: Dmitry Krotov
+      email: krotov@ibm.com
+      affiliations: IBM Research, MIT
+    - name: Benjamin Hoover
+      email: bhoov@gatech.edu
+      affiliations: IBM Research, Georgia Tech
+    - name: Parikshit Ram
+      email: parikshit.ram@ibm.com
+      affiliations: IBM Research
+---
+
+# Tutorial on Modern Methods in Associative Memory
+> A complete introduction to Associative Memories and Hopfield Networks for the Modern AI Era
+
+
+## Getting started
+
+Install `quarto` ([multi-step instructions](https://docs.posit.co/resources/install-quarto.html)) and `uv` (`curl -LsSf https://astral.sh/uv/install.sh | sh`). If you want to develop the frontend, also install `nodejs` and `npm`.
+
+```sh
+uv sync
+source .venv/bin/activate
+## Optional: install the frontend
+# npm install --prefix javascript && npm run build --prefix javascript 
+quarto preview
+```
+
+**Installation**
+
+**Preview the website**
+
+```python
+quarto preview
+```

@@ -1,0 +1,28 @@
+[project]
+name="amtutorial"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Ben Hoover", email = "24350185+bhoov@users.noreply.github.com" }
+]
+requires-python=">=3.9"
+dependencies = []
+
+[project.scripts]
+amtutorial = "amtutorial:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "nbclient>=0.10.2",
+    "nbdev",
+    "nbformat>=5.10.4",
+]
+
+[tool.uv.sources]
+nbdev = { git = "https://github.com/bhoov/nbdev.git", rev = "qmd_support" }
