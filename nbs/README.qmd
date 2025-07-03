@@ -14,15 +14,14 @@ authors:
 # Tutorial on Modern Methods in Associative Memory
 > A complete introduction to Associative Memories and Hopfield Networks for the Modern AI Era
 
+## Working with the code
 
-## Getting started
-
-Install `quarto` ([multi-step instructions](https://docs.posit.co/resources/install-quarto.html)) and `uv` (`curl -LsSf https://astral.sh/uv/install.sh | sh`). If you want to develop the frontend, also install `nodejs` and `npm`.
+Install `quarto` (multi-step instructions [here](https://docs.posit.co/resources/install-quarto.html)) and `uv` (`curl -LsSf https://astral.sh/uv/install.sh | sh`). If you want to develop the interactive frontend, also install `nodejs` and `npm`.
 
 ```sh
 uv sync
 source .venv/bin/activate
-## Optional: install the frontend
+## Optional: install interactive frontend tooling
 # npm install --prefix javascript && npm run build --prefix javascript 
 quarto preview
 ```

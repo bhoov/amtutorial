@@ -1,7 +1,7 @@
 website:
   sidebar:
     contents:
-      - index.ipynb
+      - README.ipynb
       - section: examples
         contents:
           - examples/00_dense_storage.ipynb

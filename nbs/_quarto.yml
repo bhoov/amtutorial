@@ -3,9 +3,11 @@ project:
   output-dir: docs
   resources:
     - "CNAME"
+    - "resources/"
 
 format:
   html:
+    page-layout: full
     include-in-header:
       - text: | 
           <meta name="robots" content="noindex">

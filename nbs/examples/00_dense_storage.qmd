@@ -8,7 +8,7 @@ import equinox as eqx
 import matplotlib.pyplot as plt
 from einops import rearrange
 import matplotlib.animation as animation
-from IPython.display import HTML, Image, display
+from IPython.display import HTML, Image, display, Video, Markdown
 import imageio
 import numpy as np
 from fastcore.basics import * 
@@ -16,8 +16,9 @@ from fastcore.test import *
 from fastcore.meta import *
 import os
 from jaxtyping import Float, Array
+import matplotlib.gridspec as gridspec
 
-CACHE_RECALL = False
+CACHE_RECALL = True # If false, regenerate all saved results even if files exist.
 SHOW_FULL_ANIMATIONS = True # If true, watch energy descent alongside image denoising. This slows computation down considerably and relies on `ffmpeg` to save the animation.
 ```
 
@@ -49,12 +50,13 @@ class SimpleAM(eqx.Module):
 First, let's store some data and build some helper functions to view the data. While other fields like to work with $\{0,1\}$ binary data, Hopfield Networks like to work with bipolar data where each datapoint $x \in \{-1, 1\}^D$.
 
 ```{python}
-data = np.load("data/processed_pokemon_sprites_adaptive/pokesprites_pixels.npy")
-# data = np.load("data/processed_pokemon_sprites_dithered_0.8/pokesprites_pixels.npy")
-data = (data / 255.) * 2 - 1 # Binarize
+#| output: false
+from amtutorial.data_utils import load_bipolar_pokemon_sprites
+poke_pixels, poke_names = load_bipolar_pokemon_sprites()
+data = poke_pixels
 
-# Assume square data
-pxh = pxw = data.shape[1]
+pxh, pxw = data.shape[-2:]
+assert pxh == pxw, "Data must be square"
 data = data.reshape(-1, pxh*pxw)
 
 def gridify(images, grid_h=None, grid_w=None):
@@ -154,38 +156,45 @@ def cached_recall(am, fname, x_noisy, key=jr.PRNGKey(0), save=True, **kwargs):
         if save: jnp.savez(fname, x_final=x_final, frames=frames, energies=energies)
     return x_final, frames, energies
 
-x_final, frames, energies = cached_recall(chn, 'hopfield_recovery_data.npz', x_noisy, nsteps=12000, key=jr.PRNGKey(5))
+fname = 'basic_hopfield_recovery.npz'
+x_final, frames, energies = cached_recall(chn, fname, x_noisy, nsteps=12000, key=jr.PRNGKey(5))
 
 def show_recall_output(x_og, x_noisy, x_final, energies):
-    fig, axes = plt.subplots(1, 4, figsize=(16, 4)) # Changed to 1 row, 4 columns
-    show_im(x_og, axes[0]); axes[0].set_title("Original pattern")
-    show_im(x_noisy, axes[1]); axes[1].set_title("Noisy Query")
-    show_im(x_final, axes[2]); axes[2].set_title("Retrieved pattern")
+    fig = plt.figure(figsize=(12, 3))
+    gs = gridspec.GridSpec(1, 4, figure=fig, wspace=0.25) 
+    axes = [fig.add_subplot(gs[0, i]) for i in range(4)]
+
+    show_im(x_noisy, axes[0]); axes[0].set_title("Noisy Query")
+    show_im(x_final, axes[1]); axes[1].set_title("Retrieved pattern")
     
     # Add energy plot
-    axes[3].plot(energies)
-    axes[3].set_title("Energy during Recall")
-    axes[3].set_xlabel("Iteration")
-    axes[3].set_ylabel("Energy")
-    axes[3].grid(True, alpha=0.3)
+    axes[2].plot(energies)
+    axes[2].set_title("Energy during Recall")
+    axes[2].set_xlabel("Iteration")
+    axes[2].set_ylabel("Energy")
+    axes[2].grid(True, alpha=0.3)
 
-    plt.tight_layout()
+    show_im(x_og, axes[3])
+    axes[3].set_title("Original pattern")
+
+    plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
     return fig, axes
 
 fig, axes = show_recall_output(x_og, x_noisy, x_final, energies)
 plt.show()
 ```
 
-We can animate the recall process to view the "thinking" process of the CHN. (Please forgive the blurriness of the gif. Browsers automatically interpolate when small images are upscaled.)
+We can animate the recall process to view the "thinking" process of the CHN.
 
 ```{python}
+#| echo: false
 def show_recall_animation(frames, fname, steps_per_sample=32):
     images = list(frames[::steps_per_sample])
     def frame_to_image(frame): return ((frame.reshape(pxh, pxw) + 1) * 127.5).astype(np.uint8)
     images = [frame_to_image(frame) for frame in images]
     fname = fname.replace('.npz', '.gif')
     imageio.mimsave(fname, images, duration=0.001)
-    return Image(filename=fname, width=pxh * 5)
+    return Image(filename=fname, width=pxh * 5), fname
 
 def show_recall_with_energy_animation(frames, energies, fname, steps_per_sample=32, force_remake=False, fps=15):
     """Create animated video showing both frame evolution and energy descent
@@ -242,16 +251,20 @@ def show_recall_with_energy_animation(frames, energies, fname, steps_per_sample=
         plt.close(fig)
         print(f"Saved animated recall with energy to {video_fname}")
     
-    return HTML(f'<video controls src="{video_fname}" width="600"></video>')
+    # return HTML(f'<video controls src="{video_fname}" width="600"></video>')
+    return Video(video_fname, width=600), video_fname
 
 def show_cached_recall_animation(fname, steps_per_sample=32):
     frames, energies = np.load(fname)['frames'], np.load(fname)['energies']
     if SHOW_FULL_ANIMATIONS:
-        display(show_recall_with_energy_animation(frames, energies, fname, steps_per_sample=steps_per_sample, force_remake=(not CACHE_RECALL)))
+        video, video_fname = show_recall_with_energy_animation(frames, energies, fname, steps_per_sample=steps_per_sample, force_remake=(not CACHE_RECALL))
+        return video
+        # return Markdown(f"{{{{< video {video_fname} width=600 height=400 >}}}}") # For quarto
     else:
         display(show_recall_animation(frames, fname, steps_per_sample=steps_per_sample))
 
-show_cached_recall_animation('hopfield_recovery_data.npz', steps_per_sample=32)
+video = show_cached_recall_animation(fname, steps_per_sample=32)
+video
 ```
 
 ### Retrieving "inverted" images
@@ -272,7 +285,8 @@ fig, axes = show_recall_output(x_og, x_noisy, x_final, energies)
 plt.show()
 
 print("Accidentally retrieved the inverted pattern!")
-show_cached_recall_animation(fname, steps_per_sample=32)
+video = show_cached_recall_animation(fname, steps_per_sample=32)
+video
 ```
 
 ### Memory retrieval failure
@@ -294,7 +308,8 @@ fig2, axes2 = show_recall_output(x_og, x_noisy, x_final, energies)
 plt.show()
 
 print("CHN failed to retrieve the correct pattern!")
-show_cached_recall_animation(fname, steps_per_sample=32)
+video = show_cached_recall_animation(fname, steps_per_sample=32)
+video
 ```
 
 To imagine what is happening under the hood, consider the following figure where two distinct basins "merge" and become unrecoverable when we add another basin.
@@ -351,26 +366,26 @@ class DenseAM(SimpleAM):
         return xnew, self.energy(xnew)
 ```
 
-A simple change to using a polynomial of degree $12$ instead of the CHN's quadratic energy function allows us to store retrieve our desired patterns, even up to $K=250$ patterns!
+A simple change to using a polynomial of degree $10$ instead of the CHN's quadratic energy function allows us to store retrieve our desired patterns up to $K=100$ patterns.
 
 ```{python}
 # DenseAM: Increase the number of stored patterns!
-Xi = jr.choice(mem_key, data, shape=(250,))
+Xi = jr.choice(mem_key, data, shape=(100,))
 fig1, ax1 = show_im(Xi);
 ax1.set_title("Stored patterns")
-dam = DenseAM(Xi, n=12, rectified=True)
+dam = DenseAM(Xi, n=10, rectified=True)
 
-fname = f'dam_recovery_n={dam.n}_K={Xi.shape[0]}.npz'
+fname = f'dam_recovery_n_{dam.n}_K_{Xi.shape[0]}.npz'
 
 x_final, frames, energies = cached_recall(dam, fname, x_noisy, nsteps=20000, key=jr.PRNGKey(5))
 
 fig2, axes2 = show_recall_output(x_og, x_noisy, x_final, energies)
 fig2.suptitle(f"DenseAM(n={dam.n}, K={Xi.shape[0]})")
-plt.subplots_adjust(top=0.85)
-
+plt.subplots_adjust(top=0.75)
 plt.show()
 
-show_cached_recall_animation(fname, steps_per_sample=32)
+video = show_cached_recall_animation(fname, steps_per_sample=32)
+video
 ```
 
 A higher degree polynomial gives us more **storage capacity**, which means that it is easier to retrieve the patterns we have stored in the network. Note that the higher the degree $n$, the more narrow the basins of attraction, which makes it easier to pack more patterns into the energy landscape.

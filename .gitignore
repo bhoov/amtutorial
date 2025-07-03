@@ -9,5 +9,8 @@ wheels/
 # Virtual environments
 .venv
 
+# Cache stuff
+*.npz
+
 # nbdev stuff
 _proc/

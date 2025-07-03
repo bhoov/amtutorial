@@ -148,7 +148,6 @@ import time
 
 ```{python}
 #| export
-@call_parse
 def download_pokemon_sprites(
     delay:float=0.1,                               # Delay between downloads (seconds) to be nice to server
     verbose:bool=True                              # Print progress messages
@@ -231,6 +230,7 @@ download_pokemon_sprites()
 With a little help from AI, we can process our Pokemon sprites to be binary.
 
 ```{python}
+#| export
 from PIL import Image
 import numpy as np
 import cv2
@@ -238,7 +238,6 @@ import cv2
 
 ```{python}
 #| export
-@call_parse
 def process_pokemon_sprites(
     ds_name:str, # Dataset name
     canvas_size:int=48, # Final image size
@@ -419,7 +418,6 @@ def scale_to_fit(img, target_size):
 
 ```{python}
 #| export
-@call_parse
 def datafy_pokemon_sprites(ds_name:str):
     """Convert Pokemon sprites to numpy arrays and save filenames"""
     input_dir = get_cache_dir(f"data/pokemon/{ds_name}")
@@ -445,8 +443,10 @@ Let's load the data and take a look at it.
 ```{python}
 #| export
 @ft.lru_cache()
-def load_bipolar_pokemon_sprites(ds_name:str='processed_adaptive'):
+def load_bipolar_pokemon_sprites(ds_name:str='processed_adaptive', binarize_method:str='adaptive'):
     """Load Pokemon sprites from numpy arrays"""
+    download_pokemon_sprites()
+    process_pokemon_sprites(ds_name, binarize_method=binarize_method)
     poke_pixels_path, poke_names_path = datafy_pokemon_sprites(ds_name)
     poke_pixels = np.load(poke_pixels_path)
     poke_pixels = (poke_pixels > 0).astype(np.float32) * 2 - 1
@@ -455,7 +455,11 @@ def load_bipolar_pokemon_sprites(ds_name:str='processed_adaptive'):
 ```
 
 ```{python}
-#| hide
+#| export
+#|hide
+cli_download_pokemon_sprites = call_parse(download_pokemon_sprites)
+cli_process_pokemon_sprites = call_parse(process_pokemon_sprites)
+cli_datafy_pokemon_sprites = call_parse(datafy_pokemon_sprites)
 ```
 
 ```{python}
