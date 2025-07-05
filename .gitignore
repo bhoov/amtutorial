@@ -14,3 +14,4 @@ wheels/
 
 # nbdev stuff
 _proc/
+.quarto
