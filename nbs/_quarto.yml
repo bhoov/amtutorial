@@ -1,11 +1,12 @@
 project:
-  bibliography:
-    - "references.bib"
   type: website
   output-dir: docs
   resources:
     - "CNAME"
     - "resources/"
+
+bibliography:
+  - "references.bib"
 
 format:
   html:

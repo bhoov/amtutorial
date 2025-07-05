@@ -18,7 +18,6 @@ import os
 from jaxtyping import Float, Array, Scalar
 import matplotlib.gridspec as gridspec
 import functools as ft
-
 ```
 
 ```{python}
@@ -562,6 +561,7 @@ def show_batched_recall_output(x_og, x_noisy, x_final, energies):
     return fig, axes
 
 show_batched_recall_output(x_og, x_noisy, x_final, energies);
+plt.show()
 
 def show_batched_recall_animation(frames, energies, cache_name, steps_per_sample=64):
     # Sample frames for animation. Only gif
@@ -582,6 +582,11 @@ def show_batched_recall_animation(frames, energies, cache_name, steps_per_sample
     
     return Image(filename=fname_gif, width=400), fname_gif
 
-gif, gif_fname = show_batched_recall_animation(frames, energies, cache_name)
+if os.path.exists(cache_name + '.gif') and CACHE_RECALL:
+    gif = Image(filename=cache_name + '.gif', width=400)
+else:
+    gif, gif_fname = show_batched_recall_animation(frames, energies, cache_name)
+
+display(gif)
 gif
 ```
