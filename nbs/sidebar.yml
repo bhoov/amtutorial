@@ -2,9 +2,6 @@ website:
   sidebar:
     contents:
       - README.ipynb
-      - section: tutorial
-        contents:
-          - tutorial/00_dense_storage.ipynb
       - section: lib
         contents:
           - lib/01_data_utils.ipynb

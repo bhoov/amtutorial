@@ -137,18 +137,19 @@ def gridify(images, grid_h=None):
     grid = rearrange(images[:n_needed], '(gh gw) h w -> (gh h) (gw w)', gh=grid_h, gw=grid_w)
     return grid
 
-def show_im(x, ax=None, do_gridify=True, grid_h=None):
+def show_im(x, ax=None, do_gridify=True, grid_h=None, figsize=None):
     """Vector to figure"""
     x = rearrange(x, "... (h w) -> ... h w", h=pxh, w=pxw)
     if do_gridify and len(x.shape) == 3: x = gridify(x, grid_h)
     empty_ax = ax is None
-    if empty_ax: fig, ax = plt.subplots(figsize=(8, 4))
+    figsize = figsize or (8, 2.67) # Quarto aspect ratio
+    if empty_ax: fig, ax = plt.subplots(figsize=figsize)
     ax.imshow(x, cmap="gray", vmin=-1, vmax=1)
     ax.axis("off")
     return None if not empty_ax else fig, ax
 
 sample_data = jr.choice(jr.PRNGKey(10), data, shape=(100,), replace=False)
-fig1, ax1 = show_im(sample_data);
+fig1, ax1 = show_im(sample_data, figsize=(6, 6));
 ax1.set_title("Example patterns (black=-1, white=1)")
 plt.show()
 ```
@@ -163,7 +164,7 @@ desired_names = ["eevee", "pichu"]
 eevee_pichu_idxs = [poke_names.index(name) for name in desired_names]
 Xi = data[eevee_pichu_idxs]
 
-fig, ax = show_im(Xi);
+fig, ax = show_im(Xi, figsize=(6,3));
 ax.set_title("Stored patterns")
 plt.show()
 
@@ -226,7 +227,7 @@ def flip_some_bits(key, x, p=0.1):
 x_og = Xi[0] 
 x_noisy = flip_some_bits(jr.PRNGKey(0), x_og, 0.2)
 
-show_im(jnp.stack([x_og, x_noisy]))
+show_im(jnp.stack([x_og, x_noisy]), figsize=(6, 3));
 ```
 
 For the pedagogical purpose of this notebook, we'll cache the recall process and results so we don't have to run it every time.
@@ -252,8 +253,9 @@ x_final, frames, energies = cached_recall(chn, cache_name, x_noisy, nsteps=12000
 ```{python}
 #| echo: false
 def show_recall_output(x_og, x_noisy, x_final, energies, show_original=True):
-    fig = plt.figure(figsize=(12, 3))
     nimgs = 4 if show_original else 3
+    figsize = (8, 2.2) if nimgs == 4 else (8, 2.67)
+    fig = plt.figure(figsize=figsize)
     gs = gridspec.GridSpec(1, nimgs, figure=fig, wspace=0.25) 
     axes = [fig.add_subplot(gs[0, i]) for i in range(nimgs)]
 
@@ -285,7 +287,7 @@ def show_recall_animation(frames, cache_name, steps_per_sample=32):
     def frame_to_image(frame): return ((frame.reshape(pxh, pxw) + 1) * 127.5).astype(np.uint8)
     images = [frame_to_image(frame) for frame in images]
     fname = Path(CACHE_DIR) / (cache_name + '.gif')
-    imageio.mimsave(fname, images, duration=0.001)
+    imageio.mimsave(fname, images, duration=0.001, loop=0)
     return Image(filename=fname, width=pxh * 5), fname
 
 def show_recall_with_energy_animation(frames, energies, cache_name, steps_per_sample=32, force_remake=False, fps=15):
@@ -352,13 +354,14 @@ def show_cached_recall_animation(cache_name, steps_per_sample=32):
 
     if SHOW_FULL_ANIMATIONS:
         video, video_fname = show_recall_with_energy_animation(frames, energies, cache_name, steps_per_sample=steps_per_sample, force_remake=(not CACHE_RECALL))
-        return video
-        # return Markdown(f"{{{{< video {video_fname} width=600 height=400 >}}}}") # For quarto
+        return video, video_fname
     else:
-        display(show_recall_animation(frames, fname, steps_per_sample=steps_per_sample))
+        video_fname = Path(CACHE_DIR) / (cache_name + '.gif')
+        gif = show_recall_animation(frames, fname, steps_per_sample=steps_per_sample)
+        return gif, video_fname
 
-video = show_cached_recall_animation(cache_name, steps_per_sample=32)
-video
+video, video_fname = show_cached_recall_animation(cache_name, steps_per_sample=32)
+Markdown(f"![]({video_fname})")
 ```
 
 ### Retrieving "inverted" images {#sec-inverted-retrievals}
@@ -380,8 +383,8 @@ fig, axes = show_recall_output(x_og, x_noisy, x_final, energies, show_original=F
 plt.show()
 
 print("Accidentally retrieved the inverted pattern!")
-video = show_cached_recall_animation(cache_name, steps_per_sample=32)
-video
+video, video_fname = show_cached_recall_animation(cache_name, steps_per_sample=32)
+Markdown(f"![]({video_fname})")
 ```
 
 ### Memory retrieval failure 
@@ -391,7 +394,7 @@ Unfortunately, the CHN is terrible at storing and retrieving multiple patterns. 
 ```{python}
 Xi = data[eevee_pichu_idxs]
 Xi = jnp.concatenate([Xi, jr.choice(jr.PRNGKey(10), data, shape=(4,), replace=False)])
-fig, ax = show_im(Xi);
+fig, ax = show_im(Xi, figsize=(6, 4));
 ax.set_title(f"Stored patterns (K={Xi.shape[0]})")
 plt.show()
 ```
@@ -409,8 +412,8 @@ fig2, axes2 = show_recall_output(x_og, x_noisy, x_final, energies, show_original
 plt.show()
 
 print("CHN failed to retrieve the correct pattern!")
-video = show_cached_recall_animation(fname, steps_per_sample=32)
-video
+video, video_fname = show_cached_recall_animation(fname, steps_per_sample=32)
+Markdown(f"![]({video_fname})") 
 ```
 
 <!-- To imagine what is happening under the hood, consider the following figure where two distinct basins "merge" and become unrecoverable when we add another basin. -->
@@ -469,7 +472,7 @@ A simple change to using a polynomial of degree $6$ instead of the CHN's quadrat
 # DenseAM: Increase the number of stored patterns!
 Xi = data[eevee_pichu_idxs]
 Xi = jnp.concatenate([Xi, jr.choice(jr.PRNGKey(10), data, shape=(98,), replace=False)])
-fig1, ax1 = show_im(Xi);
+fig1, ax1 = show_im(Xi, figsize=(7,7));
 ax1.set_title("Stored patterns")
 dam = DenseAM(Xi, n=6, rectified=True)
 
@@ -484,8 +487,8 @@ fig2.suptitle(f"DenseAM(n={dam.n}, K={Xi.shape[0]})")
 plt.subplots_adjust(top=0.75)
 plt.show()
 
-video = show_cached_recall_animation(fname, steps_per_sample=32)
-video
+video, video_fname = show_cached_recall_animation(fname, steps_per_sample=32)
+Markdown(f"![]({video_fname})")
 ```
 
 A higher degree polynomial gives us more **storage capacity**, which means that it is easier to retrieve the patterns we have stored in the network. Note that the higher the degree $n$, the narrower the basins of attraction, which makes it easier to pack more patterns into the energy landscape.
@@ -518,7 +521,7 @@ class MHN(BinaryAM):
 Xi = data[:1024]
 Nshow = 255
 Xi_show = jnp.concatenate([data[eevee_pichu_idxs], jr.choice(jr.PRNGKey(10), Xi, shape=(Nshow - len(eevee_pichu_idxs),), replace=False)])
-fig1, ax1 = show_im(Xi_show);
+fig1, ax1 = show_im(Xi_show, figsize=(8,8));
 ax1.set_title(f"Random sample of {Nshow} stored patterns")
 print(f"Storing {Xi.shape[0]} patterns")
 ```
@@ -547,6 +550,8 @@ else:
     np.savez(npz_fname, x_final=x_final, frames=frames, energies=energies)
 ```
 
+And of course, what's the fun if we can't animate the retrieval process?
+
 ```{python}
 #| echo: false
 #| output: asis
@@ -557,19 +562,20 @@ def show_batched_recall_output(x_og, x_noisy, x_final, energies):
     show_im(x_noisy, axes[0]); axes[0].set_title("Noisy queries") 
     show_im(x_final, axes[1]); axes[1].set_title("Retrieved patterns")
     
-    # # Plot all energy curves
-    # for i in range(energies.shape[0]):
-    #     axes[2].plot(energies[i], alpha=0.7)
-    # axes[2].set_title("Energy during recall")
-    # axes[2].set_xlabel("Iteration")
-    # axes[2].set_ylabel("Energy")
-    # axes[2].grid(True, alpha=0.3)
+    # Plot all energy curves
+    for i in range(energies.shape[0]):
+        axes[2].plot(energies[i], alpha=0.7)
+    axes[2].set_title("Energy during recall")
+    axes[2].set_xlabel("Iteration")
+    axes[2].set_ylabel("Energy")
+    axes[2].grid(True, alpha=0.3)
     
     plt.tight_layout()
     return fig, axes
 
-show_batched_recall_output(x_og, x_noisy, x_final, energies);
-plt.show()
+# Redundant
+# show_batched_recall_output(x_og, x_noisy, x_final, energies);
+# plt.show()
 
 def show_batched_recall_animation(frames, energies, cache_name, steps_per_sample=64):
     # Sample frames for animation. Only gif
@@ -586,7 +592,7 @@ def show_batched_recall_animation(frames, energies, cache_name, steps_per_sample
         images.append(frame_img)
     
     fname_gif = Path(CACHE_DIR) / (cache_name + '.gif')
-    imageio.mimsave(fname_gif, images, duration=0.1)
+    imageio.mimsave(fname_gif, images, duration=0.1, loop=0)
     
     return Image(filename=fname_gif, width=400), fname_gif
 
@@ -597,6 +603,6 @@ else:
     gif, gif_fname = show_batched_recall_animation(frames, energies, cache_name)
 
 display(gif)
-# Markdown(f"{{{{< video {gif_fname} width=600 height=400 >}}}}") # For quarto
-Markdown(f"![]({gif_fname})") # For quarto
+# Markdown(f"![]({gif_fname})")
+Markdown(f'<img src="{gif_fname}" width="700px">')
 ```
