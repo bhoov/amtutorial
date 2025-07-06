@@ -5,7 +5,12 @@ website:
       - section: tutorial
         contents:
           - tutorial/00_dense_storage.ipynb
-          - tutorial/01_energy_transformer.ipynb
       - section: lib
         contents:
           - lib/01_data_utils.ipynb
+        href: lib/00_index.ipynb
+      - section: tutorial
+        contents:
+          - tutorial/00_dense_storage.ipynb
+          - tutorial/01_energy_transformer.ipynb
+        href: tutorial/index.ipynb

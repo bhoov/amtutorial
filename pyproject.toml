@@ -12,6 +12,7 @@ dependencies = [
     "datasets>=3.6.0",
     "einops>=0.8.1",
     "equinox>=0.11.10",
+    "ffmpeg-python>=0.2.0",
     "imageio>=2.37.0",
     "jax>=0.4.30",
     "matplotlib>=3.9.4",

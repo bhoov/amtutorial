@@ -24,7 +24,6 @@ When blocks are stacked, the residual connection sparks an interesting connectio
 
 If we ignore the small complication of the layernorms interspersed through the residual highway, the sequence of equations looks like:
 
-
 These points are summarized in @fig-standard-transformer.
 
 ![A vanilla Transformer Block consisting of 4 main operations: [**(multi-headed) attention**]{.red}, [**MLP**]{.blue}, [**(pre-)layernorms**]{.green}, and [**residual connections**]{.yellow}. The Transformer is a stack of these blocks, which we show depicted as a "residual highway" design. The residual highway showcases how each block "perturbs" its input, and the mathematical operation looks like a dynamical system. If the system can be described such that the operation of each block is a gradient descent, the system becomes an energy-based model.](./figs/standard-transformer.png){#fig-standard-transformer}

@@ -70,14 +70,11 @@ class BinaryAM(eqx.Module):
         xflipped = jnp.array(x).at[idx].multiply(-1)
         energy_og = self.energy(x)
         energy_flipped = self.energy(xflipped)
-
         keep_flip = (energy_flipped - energy_og) < 0
         return lax.cond(
             keep_flip, 
-
             # Keep flipped bit if it has lower energy
             lambda: (xflipped, energy_flipped), 
-
             # Otherwise keep original bit
             lambda: (x, energy_og)
         )
@@ -98,7 +95,7 @@ class BinaryAM(eqx.Module):
         # Randomly sample `nsteps` bits to flip
         bitflip_sequence = jr.choice(key, np.arange(D), shape=(nsteps,))
 
-        # Apply `async_update` to each bitflip in deq
+        # Apply `async_update` to each bitflip in seq
         final_x, (frames, energies) = lax.scan(update_step, x0, bitflip_sequence)
 
         # Return final pattern and the trajectory
@@ -145,7 +142,7 @@ def show_im(x, ax=None, do_gridify=True, grid_h=None):
     x = rearrange(x, "... (h w) -> ... h w", h=pxh, w=pxw)
     if do_gridify and len(x.shape) == 3: x = gridify(x, grid_h)
     empty_ax = ax is None
-    if empty_ax: fig, ax = plt.subplots()
+    if empty_ax: fig, ax = plt.subplots(figsize=(8, 4))
     ax.imshow(x, cmap="gray", vmin=-1, vmax=1)
     ax.axis("off")
     return None if not empty_ax else fig, ax
@@ -254,10 +251,11 @@ x_final, frames, energies = cached_recall(chn, cache_name, x_noisy, nsteps=12000
 
 ```{python}
 #| echo: false
-def show_recall_output(x_og, x_noisy, x_final, energies):
+def show_recall_output(x_og, x_noisy, x_final, energies, show_original=True):
     fig = plt.figure(figsize=(12, 3))
-    gs = gridspec.GridSpec(1, 4, figure=fig, wspace=0.25) 
-    axes = [fig.add_subplot(gs[0, i]) for i in range(4)]
+    nimgs = 4 if show_original else 3
+    gs = gridspec.GridSpec(1, nimgs, figure=fig, wspace=0.25) 
+    axes = [fig.add_subplot(gs[0, i]) for i in range(nimgs)]
 
     show_im(x_noisy, axes[0]); axes[0].set_title("Noisy Query")
     show_im(x_final, axes[1]); axes[1].set_title("Retrieved pattern")
@@ -269,13 +267,12 @@ def show_recall_output(x_og, x_noisy, x_final, energies):
     axes[2].set_ylabel("Energy")
     axes[2].grid(True, alpha=0.3)
 
-    show_im(x_og, axes[3])
-    axes[3].set_title("Original pattern")
-
-    # plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=0.5)
+    if show_original:
+        show_im(x_og, axes[3])
+        axes[3].set_title("Original pattern")
     return fig, axes
 
-fig, axes = show_recall_output(x_og, x_noisy, x_final, energies)
+fig, axes = show_recall_output(x_og, x_noisy, x_final, energies, show_original=False)
 plt.show()
 ```
 
@@ -379,7 +376,7 @@ x_noisy = flip_some_bits(jr.PRNGKey(1), x_og, 0.6)
 
 cache_name = 'hopfield_recovery_inverted'
 x_final, frames, energies = cached_recall(chn, cache_name, x_noisy, nsteps=15000, key=jr.PRNGKey(5))
-fig, axes = show_recall_output(x_og, x_noisy, x_final, energies)
+fig, axes = show_recall_output(x_og, x_noisy, x_final, energies, show_original=False)
 plt.show()
 
 print("Accidentally retrieved the inverted pattern!")
@@ -408,7 +405,7 @@ chn = CHN(Xi)
 
 fname = 'hopfield_recovery_fail'
 x_final, frames, energies = cached_recall(chn, fname, x_noisy, nsteps=15000, key=jr.PRNGKey(5))
-fig2, axes2 = show_recall_output(x_og, x_noisy, x_final, energies)
+fig2, axes2 = show_recall_output(x_og, x_noisy, x_final, energies, show_original=False)
 plt.show()
 
 print("CHN failed to retrieve the correct pattern!")
@@ -482,7 +479,7 @@ x_og = Xi[0]
 x_noisy = flip_some_bits(jr.PRNGKey(0), x_og, 0.2)
 x_final, frames, energies = cached_recall(dam, fname, x_noisy, nsteps=20000, key=jr.PRNGKey(5))
 
-fig2, axes2 = show_recall_output(x_og, x_noisy, x_final, energies)
+fig2, axes2 = show_recall_output(x_og, x_noisy, x_final, energies, show_original=False)
 fig2.suptitle(f"DenseAM(n={dam.n}, K={Xi.shape[0]})")
 plt.subplots_adjust(top=0.75)
 plt.show()
@@ -552,21 +549,21 @@ else:
 
 ```{python}
 #| echo: false
+#| output: asis
 def show_batched_recall_output(x_og, x_noisy, x_final, energies):
-    fig, axes = plt.subplots(1, 4, figsize=(20, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(8, 4))
     
     # Show grids of images
-    show_im(x_og, axes[0]); axes[0].set_title("Original patterns")
-    show_im(x_noisy, axes[1]); axes[1].set_title("Noisy queries") 
-    show_im(x_final, axes[2]); axes[2].set_title("Retrieved patterns")
+    show_im(x_noisy, axes[0]); axes[0].set_title("Noisy queries") 
+    show_im(x_final, axes[1]); axes[1].set_title("Retrieved patterns")
     
-    # Plot all energy curves
-    for i in range(energies.shape[0]):
-        axes[3].plot(energies[i], alpha=0.7)
-    axes[3].set_title("Energy during recall (all)")
-    axes[3].set_xlabel("Iteration")
-    axes[3].set_ylabel("Energy")
-    axes[3].grid(True, alpha=0.3)
+    # # Plot all energy curves
+    # for i in range(energies.shape[0]):
+    #     axes[2].plot(energies[i], alpha=0.7)
+    # axes[2].set_title("Energy during recall")
+    # axes[2].set_xlabel("Iteration")
+    # axes[2].set_ylabel("Energy")
+    # axes[2].grid(True, alpha=0.3)
     
     plt.tight_layout()
     return fig, axes
@@ -594,10 +591,12 @@ def show_batched_recall_animation(frames, energies, cache_name, steps_per_sample
     return Image(filename=fname_gif, width=400), fname_gif
 
 if (Path(CACHE_DIR) / (cache_name + '.gif')).exists() and CACHE_RECALL:
-    gif = Image(filename=str(Path(CACHE_DIR) / (cache_name + '.gif')), width=400)
+    gif_fname = str(Path(CACHE_DIR) / (cache_name + '.gif'))
+    gif = Image(filename=gif_fname, width=400)
 else:
     gif, gif_fname = show_batched_recall_animation(frames, energies, cache_name)
 
 display(gif)
-gif
+# Markdown(f"{{{{< video {gif_fname} width=600 height=400 >}}}}") # For quarto
+Markdown(f"![]({gif_fname})") # For quarto
 ```
