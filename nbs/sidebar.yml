@@ -2,9 +2,10 @@ website:
   sidebar:
     contents:
       - README.ipynb
-      - section: examples
+      - section: tutorial
         contents:
-          - examples/00_dense_storage.ipynb
+          - tutorial/00_dense_storage.ipynb
+          - tutorial/01_energy_transformer.ipynb
       - section: lib
         contents:
           - lib/01_data_utils.ipynb

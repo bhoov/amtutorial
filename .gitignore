@@ -15,3 +15,4 @@ wheels/
 # nbdev stuff
 _proc/
 .quarto
+.DS_Store

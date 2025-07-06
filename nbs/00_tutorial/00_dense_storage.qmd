@@ -1,4 +1,4 @@
-# From Hopfield Nets to Dense Associative Memories
+# Binary Dense Storage
 > Improving the storage capacity of the Hopfield Network
 
 ```{python}
@@ -27,7 +27,10 @@ from pathlib import Path
 CACHE_DIR = "cache/00_dense_storage"
 CACHE_RECALL = True # If False, regenerate all saved results even if files exist.
 SHOW_FULL_ANIMATIONS = True # If True, render videos instead of gifs. This is slower than gifs and relies on `ffmpeg` to save the animation, but it lets us see the energy descent alongside the frame evolution.
+```
 
+```{python}
+#|hide
 Path(CACHE_DIR).mkdir(parents=True, exist_ok=True)
 ```
 

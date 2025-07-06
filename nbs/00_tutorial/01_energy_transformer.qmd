@@ -1,0 +1,40 @@
+# Energy Transformer
+> Rederiving the Transformer as an Associative Memory.
+
+<style>
+    .red { color:rgb(247, 109, 104); }
+    .blue { color:rgb(64, 130, 200); }
+    .green { color:rgb(89, 203, 78); }
+    .yellow { color:rgb(252, 211, 28); }
+</style>
+
+## Transformers look like Dynamic Systems
+> Squint, and the Transformer looks like a dynamic system. 
+
+The transformer is the engine behind the best neural networks we have today. At its core, the transformer is a stack of $L$ transformer blocks that takes a length $N$ sequence of input tokens $\{\mathbf{x}^{(0)}_1, \ldots, \mathbf{x}^{(0)}_N\}$ and outputs a length $N$ sequence of output tokens $\{\mathbf{x}^{(L)}_1, \ldots, \mathbf{x}^{(L)}_N\}$. Each token $\mathbf{x}^{(l)}_i \in \mathbb{R}^D$ is a vector of dimension $D$. 
+
+Each transformer block contains four important components: 
+
+1. An [**attention mechanism**]{.red} that lets each token exchange information with other tokens in the same sequence. The attention is described to have multiple "attention heads", allowing different heads to route different kinds of information between tokens.
+2. A [**2-layer MLP**]{.blue} transforms each token independently into the representation for the next layer. *The MLP does not allow tokens to mix with each other.*
+3. A [**Layer-Normalization**]{.green} normalizes the token representation for gradient and computation stability. We will consider the version of the Transformer with *pre-layernorms*, where normalization occurs before the attention and MLP operations.
+4. A [**residual connection**]{.yellow} that adds the input to the output of each of these sub-operations. 
+
+When blocks are stacked, the residual connection sparks an interesting connection to dynamical systems. Each operation (the attention and the MLP) can be viewed as a perturbation to its input, such that the following sequence of equations contains a
+
+If we ignore the small complication of the layernorms interspersed through the residual highway, the sequence of equations looks like:
+
+
+These points are summarized in @fig-standard-transformer.
+
+![A vanilla Transformer Block consisting of 4 main operations: [**(multi-headed) attention**]{.red}, [**MLP**]{.blue}, [**(pre-)layernorms**]{.green}, and [**residual connections**]{.yellow}. The Transformer is a stack of these blocks, which we show depicted as a "residual highway" design. The residual highway showcases how each block "perturbs" its input, and the mathematical operation looks like a dynamical system. If the system can be described such that the operation of each block is a gradient descent, the system becomes an energy-based model.](./figs/standard-transformer.png){#fig-standard-transformer}
+
+The Transformer is a very flexible computing paradigm that can be used for the two major approaches of modern language modeling: **masked token prediction** (e.g., BERT and diffusion-style transformers) where you predict the fraction of input tokens that are MASKed using information from the unmasked tokens, and **autoregressive language modeling** (e.g., GPT-style models), where each token in the input sequence is transformed into the next prediction token.
+
+Forget about the full transformer, and let's hone in on the core idea of the transformer: the self-attention mechanism.
+
+## Using a pretrained Energy Transformer
+
+## Training an Energy Transformer
+
+We train ET on a simple dataset, should work on CPU.

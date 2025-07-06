@@ -1,0 +1,9 @@
+# Reusable utils
+
+To aid in the pedagogy of the tutorial, a lot of logic (e.g., data processing, boilerplate training code, etc.) has been ported to this small library of reusable utilities.
+
+All notebooks are designed to be run using CPU only. Requirements can be installed with:
+
+```
+pip install amtutorial
+```
