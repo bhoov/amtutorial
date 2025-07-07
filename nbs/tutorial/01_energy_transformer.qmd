@@ -109,7 +109,7 @@ class EnergyAttention(eqx.Module):
     self, 
     xhat:Float[Array, "N D"], # Layer normalized tokens
     ) -> float:
-    "Compute energy. The update rule is computed via autograd of this method."
+    "Attention energy's update rule is computed via autograd of this energy."
     beta = self.beta or 1/jnp.sqrt(self.Wk.shape[-1])
     K = jnp.einsum("kd,hdy->khy", xhat, self.Wk)
     Q = jnp.einsum("qd,hdy->qhy", xhat, self.Wq)
@@ -130,27 +130,34 @@ def layer_norm(x, axis=-1, eps=1e-5):
     xmeaned = x-xmean
     return xmeaned / jnp.sqrt((xmeaned**2).mean(axis, keepdims=True) + eps)
 
-xhat_init = layer_norm(jr.normal(key3, (N, D))) # Layer normalized tokens
+def energy_recall(
+  Efn, # Scalar-valued energy function
+  x_init, # Initial tokens
+  nsteps, # Number of gradient descent steps
+  step_size # Step size for gradient descent
+  ):
+  "Simple gradient descent to recall a memory"
+  @jax.jit
+  def gd_step(xhat, i):
+      energy, grad = jax.value_and_grad(Efn)(layer_norm(xhat))
+      xhat_next = xhat - step_size * grad
+      return xhat_next, energy
 
-nsteps = 3000
-step_size = 0.5
+  xhat_init = layer_norm(x_init)
+  final_xhat, energy_history = jax.lax.scan(
+      gd_step,
+      xhat_init,
+      jnp.arange(nsteps)
+  )
+  return final_xhat, energy_history
 
-@jax.jit
-def gd_step(xhat, i):
-    energy, grad = jax.value_and_grad(eattn.energy)(layer_norm(xhat))
-    xhat_next = xhat - step_size * grad
-    return xhat_next, energy
-
-final_xhat, energy_history = jax.lax.scan(
-    gd_step,
-    xhat_init,
-    jnp.arange(nsteps)
-)
+x_init = layer_norm(jr.normal(key3, (N, D))) # Layer normalized tokens
+final_xhat, energy_history = energy_recall(eattn.energy, x_init, nsteps=3000, step_size=0.5)
 ```
 
 ```{python}
 #| echo: false
-# Plot the energy descent
+#| label: fig-attn-energy-descent
 plt.figure(figsize=(7, 5))
 plt.plot(energy_history, linewidth=2, color='blue')
 plt.xlabel('Gradient Descent Steps')
@@ -169,29 +176,78 @@ You'll probably remember that traditional attention has a value projection matri
 
 ### Memory Energy
 
-
+In traditional transformers, the MLP (without biases) can be written as a two-layer feedforward network with a ReLU on the hidden activations. The MLP is parameterized by two weight matrices $\mathbf{V}, \mathbf{W} \in \mathbb{R}^{M \times D}$ where $M$ is the size of the hidden layer ($M=4D$ is often viewed as the default expansion factor atop token dimension $D$). Let's again use Einstein notation, where $\mu=1\ldots M$ indexes the hidden units, $i,j=1\ldots D$ index the token dimensions, and $B=1\ldots N$ indexes each token. 
 
 $$
-E^{\text{HN}} = -\sum\limits_{B=1}^N\sum\limits_{\mu=1}^K G\Big(\sum\limits_{j=1}^D \xi_{\mu j} \; \hat{x}_{jB}\Big),\qquad \boldsymbol{\xi} \in \mathbb{R}^{K \times D} 
+\text{MLP}(\hat{\mathbf{x}})_{Bi} = \sum_\mu W_{\mu i} \; \text{ReLU}\left(\sum_j V_{\mu j} \hat{\mathbf{x}}_{Bj}\right)
+$${#eq-mlp-update}
+
+If we assume weight sharing between $\mathbf{V} = \mathbf{W} = \boldsymbol{\xi}$, this is a gradient descent step down the energy of a Hopfield Network 
+
+$$
+E^{\text{HN}}(\hat{\mathbf{x}}) = - \sum_{B, \mu} F\left(\sum_j \xi_{\mu j} \hat{\mathbf{x}}_{Bj}\right)
 $$
 
+with rectified quadratic energy $F(\cdot) := \frac12 \text{ReLU}(\cdot)^2$. If we say $f(\cdot) := F'(\cdot) = \text{ReLU}(\cdot)$, the negative gradient of the energy is
+
+$$
+-\frac{\partial E^{\text{HN}}(\mathbf{\hat{x}})}{\partial \hat{x}_{Bi}} 
+= \sum_\mu \xi_{\mu i} \; f\left(\sum_j \xi_{\mu j} \hat{\mathbf{x}}_{Bj}\right),
+$$
+
+which is identical to the MLP operation in @eq-mlp-update with a weight sharing constraint.
+
+:::{.callout-note}
+It is perfectly reasonable to consider other convex functions $F$ for use in the energy. Polynomials of higher degree $n$ or exponential functions are both valid and will yield [Dense Associative Memory](./00_dense_storage.ipynb). However, because traditional Transformers use a ReLU activation, we use a rectified quadratic energy.
+:::
+
+We will implement the Hopfield Network energy in the following code, leaving the gradient updates to autograd.
+
+```{python}
+class HopfieldNetwork(eqx.Module):
+  "A simple Hopfield Net with ReLU activation replaces the MLP"
+  Xi: Float[Array, "M D"]
+
+  def energy(self, xhat:Float[Array, "N D"]):
+    """Return the Hopfield Network's energy"""
+    hid = jnp.einsum("nd,md->nm", xhat, self.Xi)
+    E = -0.5 * (hid.clip(0) ** 2).sum()
+    return E
+```
+
+This energy is also bounded from below.
+
+```{python}
+#| hide
+N, D = 100, 128
+M = 4 * D
+key1, key2 = jr.split(jr.PRNGKey(12))
+
+hn = HopfieldNetwork(Xi=jr.normal(key1, (M, D)))
+xhat_init = layer_norm(jr.normal(key3, (N, D))) # Layer normalized tokens
+
+final_xhat, energy_history = energy_recall(hn.energy, xhat_init, nsteps=3000, step_size=0.5)
+```
+
+```{python}
+#| echo: false
+# Plot the energy descent
+plt.figure(figsize=(7, 5))
+plt.plot(energy_history, linewidth=2, color='blue')
+plt.xlabel('Gradient Descent Steps')
+plt.ylabel('Energy')
+plt.title('Hopfield Network Energy Descent')
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
 
 ### Total energy
 
 The total energy of the ET block is the sum of the attention energy and the memory energy. The negative gradient $-\nabla E_\theta(\mathbf{x})$ of the energy has all [four components]{#four-components} of the standard transformer block with some weight sharing, and the `MLP+Attn` operations in happening parallel rather than sequentially, as shown in the . 
 
 
-
-
-
-
-
-
-
-
-
-
-\caption{\textbf{(Left)} Gradient descent through the ET block's global energy looks like the operation of a standard transformer. It has multi-head self-attention, an MLP-like module, a layer norm, and a residual connection. The input tokens $\mathbf{x}^{(t)}$ recur through this block over \textit{time}, decreasing an energy that is bounded from below. Note that the MLP (Hopfield Network) and attention are applied in parallel as opposed to consecutively. \textbf{(Right)}: ET reconstructs a masked input image consisting of $16 \times 16$ encoded image tokens. All tokens evolve in time and the final state of the tokens is used to reconstruct the image.
+<!-- \caption{\textbf{(Left)} Gradient descent through the ET block's global energy looks like the operation of a standard transformer. It has multi-head self-attention, an MLP-like module, a layer norm, and a residual connection. The input tokens $\mathbf{x}^{(t)}$ recur through this block over \textit{time}, decreasing an energy that is bounded from below. Note that the MLP (Hopfield Network) and attention are applied in parallel as opposed to consecutively. \textbf{(Right)}: ET reconstructs a masked input image consisting of $16 \times 16$ encoded image tokens. All tokens evolve in time and the final state of the tokens is used to reconstruct the image. -->
 
 
 
