@@ -95,7 +95,8 @@ which is identical to the MLP operation in @eq-mlp-update with a weight sharing 
 It is perfectly reasonable to consider other convex functions $F$ for use in the energy. Polynomials of higher degree $n$ or exponential functions are both valid and will yield [Dense Associative Memory](./00_dense_storage.ipynb). However, because traditional Transformers use a ReLU activation, we use a rectified quadratic energy.
 :::
 
-### Code implementation {#sec-ET-implementation}
+
+### ET in code {#sec-ET-implementation}
 
 Let's implement the attention energy in code. We will use [`jax`](https://github.com/jax-ml/jax) and [`equinox`](https://github.com/patrick-kidger/equinox) for our code.
 
@@ -141,13 +142,12 @@ class HopfieldNetwork(eqx.Module):
     hid = jnp.einsum("nd,md->nm", xhat, self.Xi)
     E = -0.5 * (hid.clip(0) ** 2).sum()
     return E
+```
 
-def layer_norm(x, axis=-1, eps=1e-5):
-    "Simple layer normalization to check convergence"
-    xmean = x.mean(axis, keepdims=True)
-    xmeaned = x-xmean
-    return xmeaned / jnp.sqrt((xmeaned**2).mean(axis, keepdims=True) + eps)
 
+Note that we will restrict ourselves to using a **special layernorm** that can be viewed as the gradient of a convex Lagrangian function. We'll just show this in code -- it is the same as the standard layer normalization, but we restrict the learnable `scale` parameter to be a scalar, not a vector of shape `D`.
+
+```{python}
 class EnergyLayerNorm(eqx.Module):
   """Define our primary activation function (modified LayerNorm) as a lagrangian with energy"""
   gamma: Float[Array, ""]  # Scaling scalar
@@ -176,21 +176,21 @@ class EnergyLayerNorm(eqx.Module):
     return (self(x) * x).sum() - self.lagrangian(x)
 ```
 
-That's it! We rely on autograd to do the energy minimization. Let's check that the energy of each module monotonically decreases and is bounded from below. 
+That's it! We rely on autograd to do the energy minimization. Let's check that the energies of both attention and memory monotonically decreases and is bounded from below. 
 
 ```{python}
 N, H, D, Y = 100, 12, 128, 42
-key1, key2, key3 = jr.split(jr.PRNGKey(11), 3)
-# eattn = EnergyAttention(Wq=jnp.sqrt(1/Y)*jr.normal(key1, (H, D, Y)), Wk=jnp.sqrt(1/Y)*jr.normal(key2, (H, D, Y)))
-# eattn = EnergyAttention(Wq=jr.normal(key1, (H, D, Y)), Wk=jr.normal(key2, (H, D, Y)))
+M = 4*D # MLP size
+key1, key2, key3, key4 = jr.split(jr.PRNGKey(11), 4)
 eattn = EnergyAttention(Wq=jr.normal(key1, (H, D, Y))/Y, Wk=jr.normal(key2, (H, D, Y))/Y)
+hn = HopfieldNetwork(Xi=jr.normal(key3, (M, D)))
 lnorm = EnergyLayerNorm(gamma=1., delta=jnp.zeros(D))
 
 def energy_recall(Efn, x_init, nsteps, step_size):
   "Simple gradient descent to recall a memory"
   @jax.jit
   def gd_step(xhat, i):
-      energy, grad = jax.value_and_grad(Efn)(layer_norm(xhat))
+      energy, grad = jax.value_and_grad(Efn)(lnorm(xhat))
       xhat_next = xhat - step_size * grad
       return xhat_next, energy
 
@@ -202,7 +202,7 @@ def energy_recall(Efn, x_init, nsteps, step_size):
   )
   return final_xhat, energy_history
 
-x_init = lnorm(jr.normal(key3, (N, D))) # Layer normalized tokens
+x_init = lnorm(jr.normal(key4, (N, D))) # Layer normalized tokens
 final_attn_xhat, attn_energy_history = energy_recall(eattn.energy, x_init, nsteps=3000, step_size=0.5)
 final_hn_xhat, hn_energy_history = energy_recall(hn.energy, x_init, nsteps=3000, step_size=0.5)
 ```
@@ -211,49 +211,22 @@ final_hn_xhat, hn_energy_history = energy_recall(hn.energy, x_init, nsteps=3000,
 #| echo: false
 #| label: fig-energy-descent-combined
 #| fig-cap: Energy descent for both attention and Hopfield network components. The attention energy descent is much faster than the Hopfield network energy descent.
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7, 3))
 
 # Plot attention energy descent
 ax1.plot(attn_energy_history, linewidth=2, color='blue')
 ax1.set_xlabel('Gradient Descent Steps')
 ax1.set_ylabel('Energy')
-ax1.set_title('Energy Attention Descent')
+ax1.set_title('Energy Attention')
 ax1.grid(True, alpha=0.3)
 
 # Plot Hopfield network energy descent  
 ax2.plot(hn_energy_history, linewidth=2, color='red')
 ax2.set_xlabel('Gradient Descent Steps')
-ax2.set_ylabel('Energy')
-ax2.set_title('Hopfield Network Energy Descent')
+# ax2.set_ylabel('Energy')
+ax2.set_title('Hopfield Net')
 ax2.grid(True, alpha=0.3)
 
-plt.tight_layout()
-plt.show()
-```
-
-This energy is also bounded from below.
-
-```{python}
-#| hide
-N, D = 100, 128
-M = 4 * D
-key1, key2 = jr.split(jr.PRNGKey(12))
-
-hn = HopfieldNetwork(Xi=jr.normal(key1, (M, D)))
-xhat_init = layer_norm(jr.normal(key3, (N, D))) # Layer normalized tokens
-
-final_xhat, energy_history = energy_recall(hn.energy, xhat_init, nsteps=3000, step_size=0.5)
-```
-
-```{python}
-#| echo: false
-# Plot the energy descent
-plt.figure(figsize=(7, 5))
-plt.plot(energy_history, linewidth=2, color='blue')
-plt.xlabel('Gradient Descent Steps')
-plt.ylabel('Energy')
-plt.title('Hopfield Network Energy Descent')
-plt.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.show()
 ```
@@ -266,139 +239,46 @@ $$
 E^\text{ET}(\hat{\mathbf{x}}) = E^\text{ATT}(\hat{\mathbf{x}}) + E^\text{HN}(\hat{\mathbf{x}})
 $$
 
-The negative gradient $-\nabla E_\theta(\mathbf{x})$ of the energy has all [four components]{#four-components} of the standard transformer block, albeit with some weight sharing and the `MLP+Attn` operations happening parallel rather than sequentially.
+$-\nabla E^\text{ET}(\mathbf{x})$ has all four components of the standard transformer block, albeit with some weight sharing and the `MLP+Attn` operations happening in parallel rather than sequentially.
+
+The sum of two bounded energies is, of course, also bounded.
 
 ```{python}
-class EnergyTransformer(eqx.Module):
-  "Sum the memory and attention energies"
-  attn: EnergyAttention
-  hn: HopfieldNetwork
-  config: ETConfig = eqx.field(static=True)
-  
-  def __init__(self, key:jr.PRNGKey, config:ETConfig):
-    attn_key, hn_key = jr.split(key)
-    self.attn = EnergyAttention(attn_key, config)
-    self.hn = HopfieldNetwork(hn_key, config)
-    self.config = config
+def total_energy(xhat): 
+  return eattn.energy(xhat) + hn.energy(xhat)
 
-  def energy(self, g:jnp.ndarray):
-    """Return the energy of the whole Transformer"""
-    return self.attn.energy(g) + self.hn.energy(g)
+key1, key2 = jr.split(jr.PRNGKey(14), 2)
+xhat_init = lnorm(jr.normal(key2, (N, D))) # Layer normalized tokens
+final_xhat, energy_history = energy_recall(total_energy, xhat_init, nsteps=3000, step_size=0.5)
 ```
 
-
 ```{python}
-
-@dataclass
-class ETConfig():
-  D: int = 768 # Token dimension of ET
-  Y: int = 64 # Token dimension of each query and key
-  n_heads: int = 12 # Number of heads
-  scale_mems: float = 4. # Scale the number of memories by this factor relative to token dimension D
-
-class EnergyLayerNorm(eqx.Module):
-  """Define our primary activation function (modified LayerNorm) as a lagrangian with energy"""
-  gamma: jax.Array  # Scaling scalar
-  delta: jax.Array  # Bias
-  use_bias: bool
-  eps: float
-  
-  def __init__(self, dim: int, use_bias:bool = True, eps:float = 1e-5):
-    self.use_bias = use_bias
-    self.gamma = jnp.ones(())
-    self.delta = jnp.zeros(dim)
-    self.eps = eps
-    
-  def lagrangian(self, x):
-    """The integral of the standard LayerNorm, with the following twist: `gamma` is a scalar, not a vector of shape `dim` as in the original layernorm """
-    D = x.shape[-1]
-    xmeaned = x - x.mean(-1, keepdims=True)
-    t1 = D * self.gamma * jnp.sqrt((1 / D * xmeaned**2).sum() + self.eps)
-    if not self.use_bias: 
-      return t1
-    t2 = (self.delta * x).sum()
-    return t1 + t2
-
-  def g(self, x):
-    """The manual derivative of the lagrangian. 
-    
-    You could compute this with autograd, but it is more efficient and clear to implement it directly
-    """
-    xmeaned = x - x.mean(-1, keepdims=True)
-    v = self.gamma * (xmeaned) / jnp.sqrt((xmeaned**2).mean(-1, keepdims=True)+ self.eps)
-    if self.use_bias:
-        return v + self.delta
-    return v
-
-  def __call__(self, x):
-    """An alias for the activation function `g`"""
-    return self.g(x)
-    
-  def energy(self, x):
-    """Compute the energy of this Lagrangian through the Legendre Transform"""
-    return (self.g(x) * x).sum() - self.lagrangian(x)
-    
-class EnergyAttention(eqx.Module):
-  """Our novel attention with energy
-
-  Has only two learnable parameters, Wk and Wq
-  """
-  Wq: jax.Array
-  Wk: jax.Array
-  config: ETConfig = eqx.field(static=True)
-
-  def __init__(self, key:jr.PRNGKey, config:ETConfig):
-    kkey, qkey = jr.split(key)
-    self.Wk = jr.normal(kkey, (config.n_heads, config.Y, config.D))
-    self.Wq = jr.normal(qkey, (config.n_heads, config.Y, config.D))
-    self.config = config
-
-  def energy(self, g:jnp.ndarray):
-    """Return the energy of the block. The update rule is autograd through this function"""
-    beta = 1/jnp.sqrt(self.config.Y)
-    K = jnp.einsum("kd,hzd->khz", g, self.Wk) # nKeys,nHeads,Y
-    Q = jnp.einsum("qd,hzd->qhz", g, self.Wq) # nQueries,nHeads,Y
-    A = jax.nn.logsumexp(beta * jnp.einsum("qhz,khz->hqk", Q, K), -1) # nHeads,nQueries,nKeys
-    return -1/beta * A.sum()
-
-class HopfieldNetwork(eqx.Module):
-  """ A simple Hopfield Network (we use ReLU as the activation function) replaces the MLP in traditional Transformers """
-  Xi: jax.Array
-
-  def __init__(self, key:jr.PRNGKey, config:ETConfig):
-    nmems = int(config.scale_mems * config.D)
-    self.Xi = jr.normal(key, (config.D, nmems))
-
-  def energy(self, g:jnp.ndarray):
-    """Return the Hopfield Network's energy"""
-    hid = jnp.einsum("nd,dm->nm", g, self.Xi) # nTokens, nMems
-    E = -0.5 * (jax.nn.relu(hid) ** 2).sum()
-    return E
-
-class EnergyTransformer(eqx.Module):
-  """A simple wrapper class that sums the energies of the Hopfield Network and the Attention"""
-  attn: EnergyAttention
-  hn: HopfieldNetwork
-  config: ETConfig = eqx.field(static=True)
-  
-  def __init__(self, key:jr.PRNGKey, config:ETConfig):
-    attn_key, hn_key = jr.split(key)
-    self.attn = EnergyAttention(attn_key, config)
-    self.hn = HopfieldNetwork(hn_key, config)
-    self.config = config
-
-  def energy(self, g:jnp.ndarray):
-    """Return the energy of the whole Transformer"""
-    return self.attn.energy(g) + self.hn.energy(g)
-  
+#| echo: false
+#| fig-label: fig-ET-energy-descent
+#| fig-cap: Energy descent for ET's total energy.
+# Plot the total energy descent
+plt.figure(figsize=(7, 5))
+plt.plot(energy_history, linewidth=2, color='blue')
+plt.xlabel('Gradient Descent Steps')
+plt.ylabel('Energy')
+plt.title('Total ET Energy Descent')
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
 ```
 
 ## Using a pretrained Energy Transformer
 
+To make the Energy Transformer described above work on real data, we need to add some necessary addendums to work with image data, i.e., trained embeddings, position matrices, and code to patch the image. 
+
+
+ET has publicly available pretrained weights that can be used for masked-image inpainting. Let's load those weights into our model.
+
+
+
 ## Training an Energy Transformer
 
 We train ET on a simple dataset, should work on CPU.
-
 
 
 
