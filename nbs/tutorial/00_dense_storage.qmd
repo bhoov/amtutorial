@@ -603,6 +603,6 @@ else:
     gif, gif_fname = show_batched_recall_animation(frames, energies, cache_name)
 
 display(gif)
-# Markdown(f"![]({gif_fname})")
-Markdown(f'<img src="{gif_fname}" width="700px">')
+Markdown(f"![]({gif_fname})")
+# Markdown(f'<img src="{gif_fname}" width="700px">')
 ```
