@@ -11,6 +11,7 @@ wheels/
 
 # Cache stuff
 *.npz
+*.pth
 
 # nbdev stuff
 _proc/
