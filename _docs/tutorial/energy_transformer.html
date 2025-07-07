@@ -21,6 +21,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 /* CSS for citations */
 div.csl-bib-body { }
 div.csl-entry {
@@ -397,7 +432,14 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#transformers-look-like-dynamic-systems" id="toc-transformers-look-like-dynamic-systems" class="nav-link active" data-scroll-target="#transformers-look-like-dynamic-systems">Transformers look like Dynamic Systems</a></li>
+  <li><a href="#transformers-look-like-dynamical-systems" id="toc-transformers-look-like-dynamical-systems" class="nav-link active" data-scroll-target="#transformers-look-like-dynamical-systems">Transformers look like Dynamical Systems</a></li>
+  <li><a href="#the-energy-of-the-transformer-block" id="toc-the-energy-of-the-transformer-block" class="nav-link" data-scroll-target="#the-energy-of-the-transformer-block">The Energy of the Transformer Block</a>
+  <ul class="collapse">
+  <li><a href="#math-of-attention-energy" id="toc-math-of-attention-energy" class="nav-link" data-scroll-target="#math-of-attention-energy">Math of Attention Energy</a></li>
+  <li><a href="#memory-energy" id="toc-memory-energy" class="nav-link" data-scroll-target="#memory-energy">Memory Energy</a></li>
+  <li><a href="#sec-ET-implementation" id="toc-sec-ET-implementation" class="nav-link" data-scroll-target="#sec-ET-implementation">ET in code</a></li>
+  <li><a href="#total-energy" id="toc-total-energy" class="nav-link" data-scroll-target="#total-energy">Total energy</a></li>
+  </ul></li>
   <li><a href="#using-a-pretrained-energy-transformer" id="toc-using-a-pretrained-energy-transformer" class="nav-link" data-scroll-target="#using-a-pretrained-energy-transformer">Using a pretrained Energy Transformer</a></li>
   <li><a href="#training-an-energy-transformer" id="toc-training-an-energy-transformer" class="nav-link" data-scroll-target="#training-an-energy-transformer">Training an Energy Transformer</a></li>
   </ul>
@@ -438,23 +480,13 @@ window.Quarto = {
     .green { color:rgb(89, 203, 78); }
     .yellow { color:rgb(252, 211, 28); }
 </style>
-<section id="transformers-look-like-dynamic-systems" class="level2">
-<h2 class="anchored" data-anchor-id="transformers-look-like-dynamic-systems">Transformers look like Dynamic Systems</h2>
+<section id="transformers-look-like-dynamical-systems" class="level2">
+<h2 class="anchored" data-anchor-id="transformers-look-like-dynamical-systems">Transformers look like Dynamical Systems</h2>
 <blockquote class="blockquote">
-<p>Squint, and the Transformer looks like a dynamic system.</p>
+<p>Squint, and the Transformer looks like a dynamical system.</p>
 </blockquote>
-<p>The transformer is the engine behind the best neural networks we have today. At its core, the transformer is a stack of <span class="math inline">\(L\)</span> transformer blocks that takes a length <span class="math inline">\(N\)</span> sequence of input tokens <span class="math inline">\(\{\mathbf{x}^{(0)}_1, \ldots, \mathbf{x}^{(0)}_N\}\)</span> and outputs a length <span class="math inline">\(N\)</span> sequence of output tokens <span class="math inline">\(\{\mathbf{x}^{(L)}_1, \ldots, \mathbf{x}^{(L)}_N\}\)</span>. Each token <span class="math inline">\(\mathbf{x}^{(l)}_i \in \mathbb{R}^D\)</span> is a vector of dimension <span class="math inline">\(D\)</span>.</p>
-<p>Each transformer block contains four important components:</p>
-<ol type="1">
-<li>An <span class="red"><strong>attention mechanism</strong></span> that lets each token exchange information with other tokens in the same sequence. The attention is described to have multiple “attention heads”, allowing different heads to route different kinds of information between tokens.</li>
-<li>A <span class="blue"><strong>2-layer MLP</strong></span> transforms each token independently into the representation for the next layer. <em>The MLP does not allow tokens to mix with each other.</em></li>
-<li>A <span class="green"><strong>Layer-Normalization</strong></span> normalizes the token representation for gradient and computation stability. We will consider the version of the Transformer with <em>pre-layernorms</em>, where normalization occurs before the attention and MLP operations.</li>
-<li>A <span class="yellow"><strong>residual connection</strong></span> that adds the input to the output of each of these sub-operations.</li>
-</ol>
-<p>When blocks are stacked, the residual connections connect the blocks together and form a “residual highway” that consists entirely of additions and normalizations. Each <code>Attention</code> and <code>MLP</code> operation <em>exclusively add</em> information to the highway. If we index each stacked block as <span class="math inline">\(t\)</span>, you can see some resemblance to a discrete dynamical system, where the final computation is an “integration” of sorts over the operation of the entire network. At a very high level, you can see the transformer as a dynamical system where <span class="math inline">\(F_t\)</span> is the operation of the <span class="math inline">\(t\)</span>-th block.</p>
-<p><span id="eq-generic-dynamical-system"><span class="math display">\[
-\mathbf{x}^{(t+1)} = \mathbf{x}^{(t)} + F_t(\mathbf{x}^{(t)})
-\tag{1}\]</span></span></p>
+<p>At its core, the transformer is a stack of <span class="math inline">\(L\)</span> transformer blocks that takes a length <span class="math inline">\(N\)</span> sequence of input tokens <span class="math inline">\(\{\mathbf{x}^{(0)}_1, \ldots, \mathbf{x}^{(0)}_N\}\)</span> and outputs a length <span class="math inline">\(N\)</span> sequence of output tokens <span class="math inline">\(\{\mathbf{x}^{(L)}_1, \ldots, \mathbf{x}^{(L)}_N\}\)</span>. Each token <span class="math inline">\(\mathbf{x}^{(l)}_i \in \mathbb{R}^D\)</span> is a vector of dimension <span class="math inline">\(D\)</span>.</p>
+<p>When blocks are stacked, the residual connections form a “residual highway” that consists entirely of normalizations and additions from <code>Attention</code> and <code>MLP</code> operations.</p>
 <div id="fig-standard-transformer" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-standard-transformer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -465,17 +497,229 @@ Figure&nbsp;1: A vanilla Transformer Block consisting of 4 main operations: <spa
 </figcaption>
 </figure>
 </div>
-<p><strong>Associative Memory</strong> (AM) requires a global energy function, where each “computational block” minimizes the total energy of the system. <a href="#eq-generic-dynamical-system" class="quarto-xref">Equation&nbsp;1</a> would look like a gradient descent on some energy function if we could guarantee:</p>
-<ol type="1">
-<li><span class="math inline">\(F_t\)</span> was the same each iteration i.e., all blocks <span class="math inline">\(\{F_1, \ldots, F_L\}\)</span> <strong>share parameters</strong>. Let’s call this shared-parameter block <span class="math inline">\(F\)</span> and it is independent of the number of recurrent steps or “layers”.</li>
-<li><span class="math inline">\(F\)</span> could be described as the gradient of a scalar <strong>energy</strong> (i.e., <span class="math inline">\(F(\mathbf{x}) = -\nabla E(\mathbf{x})\)</span>).</li>
-<li>The energy <span class="math inline">\(E\)</span> is both <strong>continuous</strong> and <strong>bounded from below</strong>. We should be able to write a continuous-time, gradient flow equation for the system and make some guarantees about the convergence limit of the system.</li>
-</ol>
-<p>The rest of this notebook derives the familiar transformer into a true associative memory. This architecture is called the “Energy Transformer” <span class="citation" data-cites="hoover2024energy">(<a href="#ref-hoover2024energy" role="doc-biblioref">Hoover et al. 2024</a>)</span>. It will require fundamental modifications to the Transformer block. Specifically, the transformer block becomes a <span class="math inline">\(\mathbb{R}^{N \times D} \mapsto \mathbb{R}\)</span> scalar-valued energy function, and each “layer” of the model becomes a gradient descent step down the energy. However different the derivation, the end result preserves the four main components of a Transformer with attention, MLP, layernorms, and residual connections.</p>
-<p>This overview is summarized in <a href="#fig-standard-transformer" class="quarto-xref">Figure&nbsp;1</a>.</p>
+<p><strong>Associative Memory</strong> (AM) requires a global energy function, where each computation minimizes the total energy of the system. Our goal is to derive an energy function whose gradient looks as much like the Transformer block as possible.</p>
+</section>
+<section id="the-energy-of-the-transformer-block" class="level2">
+<h2 class="anchored" data-anchor-id="the-energy-of-the-transformer-block">The Energy of the Transformer Block</h2>
+<p>We will now build a kind of associative memory called the “Energy Transformer” <span class="citation" data-cites="hoover2024energy">(<a href="#ref-hoover2024energy" role="doc-biblioref">Hoover et al. 2024</a>)</span> that turns the familiar transformer operation into an energy minimization. Energy Transformer (ET) defines a single energy on an <span class="math inline">\(\mathbf{x} \in \mathbb{R}^{N \times D}\)</span> collection of tokens, where we can think of each token <span class="math inline">\(\mathbf{x}_B\)</span> as a “particle” that knows some information about itself and needs to figure out what it should become. Some particles (unmasked tokens) already know their identity, while others (masked tokens) only know their position and must discover their identity by interacting with their neighbors.</p>
+<p>Minimizing the energy of the Energy Transformer (ET) is a recurrent process. The entire transformer consists of a single Transformer block, and each “layer” of the transformer becomes a gradient descent step down the energy. This gradient descent step looks remarkably like a standard transformer block, complete with attention, MLP-like operations, layer normalizations, and residual connections.</p>
+<p>The global energy combines two intuitive ideas: (1) <strong>attention energy</strong> that encourages masked tokens to align with relevant unmasked tokens, and (2) <strong>memory energy</strong> that ensures all tokens look like realistic patterns the model has learned. The gradient of each of these energies look like a self-attention and MLP, respectively, with some shared weight constraints.</p>
+<p>This is one of those situations where the code ends up being significantly simpler than the equations. We write the equations for completeness, but feel free to skip to <a href="#sec-ET-implementation" class="quarto-xref">Section&nbsp;2.3</a> for succinct code.</p>
+<section id="math-of-attention-energy" class="level3">
+<h3 class="anchored" data-anchor-id="math-of-attention-energy">Math of Attention Energy</h3>
+<p>We describe the energy of a multi-headed attention with <span class="math inline">\(H\)</span> heads, where the <span class="math inline">\(h\)</span>-th head of attention is parameterized by <span class="math inline">\(\mathbf{W}_h^Q, \mathbf{W}_h^K \in \mathbb{R}^{D \times Y}\)</span>, where <span class="math inline">\(Y\)</span> is the “head dimension”. The input to the attention is the normalized token vectors <span class="math inline">\(\hat{\mathbf{x}} \in \mathbb{R}^{N \times D}\)</span>. In the math that follows, we index the heads by <span class="math inline">\(h=1\ldots H\)</span>, the head dimension by <span class="math inline">\(\alpha=1\ldots Y\)</span>, tokens by <span class="math inline">\(A,B,C=1 \ldots N\)</span>, and each token vector by <span class="math inline">\(i,j=1\ldots D\)</span>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Einstein notation
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>We find it convenient to use Einstein notation for the math, since it maps 1:1 to the einops operations we’ll use in the code. If you aren’t familiar with the notation, check out <a href="https://einops.rocks/1-einops-basics/">this awesome tutorial</a>. But fair warning, the equations at first look pretty complicated with all the indices.</p>
+<p>One tip for reading equations with lots of indices: <em>you don’t need to remember the shape or order of tensors</em>, just remember the meaning of the indices. The number of subscripts is the number of dimensions of the tensor, and the meaning of each dimension is captured in the index name. For example, let <span class="math inline">\(B=1\ldots N\)</span> index the token position in a sequence, and let <span class="math inline">\(i=1\ldots D\)</span> index into each token vector. <span class="math inline">\(x_{Bi}\)</span> is an element of a 2-dimensional tensor capturing the sequence length <span class="math inline">\(N\)</span> and token dimension <span class="math inline">\(D\)</span>. Transposes don’t have meaning since things are named, so <span class="math inline">\(x_{Bi} = x_{iB}\)</span>. So long as you know the index semantics, you can read always read the equation. Everything is just scalar multiplication and addition.</p>
+</div>
+</div>
+<p>The familiar queries and keys are computed as normal linear transformations:</p>
+<p><span class="math display">\[
+   \begin{split}
+        K_{h \alpha B} &amp;= \sum\limits_j W^K_{h \alpha j}\; \hat{x}_{Bj}, \qquad \mathbf{K} \in \mathbb{R}^{H \times Y \times N} \\
+        Q_{h \alpha C} &amp;= \sum\limits_j W^Q_{h \alpha j}\; \hat{x}_{Cj}, \qquad \mathbf{Q} \in \mathbb{R}^{H \times Y \times N}
+    \end{split}
+\]</span></p>
+<p>Our familiar “raw attention scores” (pre-softmax) are still the dot-product correlations between each query and key:</p>
+<p><span class="math display">\[
+A_{hBC} = \sum_{\alpha} K_{h\alpha B} Q_{h\alpha C}
+\]</span></p>
+<p>Now for the different part: we describe the energy of the attention as the negative log-sum-exp of the attention scores. We will use the <span class="math inline">\(\beta\)</span> as an inverse-temperature hyperparameter to scale the attention scores.</p>
+<p><span id="eq-attention-energy"><span class="math display">\[
+E^\text{ATT} = -\frac{1}{\beta} \sum_{h=1}^H \sum_{C=1}^N \log \left( \sum_{B \neq C} \exp(\beta A_{hBC}) \right)
+\tag{1}\]</span></span></p>
+<p>As we saw in <a href="../tutorial/dense_storage.html">a previous notebook</a>, the negative log-sum-exp is an exponential variation of the Dense Associative Memory. The cool thing is that the gradient of the negative log-sum-exp is the softmax, which is what we’d like to see in the attention update rule.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Where are our values?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>You may recall that traditional attention also has a value matrix. When we take the gradient of <a href="#eq-attention-energy" class="quarto-xref">Equation&nbsp;1</a>, we lose the flexibility to include an independently parameterized values: the values <strong>must</strong> be a function of the queries and the keys.</p>
+</div>
+</div>
+</section>
+<section id="memory-energy" class="level3">
+<h3 class="anchored" data-anchor-id="memory-energy">Memory Energy</h3>
+<p>In traditional transformers, the MLP (without biases) can be written as a two-layer feedforward network with a ReLU on the hidden activations. The MLP is parameterized by two weight matrices <span class="math inline">\(\mathbf{V}, \mathbf{W} \in \mathbb{R}^{M \times D}\)</span> where <span class="math inline">\(M\)</span> is the size of the hidden layer (<span class="math inline">\(M=4D\)</span> is often viewed as the default expansion factor atop token dimension <span class="math inline">\(D\)</span>). Let’s again use Einstein notation, where <span class="math inline">\(\mu=1\ldots M\)</span> indexes the hidden units, <span class="math inline">\(i,j=1\ldots D\)</span> index the token dimensions, and <span class="math inline">\(B=1\ldots N\)</span> indexes each token.</p>
+<p><span id="eq-mlp-update"><span class="math display">\[
+\text{MLP}(\hat{\mathbf{x}})_{Bi} = \sum_\mu W_{\mu i} \; \text{ReLU}\left(\sum_j V_{\mu j} \hat{\mathbf{x}}_{Bj}\right)
+\tag{2}\]</span></span></p>
+<p>If we assume weight sharing between <span class="math inline">\(\mathbf{V} = \mathbf{W} = \boldsymbol{\xi}\)</span>, this is a gradient descent step down the energy of a Hopfield Network</p>
+<p><span class="math display">\[
+E^{\text{HN}}(\hat{\mathbf{x}}) = - \sum_{B, \mu} F\left(\sum_j \xi_{\mu j} \hat{\mathbf{x}}_{Bj}\right)
+\]</span></p>
+<p>with rectified quadratic energy <span class="math inline">\(F(\cdot) := \frac12 \text{ReLU}(\cdot)^2\)</span>. If we say <span class="math inline">\(f(\cdot) := F'(\cdot) = \text{ReLU}(\cdot)\)</span>, the negative gradient of the energy is</p>
+<p><span class="math display">\[
+-\frac{\partial E^{\text{HN}}(\mathbf{\hat{x}})}{\partial \hat{x}_{Bi}}
+= \sum_\mu \xi_{\mu i} \; f\left(\sum_j \xi_{\mu j} \hat{\mathbf{x}}_{Bj}\right),
+\]</span></p>
+<p>which is identical to the MLP operation in <a href="#eq-mlp-update" class="quarto-xref">Equation&nbsp;2</a> with a weight sharing constraint.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>It is perfectly reasonable to consider other convex functions <span class="math inline">\(F\)</span> for use in the energy. Polynomials of higher degree <span class="math inline">\(n\)</span> or exponential functions are both valid and will yield <a href="../tutorial/dense_storage.html">Dense Associative Memory</a>. However, because traditional Transformers use a ReLU activation, we use a rectified quadratic energy.</p>
+</div>
+</div>
+</section>
+<section id="sec-ET-implementation" class="level3">
+<h3 class="anchored" data-anchor-id="sec-ET-implementation">ET in code</h3>
+<p>Let’s implement the attention energy in code. We will use <a href="https://github.com/jax-ml/jax"><code>jax</code></a> and <a href="https://github.com/patrick-kidger/equinox"><code>equinox</code></a> for our code.</p>
+<div id="cell-3" class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> EnergyAttention(eqx.Module):</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">"""Energy of multi-headed attention.</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">  </span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">  Has only two learnable parameters, Wk and Wq"""</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  Wq: Float[Array, <span class="st">"H D Y"</span>] <span class="co"># Query projection</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  Wk: Float[Array, <span class="st">"H D Y"</span>] <span class="co"># Key projection</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  beta: Optional[<span class="bu">float</span>] <span class="op">=</span> <span class="va">None</span> <span class="co"># inverse temperature</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> energy(</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>, </span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    xhat:Float[Array, <span class="st">"N D"</span>], <span class="co"># Layer normalized tokens</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> <span class="bu">float</span>:</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Attention energy's update rule is computed via autograd of this energy."</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    beta <span class="op">=</span> <span class="va">self</span>.beta <span class="kw">or</span> <span class="dv">1</span><span class="op">/</span>jnp.sqrt(<span class="va">self</span>.Wk.shape[<span class="op">-</span><span class="dv">1</span>])</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    K <span class="op">=</span> jnp.einsum(<span class="st">"kd,hdy-&gt;khy"</span>, xhat, <span class="va">self</span>.Wk)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    Q <span class="op">=</span> jnp.einsum(<span class="st">"qd,hdy-&gt;qhy"</span>, xhat, <span class="va">self</span>.Wq)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    A <span class="op">=</span> jax.nn.logsumexp(beta <span class="op">*</span> jnp.einsum(<span class="st">"khy,qhy-&gt;hqk"</span>, Q, K), <span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">-</span><span class="dv">1</span><span class="op">/</span>beta <span class="op">*</span> A.<span class="bu">sum</span>()</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> HopfieldNetwork(eqx.Module):</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  <span class="co">"A simple Hopfield Net with ReLU activation replaces the MLP"</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  Xi: Float[Array, <span class="st">"M D"</span>]</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> energy(<span class="va">self</span>, xhat:Float[Array, <span class="st">"N D"</span>]):</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Return the Hopfield Network's energy"""</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    hid <span class="op">=</span> jnp.einsum(<span class="st">"nd,md-&gt;nm"</span>, xhat, <span class="va">self</span>.Xi)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    E <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> (hid.clip(<span class="dv">0</span>) <span class="op">**</span> <span class="dv">2</span>).<span class="bu">sum</span>()</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> E</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Note that we will restrict ourselves to using a <strong>special layernorm</strong> that can be viewed as the gradient of a convex Lagrangian function. We’ll just show this in code – it is the same as the standard layer normalization, but we restrict the learnable <code>scale</code> parameter to be a scalar, not a vector of shape <code>D</code>.</p>
+<div id="cell-5" class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> EnergyLayerNorm(eqx.Module):</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">"""Define our primary activation function (modified LayerNorm) as a lagrangian with energy"""</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  gamma: Float[Array, <span class="st">""</span>]  <span class="co"># Scaling scalar</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  delta: Float[Array, <span class="st">"D"</span>] <span class="co"># Bias per token</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  use_bias: <span class="bu">bool</span> <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  eps: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1e-5</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> lagrangian(<span class="va">self</span>, x):</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Integral of the standard LayerNorm"""</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    D <span class="op">=</span> x.shape[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    xmeaned <span class="op">=</span> x <span class="op">-</span> x.mean(<span class="op">-</span><span class="dv">1</span>, keepdims<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    t1 <span class="op">=</span> D <span class="op">*</span> <span class="va">self</span>.gamma <span class="op">*</span> jnp.sqrt((<span class="dv">1</span> <span class="op">/</span> D <span class="op">*</span> xmeaned<span class="op">**</span><span class="dv">2</span>).<span class="bu">sum</span>() <span class="op">+</span> <span class="va">self</span>.eps)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> <span class="va">self</span>.use_bias: <span class="cf">return</span> t1</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    t2 <span class="op">=</span> (<span class="va">self</span>.delta <span class="op">*</span> x).<span class="bu">sum</span>()</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> t1 <span class="op">+</span> t2</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, x):</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""LayerNorm. The derivative of the Lagrangian"""</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    xmeaned <span class="op">=</span> x <span class="op">-</span> x.mean(<span class="op">-</span><span class="dv">1</span>, keepdims<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    v <span class="op">=</span> <span class="va">self</span>.gamma <span class="op">*</span> (xmeaned) <span class="op">/</span> jnp.sqrt((xmeaned<span class="op">**</span><span class="dv">2</span>).mean(<span class="op">-</span><span class="dv">1</span>, keepdims<span class="op">=</span><span class="va">True</span>)<span class="op">+</span> <span class="va">self</span>.eps)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="va">self</span>.use_bias: <span class="cf">return</span> v <span class="op">+</span> <span class="va">self</span>.delta</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> v</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> energy(<span class="va">self</span>, x):</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Compute the energy of this Lagrangian through the Legendre Transform"""</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (<span class="va">self</span>(x) <span class="op">*</span> x).<span class="bu">sum</span>() <span class="op">-</span> <span class="va">self</span>.lagrangian(x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>That’s it! We rely on autograd to do the energy minimization. Let’s check that the energies of both attention and memory monotonically decreases and is bounded from below.</p>
+<div id="cell-7" class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>N, H, D, Y <span class="op">=</span> <span class="dv">100</span>, <span class="dv">12</span>, <span class="dv">128</span>, <span class="dv">42</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>M <span class="op">=</span> <span class="dv">4</span><span class="op">*</span>D <span class="co"># MLP size</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>key1, key2, key3, key4 <span class="op">=</span> jr.split(jr.PRNGKey(<span class="dv">11</span>), <span class="dv">4</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>eattn <span class="op">=</span> EnergyAttention(Wq<span class="op">=</span>jr.normal(key1, (H, D, Y))<span class="op">/</span>Y, Wk<span class="op">=</span>jr.normal(key2, (H, D, Y))<span class="op">/</span>Y)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>hn <span class="op">=</span> HopfieldNetwork(Xi<span class="op">=</span>jr.normal(key3, (M, D)))</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>lnorm <span class="op">=</span> EnergyLayerNorm(gamma<span class="op">=</span><span class="fl">1.</span>, delta<span class="op">=</span>jnp.zeros(D))</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> energy_recall(Efn, x_init, nsteps, step_size):</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="co">"Simple gradient descent to recall a memory"</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">@jax.jit</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> gd_step(xhat, i):</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>      energy, grad <span class="op">=</span> jax.value_and_grad(Efn)(lnorm(xhat))</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>      xhat_next <span class="op">=</span> xhat <span class="op">-</span> step_size <span class="op">*</span> grad</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> xhat_next, energy</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  xhat_init <span class="op">=</span> lnorm(x_init)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  final_xhat, energy_history <span class="op">=</span> jax.lax.scan(</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>      gd_step,</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>      xhat_init,</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>      jnp.arange(nsteps)</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> final_xhat, energy_history</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>x_init <span class="op">=</span> lnorm(jr.normal(key4, (N, D))) <span class="co"># Layer normalized tokens</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>final_attn_xhat, attn_energy_history <span class="op">=</span> energy_recall(eattn.energy, x_init, nsteps<span class="op">=</span><span class="dv">3000</span>, step_size<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>final_hn_xhat, hn_energy_history <span class="op">=</span> energy_recall(hn.energy, x_init, nsteps<span class="op">=</span><span class="dv">3000</span>, step_size<span class="op">=</span><span class="fl">0.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-fig-energy-descent-combined" class="cell">
+<div class="cell-output cell-output-display">
+<div id="fig-energy-descent-combined" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-energy-descent-combined-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="01_energy_transformer_files/figure-html/fig-energy-descent-combined-output-1.png" width="690" height="289" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-energy-descent-combined-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Energy descent for both attention and Hopfield network components. The attention energy descent is much faster than the Hopfield network energy descent.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="total-energy" class="level3">
+<h3 class="anchored" data-anchor-id="total-energy">Total energy</h3>
+<p>The total energy of the ET block is the sum of the attention energy and the memory energy.</p>
+<p><span class="math display">\[
+E^\text{ET}(\hat{\mathbf{x}}) = E^\text{ATT}(\hat{\mathbf{x}}) + E^\text{HN}(\hat{\mathbf{x}})
+\]</span></p>
+<p><span class="math inline">\(-\nabla E^\text{ET}(\mathbf{x})\)</span> has all four components of the standard transformer block, albeit with some weight sharing and the <code>MLP+Attn</code> operations happening in parallel rather than sequentially.</p>
+<p>The sum of two bounded energies is, of course, also bounded.</p>
+<div id="cell-10" class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> total_energy(xhat): </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> eattn.energy(xhat) <span class="op">+</span> hn.energy(xhat)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>key1, key2 <span class="op">=</span> jr.split(jr.PRNGKey(<span class="dv">14</span>), <span class="dv">2</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>xhat_init <span class="op">=</span> lnorm(jr.normal(key2, (N, D))) <span class="co"># Layer normalized tokens</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>final_xhat, energy_history <span class="op">=</span> energy_recall(total_energy, xhat_init, nsteps<span class="op">=</span><span class="dv">3000</span>, step_size<span class="op">=</span><span class="fl">0.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-11" class="cell" data-fig-label="fig-ET-energy-descent">
+<div class="cell-output cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="01_energy_transformer_files/figure-html/cell-7-output-1.png" width="690" height="488" class="figure-img"></p>
+<figcaption>Energy descent for ET’s total energy.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
 </section>
 <section id="using-a-pretrained-energy-transformer" class="level2">
 <h2 class="anchored" data-anchor-id="using-a-pretrained-energy-transformer">Using a pretrained Energy Transformer</h2>
+<p>To make the Energy Transformer described above work on real data, we need to add some necessary addendums to work with image data, i.e., trained embeddings, position matrices, and code to patch the image.</p>
+<p>ET has publicly available pretrained weights that can be used for masked-image inpainting. Let’s load those weights into our model.</p>
 </section>
 <section id="training-an-energy-transformer" class="level2">
 <h2 class="anchored" data-anchor-id="training-an-energy-transformer">Training an Energy Transformer</h2>
