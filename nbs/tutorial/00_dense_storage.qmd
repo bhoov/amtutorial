@@ -452,7 +452,7 @@ This update can be viewed as the negative gradient of the energy function, ensur
 Let's implement the DenseAM model. The primary difference from the CHN is that now we generalize the quadratic energy to a (possibly rectified) polynomial energy.
 
 ```{python}
-class DenseAM(BinaryAM):
+class PolynomialDenseAM(BinaryAM):
     Xi: jax.Array # (K, D) Memory patterns 
     n: int # Power of polynomial F
     rectified: bool = True # Whether to rectify inputs to F
@@ -469,12 +469,12 @@ class DenseAM(BinaryAM):
 A simple change to using a polynomial of degree $6$ instead of the CHN's quadratic energy function allows us to store and retrieve our desired eevee even with up to $K=100$ patterns.
 
 ```{python}
-# DenseAM: Increase the number of stored patterns!
+# Increase the number of stored patterns!
 Xi = data[eevee_pichu_idxs]
 Xi = jnp.concatenate([Xi, jr.choice(jr.PRNGKey(10), data, shape=(98,), replace=False)])
 fig1, ax1 = show_im(Xi, figsize=(7,7));
 ax1.set_title("Stored patterns")
-dam = DenseAM(Xi, n=6, rectified=True)
+dam = PolynomialDenseAM(Xi, n=6, rectified=True)
 
 fname = f'dam_recovery_n_{dam.n}_K_{Xi.shape[0]}'
 
@@ -497,18 +497,18 @@ A higher degree polynomial gives us more **storage capacity**, which means that 
 
 Let's try to store and retrieve all `1024` pokemon patterns into our network (though we will only show retrieval for a subset of them for computational reasons). To do this, we'll need very large values of $n$, which is bad for numeric overflow (computers don't like working in really really large numbers i.e., `inf` energy regimes).
 
-We'll implement a `logsumexp` version of the DenseAM energy function that is numerically stable. This energy function was introduced by [@ramsauer2021hopfield] who called it the "Modern Hopfield Network" (MHN), and it can be understood as an exponential form of the DenseAM [@demicirgil2017model].
+We'll implement an exponential version of the DenseAM [@demicirgil2017model] using the numerically stable `logsumexp` function. This form of the DenseAM energy was introduced by [@ramsauer2021hopfield] and is also referred to as the "Modern Hopfield Network" (MHN).
 
 $$
 \begin{align*}
-E_\text{LSE}(x) &= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi_{\mu i} x_i\right)
+E_\text{MHN}(x) &= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi_{\mu i} x_i\right)
 \end{align*}
 $${#eq-dam-energy-logsumexp}
 
 where increasing the inverse temperature $\beta$ has a similar effect to increasing $n$ in the DenseAM polynomial energy function. Because the `log` is a monotonically increasing function, the energy minima of the original energy function are preserved, while simultaneously making the energy function more numerically stable.
 
 ```{python}
-class MHN(BinaryAM):
+class ExponentialDenseAM(BinaryAM):
     Xi: jax.Array # (K, D) Memory patterns 
     beta: float = 1.0 # Temperature parameter
 
@@ -537,7 +537,7 @@ x_og = jnp.concatenate([
     jr.choice(jr.PRNGKey(10), data, shape=(N - len(eevee_pichu_idxs),), replace=False)])
 x_noisy = flip_some_bits(key2, x_og, 0.25)
 
-mhn = MHN(Xi, beta=50.)
+mhn = ExponentialDenseAM(Xi, beta=50.)
 
 cache_name = "logsumexp_batched"
 keys = jr.split(key2, x_noisy.shape[0])

@@ -59,7 +59,7 @@
     "href": "README.html",
     "title": "Tutorial on Modern Methods in Associative Memory",
     "section": "",
-    "text": "A complete introduction to Associative Memories and Hopfield Networks for the Modern AI Era\n\n\n\nThe environment uses conda to install the ffmpeg dependencies, uv to manage pip dependencies, and quarto to render the notebooks to the website.\nInstall quarto (multi-step instructions here) and uv (curl -LsSf https://astral.sh/uv/install.sh | sh).\n\n# Assume install to base conda. Feel free to create a dedicated environment.\nconda install conda-forge::ffmpeg conda-forge::openh264 \nuv sync\nsource .venv/bin/activate\n## Optional: install interactive frontend tooling\n# npm install --prefix javascript && npm run build --prefix javascript \nnbdev_preview",
+    "text": "A complete introduction to Associative Memories and Hopfield Networks for the Modern AI Era\n\n\n\nThe environment uses conda to install the ffmpeg dependencies, uv to manage pip dependencies, and quarto to render the notebooks to the website.\nInstall quarto (multi-step instructions here) and uv (curl -LsSf https://astral.sh/uv/install.sh | sh).\n\n# Assume install to base conda. Feel free to create a dedicated environment.\nconda install conda-forge::ffmpeg conda-forge::openh264 \nuv sync\nsource .venv/bin/activate\n## Optional: install interactive frontend tooling\n# npm install --prefix javascript && npm run build --prefix javascript \nnbdev_preview\n\n\n\nDeploy to tutorial.amemory.net by pushing commits to the main branch after building the site locally.\nuv run nbdev_docs && git add . && git commit -m \"Update site\" && git push",
     "crumbs": [
       "Tutorial on Modern Methods in Associative Memory"
     ]
@@ -70,6 +70,16 @@
     "title": "Tutorial on Modern Methods in Associative Memory",
     "section": "",
     "text": "The environment uses conda to install the ffmpeg dependencies, uv to manage pip dependencies, and quarto to render the notebooks to the website.\nInstall quarto (multi-step instructions here) and uv (curl -LsSf https://astral.sh/uv/install.sh | sh).\n\n# Assume install to base conda. Feel free to create a dedicated environment.\nconda install conda-forge::ffmpeg conda-forge::openh264 \nuv sync\nsource .venv/bin/activate\n## Optional: install interactive frontend tooling\n# npm install --prefix javascript && npm run build --prefix javascript \nnbdev_preview",
+    "crumbs": [
+      "Tutorial on Modern Methods in Associative Memory"
+    ]
+  },
+  {
+    "objectID": "README.html#deploying",
+    "href": "README.html#deploying",
+    "title": "Tutorial on Modern Methods in Associative Memory",
+    "section": "",
+    "text": "Deploy to tutorial.amemory.net by pushing commits to the main branch after building the site locally.\nuv run nbdev_docs && git add . && git commit -m \"Update site\" && git push",
     "crumbs": [
       "Tutorial on Modern Methods in Associative Memory"
     ]

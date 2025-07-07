@@ -31,3 +31,12 @@ source .venv/bin/activate
 # npm install --prefix javascript && npm run build --prefix javascript 
 nbdev_preview
 ```
+
+
+## Deploying
+
+Deploy to `tutorial.amemory.net` by pushing commits to the `main` branch after building the site locally.
+
+```sh
+uv run nbdev_docs && uv run nbdev_prepare && git add . && git commit -m "Update site" && git push
+```
