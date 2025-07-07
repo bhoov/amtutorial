@@ -820,7 +820,7 @@ x_i^{(t+1)} &amp;\leftarrow \text{sgn}\left( \sum_{\mu} \xi_{\mu i} f_n\left( \s
 <p>Here we introduced an activation function <span class="math inline">\(f_n(\cdot) = F_n'(\cdot)\)</span> that is the derivative of the rectified polynomial used to define the energy. This update can be viewed as the negative gradient of the energy function, ensuring that the network always moves toward lower energy states. Like before, this energy is bounded from below and we will eventually converge to a local minimum that corresponds to one of the stored patterns.</p>
 <p>Let’s implement the DenseAM model. The primary difference from the CHN is that now we generalize the quadratic energy to a (possibly rectified) polynomial energy.</p>
 <div id="cell-24" class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> DenseAM(BinaryAM):</span>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> PolynomialDenseAM(BinaryAM):</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    Xi: jax.Array <span class="co"># (K, D) Memory patterns </span></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    n: <span class="bu">int</span> <span class="co"># Power of polynomial F</span></span>
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    rectified: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span> <span class="co"># Whether to rectify inputs to F</span></span>
@@ -835,12 +835,12 @@ x_i^{(t+1)} &amp;\leftarrow \text{sgn}\left( \sum_{\mu} \xi_{\mu i} f_n\left( \s
 </div>
 <p>A simple change to using a polynomial of degree <span class="math inline">\(6\)</span> instead of the CHN’s quadratic energy function allows us to store and retrieve our desired eevee even with up to <span class="math inline">\(K=100\)</span> patterns.</p>
 <div id="cell-26" class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># DenseAM: Increase the number of stored patterns!</span></span>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Increase the number of stored patterns!</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[eevee_pichu_idxs]</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> jnp.concatenate([Xi, jr.choice(jr.PRNGKey(<span class="dv">10</span>), data, shape<span class="op">=</span>(<span class="dv">98</span>,), replace<span class="op">=</span><span class="va">False</span>)])</span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>fig1, ax1 <span class="op">=</span> show_im(Xi, figsize<span class="op">=</span>(<span class="dv">7</span>,<span class="dv">7</span>))<span class="op">;</span></span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>ax1.set_title(<span class="st">"Stored patterns"</span>)</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>dam <span class="op">=</span> DenseAM(Xi, n<span class="op">=</span><span class="dv">6</span>, rectified<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>dam <span class="op">=</span> PolynomialDenseAM(Xi, n<span class="op">=</span><span class="dv">6</span>, rectified<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>fname <span class="op">=</span> <span class="ss">f'dam_recovery_n_</span><span class="sc">{</span>dam<span class="sc">.</span>n<span class="sc">}</span><span class="ss">_K_</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">'</span></span>
 <span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
@@ -885,15 +885,15 @@ x_i^{(t+1)} &amp;\leftarrow \text{sgn}\left( \sum_{\mu} \xi_{\mu i} f_n\left( \s
 <section id="sec-gotta-catch-em-all" class="level2">
 <h2 class="anchored" data-anchor-id="sec-gotta-catch-em-all">Gotta catch ’em all!</h2>
 <p>Let’s try to store and retrieve all <code>1024</code> pokemon patterns into our network (though we will only show retrieval for a subset of them for computational reasons). To do this, we’ll need very large values of <span class="math inline">\(n\)</span>, which is bad for numeric overflow (computers don’t like working in really really large numbers i.e., <code>inf</code> energy regimes).</p>
-<p>We’ll implement a <code>logsumexp</code> version of the DenseAM energy function that is numerically stable. This energy function was introduced by <span class="citation" data-cites="ramsauer2021hopfield">(<a href="#ref-ramsauer2021hopfield" role="doc-biblioref">Ramsauer et al. 2021</a>)</span> who called it the “Modern Hopfield Network” (MHN), and it can be understood as an exponential form of the DenseAM <span class="citation" data-cites="demicirgil2017model">(<a href="#ref-demicirgil2017model" role="doc-biblioref">Demircigil et al. 2017</a>)</span>.</p>
+<p>We’ll implement an exponential version of the DenseAM <span class="citation" data-cites="demicirgil2017model">(<a href="#ref-demicirgil2017model" role="doc-biblioref">Demircigil et al. 2017</a>)</span> using the numerically stable <code>logsumexp</code> function. This form of the DenseAM energy was introduced by <span class="citation" data-cites="ramsauer2021hopfield">(<a href="#ref-ramsauer2021hopfield" role="doc-biblioref">Ramsauer et al. 2021</a>)</span> and is also referred to as the “Modern Hopfield Network” (MHN).</p>
 <p><span id="eq-dam-energy-logsumexp"><span class="math display">\[
 \begin{align*}
-E_\text{LSE}(x) &amp;= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi_{\mu i} x_i\right)
+E_\text{MHN}(x) &amp;= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi_{\mu i} x_i\right)
 \end{align*}
 \tag{5}\]</span></span></p>
 <p>where increasing the inverse temperature <span class="math inline">\(\beta\)</span> has a similar effect to increasing <span class="math inline">\(n\)</span> in the DenseAM polynomial energy function. Because the <code>log</code> is a monotonically increasing function, the energy minima of the original energy function are preserved, while simultaneously making the energy function more numerically stable.</p>
 <div id="cell-28" class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> MHN(BinaryAM):</span>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ExponentialDenseAM(BinaryAM):</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    Xi: jax.Array <span class="co"># (K, D) Memory patterns </span></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    beta: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.0</span> <span class="co"># Temperature parameter</span></span>
 <span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>

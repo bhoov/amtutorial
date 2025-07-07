@@ -38,5 +38,5 @@ nbdev_preview
 Deploy to `tutorial.amemory.net` by pushing commits to the `main` branch after building the site locally.
 
 ```sh
-uv run nbdev_docs && uv run nbdev_prepare && git add . && git commit -m "Update site" && git push
+uv run nbdev_prepare && uv run nbdev_docs && git add . && git commit -m "Update site" && git push
 ```

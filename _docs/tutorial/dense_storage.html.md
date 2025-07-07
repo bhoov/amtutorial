@@ -406,7 +406,7 @@ is that now we generalize the quadratic energy to a (possibly rectified)
 polynomial energy.
 
 ``` python
-class DenseAM(BinaryAM):
+class PolynomialDenseAM(BinaryAM):
     Xi: jax.Array # (K, D) Memory patterns 
     n: int # Power of polynomial F
     rectified: bool = True # Whether to rectify inputs to F
@@ -425,12 +425,12 @@ quadratic energy function allows us to store and retrieve our desired
 eevee even with up to *K* = 100 patterns.
 
 ``` python
-# DenseAM: Increase the number of stored patterns!
+# Increase the number of stored patterns!
 Xi = data[eevee_pichu_idxs]
 Xi = jnp.concatenate([Xi, jr.choice(jr.PRNGKey(10), data, shape=(98,), replace=False)])
 fig1, ax1 = show_im(Xi, figsize=(7,7));
 ax1.set_title("Stored patterns")
-dam = DenseAM(Xi, n=6, rectified=True)
+dam = PolynomialDenseAM(Xi, n=6, rectified=True)
 
 fname = f'dam_recovery_n_{dam.n}_K_{Xi.shape[0]}'
 
@@ -471,16 +471,15 @@ computational reasons). To do this, we’ll need very large values of *n*,
 which is bad for numeric overflow (computers don’t like working in
 really really large numbers i.e., `inf` energy regimes).
 
-We’ll implement a `logsumexp` version of the DenseAM energy function
-that is numerically stable. This energy function was introduced by
-(Ramsauer et al. 2021) who called it the “Modern Hopfield Network”
-(MHN), and it can be understood as an exponential form of the DenseAM
-(Demircigil et al. 2017).
+We’ll implement an exponential version of the DenseAM (Demircigil et al.
+2017) using the numerically stable `logsumexp` function. This form of
+the DenseAM energy was introduced by (Ramsauer et al. 2021) and is also
+referred to as the “Modern Hopfield Network” (MHN).
 
 <span id="eq-dam-energy-logsumexp">
 $$
 \begin{align\*}
-E\_\text{LSE}(x) &= -\log \sum\_{\mu=1}^K \exp \left(\beta \sum\_{i=1}^D \xi\_{\mu i} x_i\right)
+E\_\text{MHN}(x) &= -\log \sum\_{\mu=1}^K \exp \left(\beta \sum\_{i=1}^D \xi\_{\mu i} x_i\right)
 \end{align\*}
  \qquad(5)$$
 </span>
@@ -492,7 +491,7 @@ original energy function are preserved, while simultaneously making the
 energy function more numerically stable.
 
 ``` python
-class MHN(BinaryAM):
+class ExponentialDenseAM(BinaryAM):
     Xi: jax.Array # (K, D) Memory patterns 
     beta: float = 1.0 # Temperature parameter
 
