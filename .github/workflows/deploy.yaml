@@ -33,9 +33,10 @@ jobs:
           uv sync
           source .venv/bin/activate
 
-      - name: Build site
-        run: |
-          uv run nbdev_docs
+      # - name: Build site
+      #   run: |
+      #     uv run nbdev_docs
+      # Site needs to be built locally using `nbdev_docs` since quarto isn't supported on Github Actions
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
