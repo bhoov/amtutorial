@@ -31,37 +31,16 @@ website:
   page-navigation: true
   bread-crumbs: false
   favicon: /img/favicon_io/favicon.ico
-  repo-url: https://github.com/bhoov/amhn-tutorial-website
+  repo-url: https://github.com/bhoov/amtutorial
   repo-actions: [issue]
   navbar:
     logo: img/favicon_io/android-chrome-512x512.png
     tools:
       - icon: github
-        href: https://github.com/bhoov/amhn-tutorial-website
-    # left:
-    #   - href: index.qmd
-    #     text: Home
-      # - href: content/Chapter01_SmallAMs.qmd
-      #   text: Small AMs
-      # - href: content/Chapter02_GMMs.qmd
-      #   text: GMMs
-      # - example.qmd
+        href: https://github.com/bhoov/amtutorial
   sidebar:
     style: floating
-    # style: "docked"
-    # search: true
-    # contents: 
-    # - section: "Chapters"
-    #   contents:
-    #   - href: "content/Hopfield_Nets_2.0.ipynb"
-    #     text: "Sample Chapter"
-      # - href: "content/Chapter01_SmallAMs.ipynb"
-      #   text: "Chapter 1: Small Associative Memories"
-# jupyter: 
-#   kernelspec:
-#     name: "amhn-tutorial"
-#     language: "python"
-#     display_name: "Python 3.7 (XPython)"
+
 metadata-files: [nbdev.yml, sidebar.yml]
 language: 
   title-block-author-single: "Author"
