@@ -8,17 +8,19 @@
     .yellow { color:rgb(252, 211, 28); }
 </style>
 
-## Transformers look like Dynamic Systems
-> Squint, and the Transformer looks like a dynamic system. 
+## Transformers look like Dynamical Systems
+> Squint, and the Transformer looks like a dynamical system. 
 
 The transformer is the engine behind the best neural networks we have today. At its core, the transformer is a stack of $L$ transformer blocks that takes a length $N$ sequence of input tokens $\{\mathbf{x}^{(0)}_1, \ldots, \mathbf{x}^{(0)}_N\}$ and outputs a length $N$ sequence of output tokens $\{\mathbf{x}^{(L)}_1, \ldots, \mathbf{x}^{(L)}_N\}$. Each token $\mathbf{x}^{(l)}_i \in \mathbb{R}^D$ is a vector of dimension $D$. 
 
+:::{#four-components}
 Each transformer block contains four important components: 
 
 1. An [**attention mechanism**]{.red} that lets each token exchange information with other tokens in the same sequence. The attention is described to have multiple "attention heads", allowing different heads to route different kinds of information between tokens.
 2. A [**2-layer MLP**]{.blue} transforms each token independently into the representation for the next layer. *The MLP does not allow tokens to mix with each other.*
 3. A [**Layer-Normalization**]{.green} normalizes the token representation for gradient and computation stability. We will consider the version of the Transformer with *pre-layernorms*, where normalization occurs before the attention and MLP operations.
 4. A [**residual connection**]{.yellow} that adds the input to the output of each of these sub-operations. 
+:::
 
 When blocks are stacked, the residual connections connect the blocks together and form a "residual highway" that consists entirely of additions and normalizations. Each `Attention` and `MLP` operation *exclusively add* information to the highway. If we index each stacked block as $t$, you can see some resemblance to a discrete dynamical system, where the final computation is an "integration" of sorts over the operation of the entire network. At a very high level, you can see the transformer as a dynamical system where $F_t$ is the operation of the $t$-th block.
 
@@ -35,9 +37,269 @@ $${#eq-generic-dynamical-system}
 2. $F$ could be described as the gradient of a scalar **energy** (i.e., $F(\mathbf{x}) = -\nabla E(\mathbf{x})$).
 3. The energy $E$ is both **continuous** and **bounded from below**. We should be able to write a continuous-time, gradient flow equation for the system and make some guarantees about the convergence limit of the system.
 
-The rest of this notebook derives the familiar transformer into a true associative memory. This architecture is called the "Energy Transformer" [@hoover2024energy]. It will require fundamental modifications to the Transformer block. Specifically, the transformer block becomes a $\mathbb{R}^{N \times D} \mapsto \mathbb{R}$ scalar-valued energy function, and each "layer" of the model becomes a gradient descent step down the energy. However different the derivation, the end result preserves the four main components of a Transformer with attention, MLP, layernorms, and residual connections.
+The rest of this notebook derives the familiar transformer into a true associative memory. It will require fundamental modifications to the Transformer block. However, the end result is unmistakable as a transformer block with attention, MLP, layernorms, and residual connections.
 
 This overview is summarized in @fig-standard-transformer.
+
+## The Energy of the Transformer Block
+
+We will now build a special associative memory called the "Energy Transformer" [@hoover2024energy] that turns the familiar transformer operations into energy minimization. Think of each token as a "particle" that knows some information about itself and needs to figure out what it should become. Some particles (unmasked tokens) already know their identity, while others (masked tokens) only know their position and must discover their identity by interacting with their neighbors.
+
+Specifically, the the Energy Transformer (ET) describes a global, trainable energy funciton $E_\theta: \mathbb{R}^{N \times D} \mapsto \mathbb{R}$. Each "layer" of the transformer becomes a gradient descent step down the energy, which looks remarkably like a standard transformer block --- complete with attention, MLP-like operations, layer normalization, and residual connections.
+
+The global energy combines two intuitive ideas: (1) **attention energy** that encourages masked tokens to align with relevant unmasked tokens, and (2) **memory energy** that ensures all tokens look like realistic patterns the model has learned. The gradient of each of these energies look like a self-attention and MLP, respectively, with some shared weight constraints.
+
+
+### Attention Energy
+
+We describe the energy of a multi-headed attention with $H$ heads, where the $h$-th head of attention is parameterized by $\mathbf{W}_h^Q, \mathbf{W}_h^K \in \mathbb{R}^{D \times Y}$, where $Y$ is the "head dimension". The input to the attention is the normalized token vectors $\hat{\mathbf{x}} \in \mathbb{R}^{N \times D}$. In the math that follows, we index the heads by $h=1\ldots H$, the head dimension by $\alpha=1\ldots Y$, tokens by $A,B,C=1 \ldots N$, and each token vector by $i,j=1\ldots D$.
+
+:::{.callout-warning}
+We find it convenient to use Einstein notation for the math, since it maps 1:1 to the einops operations we'll use in the code.  If you aren't familiar with the notation, check out [this awesome tutorial](https://einops.rocks/1-einops-basics/). But fair warning, the equations at first look pretty complicated with all the indices.
+:::
+
+The familiar queries and keys are computed as normal linear transformations:
+
+$$ 
+   \begin{split}
+        K_{h \alpha B} &= \sum\limits_j W^K_{h \alpha j}\; \hat{x}_{Bj}, \qquad \mathbf{K} \in \mathbb{R}^{H \times Y \times N} \\
+        Q_{h \alpha C} &= \sum\limits_j W^Q_{h \alpha j}\; \hat{x}_{Cj}, \qquad \mathbf{Q} \in \mathbb{R}^{H \times Y \times N}
+    \end{split}
+$$
+
+Our familiar "raw attention scores" (pre-softmax) are still the dot-product correlations between each query and key:
+
+$$
+A_{hBC} = \sum_{\alpha} K_{h\alpha B} Q_{h\alpha C} 
+$$
+
+Now for the different part: we describe the energy of the attention as the negative log-sum-exp of the attention scores. We will use the "beta" inverse-temperature hyperparameter to scale the attention scores.
+
+$$
+E^\text{ATT} = -\frac{1}{\beta} \sum_{h=1}^H \sum_{C=1}^N \log \left( \sum_{B \neq C} \exp(\beta A_{hBC}) \right)
+$${#eq-attention-energy}
+
+As we saw in [a previous notebook](./00_dense_storage.ipynb), the negative log-sum-exp is an exponential variation of the Dense Associative Memory. The cool thing is that the gradient of the negative log-sum-exp is the softmax, which is what we'd like to see in the attention update rule.
+
+That's it! Let's implement the attention energy in code. We will use [`jax`](https://github.com/jax-ml/jax) and [`equinox`](https://github.com/patrick-kidger/equinox) for our code.
+
+```{python}
+#| hide
+import jax, jax.numpy as jnp, jax.random as jr, jax.tree_util as jtu, jax.lax as lax
+import equinox as eqx
+from dataclasses import dataclass
+from typing import *
+import matplotlib.pyplot as plt
+import numpy as np
+from fastcore.basics import *
+import matplotlib.pyplot as plt
+from jaxtyping import Float, Array
+```
+
+```{python}
+class EnergyAttention(eqx.Module):
+  """Energy of multi-headed attention.
+  
+  Has only two learnable parameters, Wk and Wq"""
+  Wq: Float[Array, "H D Y"] # Query projection
+  Wk: Float[Array, "H D Y"] # Key projection
+  beta: Optional[float] = None # inverse temperature
+
+  def energy(
+    self, 
+    xhat:Float[Array, "N D"], # Layer normalized tokens
+    ) -> float:
+    "Compute energy. The update rule is computed via autograd of this method."
+    beta = self.beta or 1/jnp.sqrt(self.Wk.shape[-1])
+    K = jnp.einsum("kd,hdy->khy", xhat, self.Wk)
+    Q = jnp.einsum("qd,hdy->qhy", xhat, self.Wq)
+    A = jax.nn.logsumexp(beta * jnp.einsum("khy,qhy->hqk", Q, K), -1)
+    return -1/beta * A.sum()
+```
+
+That's it! Let's check that the energy monotonically decreases and is bounded from below:
+
+```{python}
+N, H, D, Y = 100, 12, 128, 42
+key1, key2, key3 = jr.split(jr.PRNGKey(11), 3)
+eattn = EnergyAttention(Wq=0.01*jr.normal(key1, (H, D, Y)), Wk=0.01*jr.normal(key2, (H, D, Y)))
+
+def layer_norm(x, axis=-1, eps=1e-5):
+    "Simple layer normalization to check convergence"
+    xmean = x.mean(axis, keepdims=True)
+    xmeaned = x-xmean
+    return xmeaned / jnp.sqrt((xmeaned**2).mean(axis, keepdims=True) + eps)
+
+xhat_init = layer_norm(jr.normal(key3, (N, D))) # Layer normalized tokens
+
+nsteps = 3000
+step_size = 0.5
+
+@jax.jit
+def gd_step(xhat, i):
+    energy, grad = jax.value_and_grad(eattn.energy)(layer_norm(xhat))
+    xhat_next = xhat - step_size * grad
+    return xhat_next, energy
+
+final_xhat, energy_history = jax.lax.scan(
+    gd_step,
+    xhat_init,
+    jnp.arange(nsteps)
+)
+```
+
+```{python}
+#| echo: false
+# Plot the energy descent
+plt.figure(figsize=(7, 5))
+plt.plot(energy_history, linewidth=2, color='blue')
+plt.xlabel('Gradient Descent Steps')
+plt.ylabel('Energy')
+plt.title('Energy Attention Descent')
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+:::{.callout-note}
+## Where's our value matrix?
+
+You'll probably remember that traditional attention has a value projection matrix $\mathbf{W}^V$ that is used to also compute a *value* for each token. When we take the gradient of @eq-attention-energy, the update rule computes a "value matrix" as a function of the queries and the keys. Hence, there is no independently parameterizable value matrix.
+:::
+
+### Memory Energy
+
+
+
+$$
+E^{\text{HN}} = -\sum\limits_{B=1}^N\sum\limits_{\mu=1}^K G\Big(\sum\limits_{j=1}^D \xi_{\mu j} \; \hat{x}_{jB}\Big),\qquad \boldsymbol{\xi} \in \mathbb{R}^{K \times D} 
+$$
+
+
+### Total energy
+
+The total energy of the ET block is the sum of the attention energy and the memory energy. The negative gradient $-\nabla E_\theta(\mathbf{x})$ of the energy has all [four components]{#four-components} of the standard transformer block with some weight sharing, and the `MLP+Attn` operations in happening parallel rather than sequentially, as shown in the . 
+
+
+
+
+
+
+
+
+
+
+
+
+\caption{\textbf{(Left)} Gradient descent through the ET block's global energy looks like the operation of a standard transformer. It has multi-head self-attention, an MLP-like module, a layer norm, and a residual connection. The input tokens $\mathbf{x}^{(t)}$ recur through this block over \textit{time}, decreasing an energy that is bounded from below. Note that the MLP (Hopfield Network) and attention are applied in parallel as opposed to consecutively. \textbf{(Right)}: ET reconstructs a masked input image consisting of $16 \times 16$ encoded image tokens. All tokens evolve in time and the final state of the tokens is used to reconstruct the image.
+
+
+
+```{python}
+
+@dataclass
+class ETConfig():
+  D: int = 768 # Token dimension of ET
+  Y: int = 64 # Token dimension of each query and key
+  n_heads: int = 12 # Number of heads
+  scale_mems: float = 4. # Scale the number of memories by this factor relative to token dimension D
+
+class EnergyLayerNorm(eqx.Module):
+  """Define our primary activation function (modified LayerNorm) as a lagrangian with energy"""
+  gamma: jax.Array  # Scaling scalar
+  delta: jax.Array  # Bias
+  use_bias: bool
+  eps: float
+  
+  def __init__(self, dim: int, use_bias:bool = True, eps:float = 1e-5):
+    self.use_bias = use_bias
+    self.gamma = jnp.ones(())
+    self.delta = jnp.zeros(dim)
+    self.eps = eps
+    
+  def lagrangian(self, x):
+    """The integral of the standard LayerNorm, with the following twist: `gamma` is a scalar, not a vector of shape `dim` as in the original layernorm """
+    D = x.shape[-1]
+    xmeaned = x - x.mean(-1, keepdims=True)
+    t1 = D * self.gamma * jnp.sqrt((1 / D * xmeaned**2).sum() + self.eps)
+    if not self.use_bias: 
+      return t1
+    t2 = (self.delta * x).sum()
+    return t1 + t2
+
+  def g(self, x):
+    """The manual derivative of the lagrangian. 
+    
+    You could compute this with autograd, but it is more efficient and clear to implement it directly
+    """
+    xmeaned = x - x.mean(-1, keepdims=True)
+    v = self.gamma * (xmeaned) / jnp.sqrt((xmeaned**2).mean(-1, keepdims=True)+ self.eps)
+    if self.use_bias:
+        return v + self.delta
+    return v
+
+  def __call__(self, x):
+    """An alias for the activation function `g`"""
+    return self.g(x)
+    
+  def energy(self, x):
+    """Compute the energy of this Lagrangian through the Legendre Transform"""
+    return (self.g(x) * x).sum() - self.lagrangian(x)
+    
+class EnergyAttention(eqx.Module):
+  """Our novel attention with energy
+
+  Has only two learnable parameters, Wk and Wq
+  """
+  Wq: jax.Array
+  Wk: jax.Array
+  config: ETConfig = eqx.field(static=True)
+
+  def __init__(self, key:jr.PRNGKey, config:ETConfig):
+    kkey, qkey = jr.split(key)
+    self.Wk = jr.normal(kkey, (config.n_heads, config.Y, config.D))
+    self.Wq = jr.normal(qkey, (config.n_heads, config.Y, config.D))
+    self.config = config
+
+  def energy(self, g:jnp.ndarray):
+    """Return the energy of the block. The update rule is autograd through this function"""
+    beta = 1/jnp.sqrt(self.config.Y)
+    K = jnp.einsum("kd,hzd->khz", g, self.Wk) # nKeys,nHeads,Y
+    Q = jnp.einsum("qd,hzd->qhz", g, self.Wq) # nQueries,nHeads,Y
+    A = jax.nn.logsumexp(beta * jnp.einsum("qhz,khz->hqk", Q, K), -1) # nHeads,nQueries,nKeys
+    return -1/beta * A.sum()
+
+class HopfieldNetwork(eqx.Module):
+  """ A simple Hopfield Network (we use ReLU as the activation function) replaces the MLP in traditional Transformers """
+  Xi: jax.Array
+
+  def __init__(self, key:jr.PRNGKey, config:ETConfig):
+    nmems = int(config.scale_mems * config.D)
+    self.Xi = jr.normal(key, (config.D, nmems))
+
+  def energy(self, g:jnp.ndarray):
+    """Return the Hopfield Network's energy"""
+    hid = jnp.einsum("nd,dm->nm", g, self.Xi) # nTokens, nMems
+    E = -0.5 * (jax.nn.relu(hid) ** 2).sum()
+    return E
+
+class EnergyTransformer(eqx.Module):
+  """A simple wrapper class that sums the energies of the Hopfield Network and the Attention"""
+  attn: EnergyAttention
+  hn: HopfieldNetwork
+  config: ETConfig = eqx.field(static=True)
+  
+  def __init__(self, key:jr.PRNGKey, config:ETConfig):
+    attn_key, hn_key = jr.split(key)
+    self.attn = EnergyAttention(attn_key, config)
+    self.hn = HopfieldNetwork(hn_key, config)
+    self.config = config
+
+  def energy(self, g:jnp.ndarray):
+    """Return the energy of the whole Transformer"""
+    return self.attn.energy(g) + self.hn.energy(g)
+  
+```
 
 ## Using a pretrained Energy Transformer
 
