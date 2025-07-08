@@ -45,7 +45,7 @@ The first time you run the notebooks will be slow -- we do some initial preproce
 You can view a local version of the website with 
 
 ```
-nbdev_preview
+uv run nbdev_preview
 ```
 
 ## Deploying
