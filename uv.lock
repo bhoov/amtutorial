@@ -2186,7 +2186,7 @@ wheels = [
 [[package]]
 name = "nbdev"
 version = "2.4.5"
-source = { git = "https://github.com/bhoov/nbdev.git?rev=qmd_support#f10b4e926c66cdc6fbb81bd9b17aef5ca3283c2b" }
+source = { git = "https://github.com/bhoov/nbdev.git?rev=qmd_support#2e425db4fd2b9adbfd1e9f18a65a7d32d1a91cdb" }
 dependencies = [
     { name = "asttokens" },
     { name = "astunparse" },

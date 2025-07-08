@@ -14,6 +14,10 @@ uv run nbdev_docs
 echo "Converting tutorial notebooks to ipynb..."
 uv run nbdev_qmd_to_ipynb nbs/tutorial tutorial_ipynbs --copy_other_files False
 
+# Copying tutorial figs to website
+mkdir -p tutorial_ipynbs/assets/
+cp -r nbs/tutorial/assets/* tutorial_ipynbs/assets/
+
 echo "Done. Now you can run the following commands on the 'main' branch to deploy:"
 echo ""
 echo "    git add . && git commit -m \"Update site\" && git push"
