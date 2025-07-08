@@ -26,7 +26,7 @@ When blocks are stacked, the residual connections form a “residual
 highway” that consists entirely of normalizations and additions from
 `Attention` and `MLP` operations.
 
-![](./figs/standard-transformer.png)
+![](./assets/figs/standard-transformer.png)
 
 **Associative Memory** (AM) requires a global energy function, where
 each computation minimizes the total energy of the system. Our goal is

@@ -22,26 +22,30 @@ We have tried to streamline the installation of the repo as much as possible.
 
 ### Pre-requisites
 
-Install `quarto` (multi-step instructions [here](https://docs.posit.co/resources/install-quarto.html)) and `uv` (`curl -LsSf https://astral.sh/uv/install.sh | sh`). We also use `conda` for managing the `ffmpeg` dependency, which only matters if `ffmpeg` is not already installed on your system.
+- Install [`quarto`](https://quarto.org/docs/download/)
+- Install [`uv`](https://docs.astral.sh/uv/getting-started/installation/) using `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- We use [`conda`](https://www.anaconda.com/docs/getting-started/miniconda/install) (or better yet, [`mamba`](https://github.com/conda-forge/miniforge)) for managing the `ffmpeg` dependency, which only matters if `ffmpeg` is not already installed on your system.
 
-### Running example notebooks in `nbs/tutorial`
+### Setting up the environment
 
 ```sh
-conda install conda-forge::ffmpeg conda-forge::openh264 
 uv sync
 source .venv/bin/activate
-```
 
-With this env active, you can run the desired notebooks. The first time you run the notebooks will be slow -- we do some initial preprocessing for caching long-running code.
+# OPTIONAL: For rendering videos in notebooks
+conda install conda-forge::ffmpeg conda-forge::openh264 
 
-You can view a local version of the website with `nbdev_preview`.
-
-**Optional** If you want to develop the interactive frontend in `javascript/`, you can install `nodejs` and `npm` and run:
-
-```sh
-# OPTIONAL: install interactive frontend tooling
+# OPTIONAL: For developing the interactive frontend
 conda install conda-forge::nodejs
 npm install --prefix javascript && npm run build --prefix javascript 
+```
+
+The first time you run the notebooks will be slow -- we do some initial preprocessing for caching long-running code.
+
+You can view a local version of the website with 
+
+```
+nbdev_preview
 ```
 
 ## Deploying
