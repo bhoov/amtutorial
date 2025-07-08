@@ -20,8 +20,8 @@ We have tried to streamline the installation of the repo as much as possible.
 
 ### Pre-requisites
 
-- Install [`quarto`](https://quarto.org/docs/download/)
 - Install [`uv`](https://docs.astral.sh/uv/getting-started/installation/) using `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Install [`quarto`](https://quarto.org/docs/download/)
 - We use [`conda`](https://www.anaconda.com/docs/getting-started/miniconda/install) (or better yet, [`mamba`](https://github.com/conda-forge/miniforge)) for managing the `ffmpeg` dependency, which only matters if `ffmpeg` is not already installed on your system.
 
 ### Setting up the environment
