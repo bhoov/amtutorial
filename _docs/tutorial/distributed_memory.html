@@ -21,6 +21,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -80,10 +115,16 @@ ul.task-list li input[type="checkbox"] {
 <link rel="stylesheet" href="../styles/styles.css">
 <meta property="og:title" content="Distributed Memory – amtutorial">
 <meta property="og:description" content="Random Features enable Dense Associative Memory to store patterns in a distributed manner across a large number of neurons.">
+<meta property="og:image" content="https://bhoov.github.io/amtutorial/tutorial/03_distributed_memory_files/figure-html/cell-9-output-1.png">
 <meta property="og:site_name" content="amtutorial">
+<meta property="og:image:height" content="435">
+<meta property="og:image:width" content="470">
 <meta name="twitter:title" content="Distributed Memory – amtutorial">
 <meta name="twitter:description" content="Random Features enable Dense Associative Memory to store patterns in a distributed manner across a large number of neurons.">
-<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://bhoov.github.io/amtutorial/tutorial/03_distributed_memory_files/figure-html/cell-9-output-1.png">
+<meta name="twitter:image-height" content="435">
+<meta name="twitter:image-width" content="470">
+<meta name="twitter:card" content="summary_large_image">
 </head>
 
 <body class="nav-sidebar floating nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
@@ -288,8 +329,14 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../README.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Tutorial on Modern Methods in Associative Memory</span></a>
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Associative Memory Tutorial</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../readme.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Getting started</span></a>
   </div>
 </li>
         <li class="sidebar-item sidebar-item-section">
@@ -311,7 +358,7 @@ ul.task-list li input[type="checkbox"] {
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a href="../tutorial/index.ipynb" class="sidebar-item-text sidebar-link">
+            <a href="../tutorial/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">tutorial</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
@@ -392,6 +439,175 @@ Under Construction
 </div>
 <div class="callout-body-container callout-body">
 
+</div>
+</div>
+<div id="02575f75-104f-45e9-84aa-a9dea5c7d076" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sin_cos_phi(x: Float[Array, <span class="st">"... D"</span>], RF:Float[Array, <span class="st">"Y D"</span>], beta: <span class="bu">float</span>) <span class="op">-&gt;</span> Float[Array, <span class="st">"... 2Y"</span>]:</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""The reigning champion, a basis function that uses sin and cos to encode the input into the feature space. """</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    Y <span class="op">=</span> RF.shape[<span class="dv">0</span>]</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    h <span class="op">=</span> jnp.sqrt(beta) <span class="op">*</span> (x <span class="op">@</span> RF.T)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">1</span> <span class="op">/</span> jnp.sqrt(Y) <span class="op">*</span> jnp.concatenate( [ jnp.cos(h), jnp.sin(h)], axis<span class="op">=-</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="f506321c-c859-4056-a592-5a9a7a582872" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> DrDAM:</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Defines the interface and basic methods for all KernelizableDAMs"""</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, key, D, Y, beta):</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.RF <span class="op">=</span> jr.normal(key, (Y, D))</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.beta <span class="op">=</span> beta</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.Y <span class="op">=</span> Y</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.Tdim <span class="op">=</span> <span class="dv">2</span><span class="op">*</span>Y</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.D <span class="op">=</span> D</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> phi(<span class="va">self</span>, x: Float[Array, <span class="st">"... D"</span>]) <span class="op">-&gt;</span> Float[Array, <span class="st">"... 2Y"</span>]:</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Compute the basis function """</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> sin_cos_phi(x, <span class="va">self</span>.RF, <span class="va">self</span>.beta)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> sim(<span class="va">self</span>, x: Float[Array, <span class="st">"D"</span>], y: Float[Array, <span class="st">"D"</span>]) <span class="op">-&gt;</span> Float[Array, <span class="st">""</span>]:</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Compute the standard L2 similarity between two vectors."""</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> jnp.exp(<span class="op">-</span><span class="va">self</span>.beta <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> ((x <span class="op">-</span> y) <span class="op">**</span> <span class="dv">2</span>).<span class="bu">sum</span>())</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, x: Float[Array, <span class="st">"D"</span>], memories: Float[Array, <span class="st">"M D"</span>]</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> Float[Array, <span class="st">""</span>]:</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Compute the standard L2 energy"""</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>(<span class="dv">1</span> <span class="op">/</span> <span class="va">self</span>.beta) <span class="op">*</span> jax.nn.logsumexp(</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>            <span class="op">-</span><span class="va">self</span>.beta <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> ((x <span class="op">-</span> memories) <span class="op">**</span> <span class="dv">2</span>).<span class="bu">sum</span>(<span class="op">-</span><span class="dv">1</span>), axis<span class="op">=</span><span class="dv">0</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> kernel_energy(</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, x: Float[Array, <span class="st">"D"</span>], T: Float[Array, <span class="st">"2Y"</span>], eps<span class="op">=</span><span class="fl">1e-10</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> Float[Array, <span class="st">""</span>]:</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Compute the approximate kernelized energy"""</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>        h <span class="op">=</span> <span class="va">self</span>.phi(x) <span class="op">@</span> T </span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>        h <span class="op">=</span> jnp.clip(h,  a_min<span class="op">=</span>eps)</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>(<span class="dv">1</span> <span class="op">/</span> <span class="va">self</span>.beta) <span class="op">*</span> jnp.log(h)</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> kernel_sim(</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, x: Float[Array, <span class="st">"D"</span>], y: Float[Array, <span class="st">"D"</span>]</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> Float[Array, <span class="st">""</span>]:</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Compute the approximate kernel similarity of `x` and `y`"""</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.phi(x) <span class="op">@</span> <span class="va">self</span>.phi(y)</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> kernelize_memories(<span class="va">self</span>, memories: Float[Array, <span class="st">"M D"</span>], <span class="op">**</span>kwargs) <span class="op">-&gt;</span> Float[Array, <span class="st">"2Y"</span>]:</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="co">        Naive implementation that BLOWS UP with many memories `n`,</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="co">        since it creates the entire memory matrix from scratch</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.phi(memories).<span class="bu">sum</span>(<span class="dv">0</span>)</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> recall( </span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, q: Float[Array, <span class="st">"D"</span>], memories: Float[Array, <span class="st">"M D"</span>], </span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>        depth: <span class="bu">int</span><span class="op">=</span><span class="dv">1000</span>, alpha: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.1</span>, return_grads<span class="op">=</span><span class="va">False</span>, </span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>        clamp_idxs: Optional[Bool[Array, <span class="st">"D"</span>]]<span class="op">=</span><span class="va">None</span></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> Float[Array, <span class="st">"D"</span>]: </span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Using the normal similarity function, run energy dynamics"""</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>        dEdxf <span class="op">=</span> jax.jit(jax.value_and_grad(<span class="va">self</span>.energy))</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>        logs <span class="op">=</span> {}</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>        <span class="kw">def</span> step(x, i):</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>            E, dEdx <span class="op">=</span> dEdxf(x, memories)</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> clamp_idxs <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>                dEdx <span class="op">=</span> jnp.where(clamp_idxs, <span class="dv">0</span>, dEdx)</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>            x <span class="op">=</span> x <span class="op">-</span> alpha <span class="op">*</span> dEdx</span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>            aux <span class="op">=</span> (E, dEdx) <span class="cf">if</span> return_grads <span class="cf">else</span> (E,)</span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> x, aux</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>        x, aux <span class="op">=</span> jax.lax.scan(step, q, jnp.arange(depth))</span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a>        logs[<span class="st">'energies'</span>] <span class="op">=</span> aux[<span class="dv">0</span>]</span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> return_grads:</span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>            logs[<span class="st">'grads'</span>] <span class="op">=</span> aux[<span class="dv">1</span>]</span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> x, logs</span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> kernel_recall(</span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, q: Float[Array, <span class="st">"D"</span>], T: Float[Array, <span class="st">"2Y"</span>], </span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>        depth: <span class="bu">int</span><span class="op">=</span><span class="dv">1000</span>, alpha: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.1</span>, return_grads<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>        clamp_idxs: Optional[Bool[Array, <span class="st">"D"</span>]]<span class="op">=</span><span class="va">None</span></span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> Float[Array, <span class="st">"D"</span>]: </span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Using the kernelized similarity function, run energy dynamics"""</span></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>        dEdxf <span class="op">=</span> jax.jit(jax.value_and_grad(<span class="va">self</span>.kernel_energy))</span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>        logs <span class="op">=</span> {}</span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>        <span class="at">@jax.jit</span></span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>        <span class="kw">def</span> step(x, i):</span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>            E, dEdx <span class="op">=</span> dEdxf(x, T)</span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> clamp_idxs <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>                dEdx <span class="op">=</span> jnp.where(clamp_idxs, <span class="dv">0</span>, dEdx)</span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>            x <span class="op">=</span> x <span class="op">-</span> alpha <span class="op">*</span> dEdx</span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>            aux <span class="op">=</span> (E, dEdx) <span class="cf">if</span> return_grads <span class="cf">else</span> (E,)</span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> x, aux</span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>        x, aux <span class="op">=</span> jax.lax.scan(step, q, jnp.arange(depth))</span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>        logs[<span class="st">'energies'</span>] <span class="op">=</span> aux[<span class="dv">0</span>]</span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> return_grads:</span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>            logs[<span class="st">'grads'</span>] <span class="op">=</span> aux[<span class="dv">1</span>]</span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> x, logs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="fe721ff1-f393-484e-a880-a7fa46194871" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> jr.PRNGKey(<span class="dv">0</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>k1, k2, k3, k4, k5, rng <span class="op">=</span> jr.split(rng, <span class="dv">6</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>Y <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>n_memories <span class="op">=</span> <span class="dv">20</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>n_queries <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>beta <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>kdam <span class="op">=</span> DrDAM(k1, D<span class="op">=</span>D, Y<span class="op">=</span>Y, beta<span class="op">=</span>beta)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="502d6b31-3f10-44fa-8671-ca5ab3e45d5d" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> (jr.uniform(k2, (D,)) <span class="op">&gt;</span> <span class="fl">0.5</span>) <span class="op">/</span> jnp.sqrt(D)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> (jr.uniform(k3, (D,)) <span class="op">&gt;</span> <span class="fl">0.5</span>) <span class="op">/</span> jnp.sqrt(D)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(x.shape)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(y.shape)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(10,)
+(10,)</code></pre>
+</div>
+</div>
+<div id="75c21359-a165-444b-b8b7-b22e19918285" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(kdam.sim(x, y))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(kdam.kernel_sim(x, y))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>0.011108992
+0.006203072</code></pre>
+</div>
+</div>
+<div id="05d0073a-5814-4818-bdcf-b12f6a582742" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>memories <span class="op">=</span> (jr.uniform(k4, (n_memories, D)) <span class="op">&gt;</span> <span class="fl">0.5</span>) <span class="op">/</span> jnp.sqrt(D)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>queries <span class="op">=</span> (jr.uniform(k5, (n_queries, D)) <span class="op">&gt;</span> <span class="fl">0.5</span>) <span class="op">/</span> jnp.sqrt(D)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(queries.shape, memories.shape)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>T <span class="op">=</span> kdam.kernelize_memories(memories)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(T.shape)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(100, 10) (20, 10)
+(200,)</code></pre>
+</div>
+</div>
+<div id="73a8a374-ea82-435c-911b-228f0aca2be0" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(kdam.energy(x, memories))</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(kdam.kernel_energy(x, T))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>-0.07309916
+-0.08676291</code></pre>
+</div>
+</div>
+<div id="5b3fbc4c-059d-4036-8225-33fbdf0b06ad" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>exact_energies <span class="op">=</span> jnp.array([kdam.energy(q, memories).item() <span class="cf">for</span> q <span class="kw">in</span> queries])</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>kernelized_energies <span class="op">=</span> kdam.kernel_energy(queries, T)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>plt.scatter(exact_energies, kernelized_energies)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Exact"</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Kernel"</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>plt.axis(<span class="st">'square'</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># plt.gca().set_aspect('equal', 'box')</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03_distributed_memory_files/figure-html/cell-9-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="b3741306-4beb-44c0-9f55-e0555187dc06" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>exact_out, _ <span class="op">=</span> kdam.recall(queries[<span class="dv">0</span>], memories, depth<span class="op">=</span><span class="dv">100</span>, alpha<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>kernel_out, _ <span class="op">=</span> kdam.kernel_recall(queries[<span class="dv">0</span>], T, depth<span class="op">=</span><span class="dv">100</span>, alpha<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(jnp.<span class="bu">abs</span>(exact_out <span class="op">-</span> kernel_out).<span class="bu">sum</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>0.13190839</code></pre>
 </div>
 </div>
 

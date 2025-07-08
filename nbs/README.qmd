@@ -3,6 +3,8 @@
 
 This website serves as a living companion to the [tutorial manuscript]() (coming soon!) to be presented at [ICML 2025](). It dreams of being a one-stop shop for learning all things about Associative Memory. It's definitely not there yet.
 
+See the [tutorials](./tutorial/index.ipynb) for a brief introduction to the list of example notebooks.
+
 ## Installation
 
 We have tried to streamline the installation of the repo as much as possible.

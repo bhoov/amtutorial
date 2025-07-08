@@ -1,6 +1,12 @@
 # Memory and Diffusion
 > From Memorization to Generalization with Diffusion Models
 
+:::{.callout-warning}
+## 🚧 Under construction
+
+This notebook is under construction. It will be completed by July 14, 2025.
+:::
+
 This notebook is a simplified, step-by-step walkthrough of the 2D toy example from the paper: ["Memorization to Generalization: Emergence of Diffusion Models from Associative Memory"]((https://arxiv.org/abs/2505.21777)).
 
 We will train a score-based diffusion model on a small dataset of points lying on a circle. Our goal is to understand how the model learns the data distribution and to visualize its learned "energy landscape," which reveals how it behaves like an Associative Memory system initially to later transition into a generative model.

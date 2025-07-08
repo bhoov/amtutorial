@@ -52,11 +52,15 @@ You can view a local version of the website with
 `tutorial_ipynbs`. Setup the `uv` environment above to play with them
 locally, or run them in Google Colab.
 
-> [!NOTE]
+<div>
+
+> **Note**
 >
 > The first time you run the notebooks will be slow. We cache some of
 > the long-running code after the first time, but this will not persist
 > across Colab sessions
+
+</div>
 
 - [Binary Dense Storage
   Notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/00_dense_storage.ipynb)

@@ -379,8 +379,14 @@ window.Quarto = {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../README.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Tutorial on Modern Methods in Associative Memory</span></a>
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Associative Memory Tutorial</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../readme.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Getting started</span></a>
   </div>
 </li>
         <li class="sidebar-item sidebar-item-section">
@@ -402,7 +408,7 @@ window.Quarto = {
   </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a href="../tutorial/index.ipynb" class="sidebar-item-text sidebar-link">
+            <a href="../tutorial/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">tutorial</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
@@ -502,6 +508,19 @@ window.Quarto = {
 <blockquote class="blockquote">
 <p>Squint, and the Transformer looks like a dynamical system.</p>
 </blockquote>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+🚧 Under construction
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This notebook is under construction. It will be completed by July 14, 2025.</p>
+</div>
+</div>
 <p>At its core, the transformer is a stack of <span class="math inline">\(L\)</span> transformer blocks that takes a length <span class="math inline">\(N\)</span> sequence of input tokens <span class="math inline">\(\{\mathbf{x}^{(0)}_1, \ldots, \mathbf{x}^{(0)}_N\}\)</span> and outputs a length <span class="math inline">\(N\)</span> sequence of output tokens <span class="math inline">\(\{\mathbf{x}^{(L)}_1, \ldots, \mathbf{x}^{(L)}_N\}\)</span>. Each token <span class="math inline">\(\mathbf{x}^{(l)}_i \in \mathbb{R}^D\)</span> is a vector of dimension <span class="math inline">\(D\)</span>.</p>
 <p>When blocks are stacked, the residual connections form a “residual highway” that consists entirely of normalizations and additions from <code>Attention</code> and <code>MLP</code> operations.</p>
 <div id="fig-standard-transformer" class="quarto-float quarto-figure quarto-figure-center anchored">
