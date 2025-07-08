@@ -388,7 +388,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#tutorial-on-modern-methods-in-associative-memory" id="toc-tutorial-on-modern-methods-in-associative-memory" class="nav-link active" data-scroll-target="#tutorial-on-modern-methods-in-associative-memory">Tutorial on Modern Methods in Associative Memory</a>
   <ul class="collapse">
-  <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started">Getting started</a></li>
+  <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started">Getting started</a>
+  <ul class="collapse">
+  <li><a href="#pre-requisites" id="toc-pre-requisites" class="nav-link" data-scroll-target="#pre-requisites">Pre-requisites</a></li>
+  <li><a href="#running-example-notebooks-in-nbstutorial" id="toc-running-example-notebooks-in-nbstutorial" class="nav-link" data-scroll-target="#running-example-notebooks-in-nbstutorial">Running example notebooks in <code>nbs/tutorial</code></a></li>
+  </ul></li>
   <li><a href="#deploying" id="toc-deploying" class="nav-link" data-scroll-target="#deploying">Deploying</a></li>
   </ul></li>
   </ul>
@@ -452,21 +456,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </blockquote>
 <section id="getting-started" class="level2">
 <h2 class="anchored" data-anchor-id="getting-started">Getting started</h2>
-<p>The environment uses <code>conda</code> to install the ffmpeg dependencies, <code>uv</code> to manage pip dependencies, and <code>quarto</code> to render the notebooks to the website.</p>
-<p>Install <code>quarto</code> (multi-step instructions <a href="https://docs.posit.co/resources/install-quarto.html">here</a>) and <code>uv</code> (<code>curl -LsSf https://astral.sh/uv/install.sh | sh</code>).</p>
-<!-- If you want to develop the interactive frontend, also install `nodejs` and `npm`. -->
-<div class="sourceCode" id="cb1"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Assume install to base conda. Feel free to create a dedicated environment.</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> install conda-forge::ffmpeg conda-forge::openh264 </span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> sync</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">## Optional: install interactive frontend tooling</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># npm install --prefix javascript &amp;&amp; npm run build --prefix javascript </span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="ex">nbdev_preview</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><em>Commits to the main branch will automatically build the docs website</em>. Develop in feature branches, merge to main for deployment.</p>
+<p>We have tried to streamline the installation of the repo as much as possible.</p>
+<section id="pre-requisites" class="level3">
+<h3 class="anchored" data-anchor-id="pre-requisites">Pre-requisites</h3>
+<p>Install <code>quarto</code> (multi-step instructions <a href="https://docs.posit.co/resources/install-quarto.html">here</a>) and <code>uv</code> (<code>curl -LsSf https://astral.sh/uv/install.sh | sh</code>). We also use <code>conda</code> for managing the <code>ffmpeg</code> dependency, which only matters if <code>ffmpeg</code> is not already installed on your system.</p>
+</section>
+<section id="running-example-notebooks-in-nbstutorial" class="level3">
+<h3 class="anchored" data-anchor-id="running-example-notebooks-in-nbstutorial">Running example notebooks in <code>nbs/tutorial</code></h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> install conda-forge::ffmpeg conda-forge::openh264 </span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> sync</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>With this env active, you can run the desired notebooks. The first time you run the notebooks will be slow – we do some initial preprocessing for caching long-running code.</p>
+<p>You can view a local version of the website with <code>nbdev_preview</code>.</p>
+<p><strong>Optional</strong> If you want to develop the interactive frontend in <code>javascript/</code>, you can install <code>nodejs</code> and <code>npm</code> and run:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># OPTIONAL: install interactive frontend tooling</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> install conda-forge::nodejs</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install <span class="at">--prefix</span> javascript <span class="kw">&amp;&amp;</span> <span class="ex">npm</span> run build <span class="at">--prefix</span> javascript </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
 </section>
 <section id="deploying" class="level2">
 <h2 class="anchored" data-anchor-id="deploying">Deploying</h2>
 <p>Deploy to <code>tutorial.amemory.net</code> by pushing commits to the <code>main</code> branch after building the site locally.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run nbdev_prepare <span class="kw">&amp;&amp;</span> <span class="ex">uv</span> run nbdev_docs <span class="kw">&amp;&amp;</span> <span class="fu">git</span> add . <span class="kw">&amp;&amp;</span> <span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Update site"</span> <span class="kw">&amp;&amp;</span> <span class="fu">git</span> push</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run nbdev_export <span class="kw">&amp;&amp;</span> <span class="ex">uv</span> run nbdev_docs <span class="kw">&amp;&amp;</span> <span class="fu">git</span> add . <span class="kw">&amp;&amp;</span> <span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Update site"</span> <span class="kw">&amp;&amp;</span> <span class="fu">git</span> push</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
 
 

@@ -49,5 +49,5 @@ npm install --prefix javascript && npm run build --prefix javascript
 Deploy to `tutorial.amemory.net` by pushing commits to the `main` branch after building the site locally.
 
 ```sh
-uv run nbdev_prepare && uv run nbdev_docs && git add . && git commit -m "Update site" && git push
+uv run nbdev_export && uv run nbdev_docs && git add . && git commit -m "Update site" && git push
 ```

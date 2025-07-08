@@ -309,11 +309,11 @@ class Patcher(eqx.Module):
 It lets us do things like:
 
 ```{python}
-show_doc(Patcher.patchify)
+# show_doc(Patcher.patchify)
 ```
 
 ```{python}
-show_doc(Patcher.unpatchify)
+# show_doc(Patcher.unpatchify)
 ```
 
 ### Image-compatible ET
