@@ -114,6 +114,7 @@ from fastcore.meta import *
 import matplotlib.pyplot as plt
 from jaxtyping import Float, Array
 import functools as ft
+from nbdev import show_doc
 ```
 
 **The `EnergyTransformer` class captures all the token processing in the entire transformer.** There are maybe 7 lines of code that perform the actual energy computation. This single energy function, when paired with a layer-norm, is analogous to the full computation across all layers of a traditional transformer. The only things missing are some some token and position embedding matrices to make it work on real data, but we will do that in the following section.
@@ -248,7 +249,10 @@ Energy Transformer was originally trained on [ImageNet](https://image-net.org/).
 
 ### Patching images
 
+We build a `Patcher` class to patchify and unpatchify images, which is mostly a simple wrapper around the `rearrange` function from `einops`.
+
 ```{python}
+#| hide
 class Patcher(eqx.Module):
   "Patchify and unpatchify an image."
   image_shape: Iterable[int] # (C, H, W) Image shape
@@ -298,6 +302,16 @@ class Patcher(eqx.Module):
     kh = int(height / patch_size)
     kw = int(width / patch_size)
     return cls(img_shape, patch_size, kh, kw)
+```
+
+It lets us do things like:
+
+```{python}
+show_doc(Patcher.patchify)
+```
+
+```{python}
+show_doc(Patcher.unpatchify)
 ```
 
 ### Image-compatible ET
