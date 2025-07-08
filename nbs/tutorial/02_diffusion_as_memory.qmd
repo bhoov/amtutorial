@@ -453,7 +453,7 @@ for ema in ema_set:
     generated_set.append(generated_samples)
 ```
 
-## 6. Potential Energy of Generated and Data Samples
+### Compute the Potential Energy of Generated vs. Data Samples
 
 Recall the relationship between energy and probability denoted by the `Boltzmann distribution`:
 $$
@@ -550,7 +550,7 @@ def ode_likelihood_with_laplacian(x, score_model, sde, device='cuda', eps=1e-5):
     return (prior_logp + delta_logp)
 ```
 
-# 7. Sample from our trained models and Visualization of the Energy
+### Visualizing the Energy
 
 Since we are generating quite a lot of synthetic data points, we use `hierarchical clustering` to get a sense of where the concentrations of these new points are at. To be more informative, we are also displaying the energy profile of these concentrations alongside that of the training data points.
 
@@ -769,7 +769,7 @@ else:
 plt.show()
 ```
 
-# 8. Exact Energy from Dense Associative Memory
+# Exact Energy from Dense Associative Memory
 
 Consider the typical `DenseAM`'s energy function which involves the `logsumexp` function:
 $$
