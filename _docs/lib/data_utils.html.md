@@ -58,6 +58,7 @@ Let’s make a data directory for the tutorial.
 DATA_DIR = get_cache_dir("data")
 MNIST_DIR = get_cache_dir("data/mnist")
 POKEMON_DIR = get_cache_dir("data/pokemon")
+MODEL_DIR = get_cache_dir("models")
 ```
 
 </details>
