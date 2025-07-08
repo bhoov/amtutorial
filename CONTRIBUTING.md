@@ -17,7 +17,7 @@ Additionally,
 
 ## Log
 
-The following commands were used to initialize the project:
+The following commands were used to initialize the project, more for reference than anything:
 
 ```bash
 uv init --package amtutorial
@@ -26,6 +26,8 @@ uv venv --python 3.10.0
 uv add nbformat nbclient ipykernel git+https://github.com/bhoov/nbdev.git@qmd_support --dev
 source .venv/bin/activate
 uv run ipython kernel install --user --env VIRTUAL_ENV $(pwd)/.venv --name=amtutorial
+uv add pre-commit --dev
+uv run pre-commit install
 nbdev_new # Fill out requested details, see below to manually change default .ipynb files to .qmd files
 nbdev_install && nbdev_install_hooks && uv add -e --dev amtutorial
 nbdev_prepare # Turn all nbs into executable src
@@ -33,3 +35,5 @@ nbdev_prepare # Turn all nbs into executable src
 
 Then, changed default to .qmd files:
 - Add `readme_nb = index.qmd` to `settings.ini`, remove `core.ipynb` and `index.ipynb`
+
+Dependencies were added during development. Run `uv sync` to keep the environment up to date.
