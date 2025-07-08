@@ -157,12 +157,10 @@ def show_im(x, ax=None, do_gridify=True, grid_h=None, figsize=None):
     ax.imshow(x, cmap="gray", vmin=-1, vmax=1)
     ax.axis("off")
     return None if not empty_ax else fig, ax
-
-sample_data = jr.choice(jr.PRNGKey(10), data, shape=(100,), replace=False)
-fig1, ax1 = show_im(sample_data, figsize=(6, 6));
-ax1.set_title("Example patterns (black=-1, white=1)")
-plt.show()
 ```
+
+<img src="00_dense_storage_files/figure-commonmark/cell-5-output-1.png"
+width="481" height="503" />
 
 ## The Classical Hopfield Network
 
@@ -186,7 +184,7 @@ print(f"K={Xi.shape[0]}, D={Xi.shape[1]}")
 
     K=2, D=2304
 
-<img src="00_dense_storage_files/figure-commonmark/cell-5-output-2.png"
+<img src="00_dense_storage_files/figure-commonmark/cell-6-output-2.png"
 width="481" height="272" />
 
 The Classical Hopfield Network (CHN) defines an energy function for this
@@ -266,7 +264,7 @@ x_noisy = flip_some_bits(jr.PRNGKey(0), x_og, 0.2)
 show_im(jnp.stack([x_og, x_noisy]), figsize=(6, 3));
 ```
 
-<img src="00_dense_storage_files/figure-commonmark/cell-7-output-1.png"
+<img src="00_dense_storage_files/figure-commonmark/cell-8-output-1.png"
 width="481" height="251" />
 
 For the pedagogical purpose of this notebook, we’ll cache the recall
@@ -292,7 +290,7 @@ x_final, frames, energies = cached_recall(chn, cache_name, x_noisy, nsteps=12000
 
     Loading cached recall data
 
-<img src="00_dense_storage_files/figure-commonmark/cell-9-output-1.png"
+<img src="00_dense_storage_files/figure-commonmark/cell-10-output-1.png"
 width="640" height="305" />
 
 We can animate the recall process to view the “thinking” process of the
@@ -316,7 +314,7 @@ $$
     Loading cached recall data
     Accidentally retrieved the inverted pattern!
 
-<img src="00_dense_storage_files/figure-commonmark/cell-11-output-2.png"
+<img src="00_dense_storage_files/figure-commonmark/cell-12-output-2.png"
 width="654" height="305" />
 
 ![](cache/00_dense_storage/hopfield_recovery_inverted.mp4)
@@ -335,13 +333,13 @@ ax.set_title(f"Stored patterns (K={Xi.shape[0]})")
 plt.show()
 ```
 
-<img src="00_dense_storage_files/figure-commonmark/cell-12-output-1.png"
+<img src="00_dense_storage_files/figure-commonmark/cell-13-output-1.png"
 width="481" height="349" />
 
     Loading cached recall data
     CHN failed to retrieve the correct pattern!
 
-<img src="00_dense_storage_files/figure-commonmark/cell-13-output-2.png"
+<img src="00_dense_storage_files/figure-commonmark/cell-14-output-2.png"
 width="654" height="305" />
 
 ![](cache/00_dense_storage/hopfield_recovery_fail.mp4)
@@ -449,10 +447,10 @@ Markdown(f"![]({video_fname})")
 
     Loading cached recall data
 
-<img src="00_dense_storage_files/figure-commonmark/cell-15-output-2.png"
+<img src="00_dense_storage_files/figure-commonmark/cell-16-output-2.png"
 width="558" height="580" />
 
-<img src="00_dense_storage_files/figure-commonmark/cell-15-output-3.png"
+<img src="00_dense_storage_files/figure-commonmark/cell-16-output-3.png"
 width="650" height="295" />
 
 ![](cache/00_dense_storage/dam_recovery_n_6_K_100.mp4)
@@ -511,7 +509,7 @@ print(f"Storing {Xi.shape[0]} patterns")
 
     Storing 1024 patterns
 
-<img src="00_dense_storage_files/figure-commonmark/cell-17-output-2.png"
+<img src="00_dense_storage_files/figure-commonmark/cell-18-output-2.png"
 width="640" height="588" />
 
 And of course, what’s the fun if we can’t animate the retrieval process?

@@ -165,14 +165,14 @@ window.Quarto = {
 <link rel="stylesheet" href="../styles/styles.css">
 <meta property="og:title" content="Binary Dense Storage – amtutorial">
 <meta property="og:description" content="Improving the storage capacity of the Hopfield Network">
-<meta property="og:image" content="https://bhoov.github.io/amtutorial/tutorial/00_dense_storage_files/figure-html/cell-5-output-2.png">
+<meta property="og:image" content="https://bhoov.github.io/amtutorial/tutorial/00_dense_storage_files/figure-html/cell-5-output-1.png">
 <meta property="og:site_name" content="amtutorial">
-<meta property="og:image:height" content="544">
+<meta property="og:image:height" content="1006">
 <meta property="og:image:width" content="963">
 <meta name="twitter:title" content="Binary Dense Storage – amtutorial">
 <meta name="twitter:description" content="Improving the storage capacity of the Hopfield Network">
-<meta name="twitter:image" content="https://bhoov.github.io/amtutorial/tutorial/00_dense_storage_files/figure-html/cell-5-output-2.png">
-<meta name="twitter:image-height" content="544">
+<meta name="twitter:image" content="https://bhoov.github.io/amtutorial/tutorial/00_dense_storage_files/figure-html/cell-5-output-1.png">
+<meta name="twitter:image-height" content="1006">
 <meta name="twitter:image-width" content="963">
 <meta name="twitter:card" content="summary_large_image">
 </head>
@@ -605,18 +605,22 @@ Note
 <span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> empty_ax: fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>figsize)</span>
 <span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    ax.imshow(x, cmap<span class="op">=</span><span class="st">"gray"</span>, vmin<span class="op">=-</span><span class="dv">1</span>, vmax<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    ax.axis(<span class="st">"off"</span>)</span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="va">None</span> <span class="cf">if</span> <span class="kw">not</span> empty_ax <span class="cf">else</span> fig, ax</span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>sample_data <span class="op">=</span> jr.choice(jr.PRNGKey(<span class="dv">10</span>), data, shape<span class="op">=</span>(<span class="dv">100</span>,), replace<span class="op">=</span><span class="va">False</span>)</span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>fig1, ax1 <span class="op">=</span> show_im(sample_data, figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">6</span>))<span class="op">;</span></span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>ax1.set_title(<span class="st">"Example patterns (black=-1, white=1)"</span>)</span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="va">None</span> <span class="cf">if</span> <span class="kw">not</span> empty_ax <span class="cf">else</span> fig, ax</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-7" class="cell">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="00_dense_storage_files/figure-html/cell-5-output-1.png" width="481" height="503" class="figure-img"></p>
+</figure>
+</div>
+</div>
 </div>
 </section>
 <section id="the-classical-hopfield-network" class="level2">
 <h2 class="anchored" data-anchor-id="the-classical-hopfield-network">The Classical Hopfield Network</h2>
 <p>Let’s revisit our task to store <span class="math inline">\(K\)</span> binary patterns each of dimension <span class="math inline">\(D\)</span> into an energy function. Let’s keep things simple and fast for the first part of this notebook and focus on storing and retrieving <span class="math inline">\(K=2\)</span> patterns: an eevee and pichu, where each <code>(48,48)</code> image is rasterized to a vector dimension of <span class="math inline">\(D=2304\)</span>.</p>
-<div id="cell-8" class="cell">
+<div id="cell-9" class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>desired_names <span class="op">=</span> [<span class="st">"eevee"</span>, <span class="st">"pichu"</span>]</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>eevee_pichu_idxs <span class="op">=</span> [poke_names.index(name) <span class="cf">for</span> name <span class="kw">in</span> desired_names]</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[eevee_pichu_idxs]</span>
@@ -632,7 +636,7 @@ Note
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="00_dense_storage_files/figure-html/cell-5-output-2.png" width="481" height="272" class="figure-img"></p>
+<p><img src="00_dense_storage_files/figure-html/cell-6-output-2.png" width="481" height="272" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -643,7 +647,7 @@ E_\text{CHN}(x) = -\frac{1}{2} \left(\sum_{\mu} \xi_{\mu i} x_i\right)^2 = -\fra
 \tag{2}\]</span></span></p>
 <p>We see the familiar equation for CHN energy on the RHS if we expand the quadratic function, where <span class="math inline">\(T_{ij} := \sum_{\mu=1}^K \xi_{\mu i} \xi_{\mu_j}\)</span> is the matrix of symmetric synapses. Learned patterns <span class="math inline">\(\xi_\mu\)</span> are stored in <span class="math inline">\(T\)</span> via a simple, Hebbian learning rule.</p>
 <p>The CHN can be easily implemented in code via</p>
-<div id="cell-10" class="cell">
+<div id="cell-11" class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CHN(BinaryAM):</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, </span>
@@ -674,7 +678,7 @@ def async_update(self:BinaryCHN, x, idx):
     return xnew, energy
 .``` -->
 <p>Let’s observe the recall process! We’ll start with a noisy version of the first pattern and see if we can recover it.</p>
-<div id="cell-12" class="cell">
+<div id="cell-13" class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> flip_some_bits(key, x, p<span class="op">=</span><span class="fl">0.1</span>):</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Flip `p` fraction of bits in `x`"</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    prange <span class="op">=</span> np.array([p, <span class="dv">1</span><span class="op">-</span>p])</span>
@@ -687,13 +691,13 @@ def async_update(self:BinaryCHN, x, idx):
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="00_dense_storage_files/figure-html/cell-7-output-1.png" width="481" height="251" class="figure-img"></p>
+<p><img src="00_dense_storage_files/figure-html/cell-8-output-1.png" width="481" height="251" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>For the pedagogical purpose of this notebook, we’ll cache the recall process and results so we don’t have to run it every time.</p>
-<div id="cell-14" class="cell">
+<div id="cell-15" class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="at">@delegates</span>(BinaryAM.async_recall)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cached_recall(am, cache_name, x_noisy, key<span class="op">=</span>jr.PRNGKey(<span class="dv">0</span>), save<span class="op">=</span><span class="va">True</span>, <span class="op">**</span>kwargs):</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Cache the recall process using key `cache_name`"</span></span>
@@ -713,17 +717,17 @@ def async_update(self:BinaryCHN, x, idx):
 <pre><code>Loading cached recall data</code></pre>
 </div>
 </div>
-<div id="cell-15" class="cell">
+<div id="cell-16" class="cell">
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="00_dense_storage_files/figure-html/cell-9-output-1.png" width="640" height="305" class="figure-img"></p>
+<p><img src="00_dense_storage_files/figure-html/cell-10-output-1.png" width="640" height="305" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>We can animate the recall process to view the “thinking” process of the CHN.</p>
-<div id="cell-17" class="cell">
+<div id="cell-18" class="cell">
 <div class="cell-output cell-output-display cell-output-markdown">
 <div>
 <figure class="figure">
@@ -738,7 +742,7 @@ def async_update(self:BinaryCHN, x, idx):
 <p><span class="math display">\[
 E_\text{CHN}(-x) = -\frac{1}{2} \left(\sum_{\mu} \xi_{\mu i} (-x_i)\right)^2 = E_\text{CHN}(x)
 \]</span></p>
-<div id="cell-19" class="cell">
+<div id="cell-20" class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>Loading cached recall data
 Accidentally retrieved the inverted pattern!</code></pre>
@@ -746,7 +750,7 @@ Accidentally retrieved the inverted pattern!</code></pre>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="00_dense_storage_files/figure-html/cell-11-output-2.png" width="654" height="305" class="figure-img"></p>
+<p><img src="00_dense_storage_files/figure-html/cell-12-output-2.png" width="654" height="305" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -762,7 +766,7 @@ Accidentally retrieved the inverted pattern!</code></pre>
 <section id="memory-retrieval-failure" class="level3">
 <h3 class="anchored" data-anchor-id="memory-retrieval-failure">Memory retrieval failure</h3>
 <p>Unfortunately, the CHN is terrible at storing and retrieving multiple patterns. If we add even four more patterns into the synaptic memory, our network will fail to retrieve our eevee.</p>
-<div id="cell-21" class="cell">
+<div id="cell-22" class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[eevee_pichu_idxs]</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> jnp.concatenate([Xi, jr.choice(jr.PRNGKey(<span class="dv">10</span>), data, shape<span class="op">=</span>(<span class="dv">4</span>,), replace<span class="op">=</span><span class="va">False</span>)])</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> show_im(Xi, figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">4</span>))<span class="op">;</span></span>
@@ -771,12 +775,12 @@ Accidentally retrieved the inverted pattern!</code></pre>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="00_dense_storage_files/figure-html/cell-12-output-1.png" width="481" height="349" class="figure-img"></p>
+<p><img src="00_dense_storage_files/figure-html/cell-13-output-1.png" width="481" height="349" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
-<div id="cell-22" class="cell">
+<div id="cell-23" class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>Loading cached recall data
 CHN failed to retrieve the correct pattern!</code></pre>
@@ -784,7 +788,7 @@ CHN failed to retrieve the correct pattern!</code></pre>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="00_dense_storage_files/figure-html/cell-13-output-2.png" width="654" height="305" class="figure-img"></p>
+<p><img src="00_dense_storage_files/figure-html/cell-14-output-2.png" width="654" height="305" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -831,7 +835,7 @@ x_i^{(t+1)} &amp;\leftarrow \text{sgn}\left( \sum_{\mu} \xi_{\mu i} f_n\left( \s
 \tag{4}\]</span></span></p>
 <p>Here we introduced an activation function <span class="math inline">\(f_n(\cdot) = F_n'(\cdot)\)</span> that is the derivative of the rectified polynomial used to define the energy. This update can be viewed as the negative gradient of the energy function, ensuring that the network always moves toward lower energy states. Like before, this energy is bounded from below and we will eventually converge to a local minimum that corresponds to one of the stored patterns.</p>
 <p>Let’s implement the DenseAM model. The primary difference from the CHN is that now we generalize the quadratic energy to a (possibly rectified) polynomial energy.</p>
-<div id="cell-24" class="cell">
+<div id="cell-25" class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> PolynomialDenseAM(BinaryAM):</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    Xi: jax.Array <span class="co"># (K, D) Memory patterns </span></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    n: <span class="bu">int</span> <span class="co"># Power of polynomial F</span></span>
@@ -846,7 +850,7 @@ x_i^{(t+1)} &amp;\leftarrow \text{sgn}\left( \sum_{\mu} \xi_{\mu i} f_n\left( \s
 <span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>jnp.<span class="bu">sum</span>(<span class="va">self</span>.F_n(<span class="va">self</span>.Xi <span class="op">@</span> x))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>A simple change to using a polynomial of degree <span class="math inline">\(6\)</span> instead of the CHN’s quadratic energy function allows us to store and retrieve our desired eevee even with up to <span class="math inline">\(K=100\)</span> patterns.</p>
-<div id="cell-26" class="cell">
+<div id="cell-27" class="cell">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Increase the number of stored patterns!</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[eevee_pichu_idxs]</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> jnp.concatenate([Xi, jr.choice(jr.PRNGKey(<span class="dv">10</span>), data, shape<span class="op">=</span>(<span class="dv">98</span>,), replace<span class="op">=</span><span class="va">False</span>)])</span>
@@ -873,14 +877,14 @@ x_i^{(t+1)} &amp;\leftarrow \text{sgn}\left( \sum_{\mu} \xi_{\mu i} f_n\left( \s
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="00_dense_storage_files/figure-html/cell-15-output-2.png" width="558" height="580" class="figure-img"></p>
+<p><img src="00_dense_storage_files/figure-html/cell-16-output-2.png" width="558" height="580" class="figure-img"></p>
 </figure>
 </div>
 </div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="00_dense_storage_files/figure-html/cell-15-output-3.png" width="650" height="295" class="figure-img"></p>
+<p><img src="00_dense_storage_files/figure-html/cell-16-output-3.png" width="650" height="295" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -904,7 +908,7 @@ E_\text{MHN}(x) &amp;= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi_{\
 \end{align*}
 \tag{5}\]</span></span></p>
 <p>where increasing the inverse temperature <span class="math inline">\(\beta\)</span> has a similar effect to increasing <span class="math inline">\(n\)</span> in the DenseAM polynomial energy function. Because the <code>log</code> is a monotonically increasing function, the energy minima of the original energy function are preserved, while simultaneously making the energy function more numerically stable.</p>
-<div id="cell-28" class="cell">
+<div id="cell-29" class="cell">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ExponentialDenseAM(BinaryAM):</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    Xi: jax.Array <span class="co"># (K, D) Memory patterns </span></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    beta: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.0</span> <span class="co"># Temperature parameter</span></span>
@@ -912,7 +916,7 @@ E_\text{MHN}(x) &amp;= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi_{\
 <span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(<span class="va">self</span>, x):</span>
 <span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>jax.nn.logsumexp(<span class="va">self</span>.beta <span class="op">*</span> <span class="va">self</span>.Xi <span class="op">@</span> x, axis<span class="op">=-</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div id="cell-29" class="cell">
+<div id="cell-30" class="cell">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Show larger batch retrieval</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[:<span class="dv">1024</span>]</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>Nshow <span class="op">=</span> <span class="dv">255</span></span>
@@ -926,7 +930,7 @@ E_\text{MHN}(x) &amp;= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi_{\
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="00_dense_storage_files/figure-html/cell-17-output-2.png" width="640" height="588" class="figure-img"></p>
+<p><img src="00_dense_storage_files/figure-html/cell-18-output-2.png" width="640" height="588" class="figure-img"></p>
 </figure>
 </div>
 </div>
