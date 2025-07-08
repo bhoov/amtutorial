@@ -146,7 +146,7 @@ def plot_circle_data(data, radius=1, figsize=(6, 6)):
 plot_circle_data(patterns.numpy())
 ```
 
-## The Diffusion Model
+## The Diffusion Architecture
 
 The diffusion model is simply a model $s_\theta(\mathbf{x}_t, t)$ which approximates the `score` function:
 $$
@@ -266,7 +266,7 @@ class ScoreNet(nn.Module):
         return h / self.marginal_prob_std(t)[:, None]
 ```
 
-## Training the Model
+## Training
 
 We use the denoising score matching (`DSM`) loss. The goal is to train the `ScoreNet` model so that its output, the score, matches the direction of the noise `z` that was added to the clean data `x` at each time step `t`.
 $$
