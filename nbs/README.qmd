@@ -1,20 +1,9 @@
----
-authors: 
-    - name: Dmitry Krotov
-      email: krotov@ibm.com
-      affiliations: IBM Research, MIT
-    - name: Benjamin Hoover
-      email: bhoov@gatech.edu
-      affiliations: IBM Research, Georgia Tech
-    - name: Parikshit Ram
-      email: parikshit.ram@ibm.com
-      affiliations: IBM Research
----
+# Getting started
+> Playing with the codebase
 
-# Tutorial on Modern Methods in Associative Memory
-> A complete introduction to Associative Memories and Hopfield Networks for the Modern AI Era
+This website serves as a living companion to the [tutorial manuscript]() (coming soon!) to be presented at [ICML 2025](). It dreams of being a one-stop shop for learning all things about Associative Memory. It's definitely not there yet.
 
-## Getting started
+## Installation
 
 We have tried to streamline the installation of the repo as much as possible.
 
