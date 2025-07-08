@@ -47,7 +47,7 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 CACHE_MODELS = True
 ```
 
-## Synthetic Data Generation
+## Synthetic Data
 
 The paper uses a simple dataset: points sampled from the circumference of a unit circle. This helps us easily visualize how the model learns.
 
@@ -97,8 +97,6 @@ def prepare_datasets(sample_size, train_size=60000, test_size=10000, seed=9):
     return train_subset, test_subset
 ```
 
-### Creating a Small Training Set
-
 Diffusion models can learn from very few samples. In the paper, this is referred to as memorizing "patterns". Let's create a tiny dataset with just 9 data points (patterns) to train on.
 
 
@@ -118,12 +116,11 @@ train_loader = DataLoader(train_subset, batch_size=BATCH_SIZE, shuffle=True)
 patterns = train_subset.dataset[train_subset.indices]
 ```
 
-### Visualizing the "Patterns"
-
 Let's plot our small dataset. These are the specific points we want our model to learn and remember.
 
 
 ```{python}
+#| echo: false
 def plot_circle_data(data, radius=1, figsize=(6, 6)):
     """Helper function to visualize our data on the circle."""
     plt.figure(figsize=figsize)
@@ -149,7 +146,7 @@ def plot_circle_data(data, radius=1, figsize=(6, 6)):
 plot_circle_data(patterns.numpy())
 ```
 
-## 3. The Diffusion Model
+## The Diffusion Model
 
 The diffusion model is simply a model $s_\theta(\mathbf{x}_t, t)$ which approximates the `score` function:
 $$
@@ -184,13 +181,10 @@ class VESDETerms:
         return self.sigma * torch.ones_like(t)
 ```
 
-### Model Architecture (ScoreNet)
-
 Our score network is a simple Multi-Layer Perceptron (`MLP`). It takes a noisy data point `x` and a time step `t` as inputs, and returns the `estimated score`. The conditioning on time step `t` is performed via the `Fourier embedding`, a standard method of time conditioning in diffusion models.
 
 
 ```{python}
-# @title PyTorch Code for ScoreNet
 @torch.no_grad()
 def update_ema(ema_model, model, decay=0.9999):
     """
@@ -272,7 +266,7 @@ class ScoreNet(nn.Module):
         return h / self.marginal_prob_std(t)[:, None]
 ```
 
-## 4. Training the Model
+## Training the Model
 
 We use the denoising score matching (`DSM`) loss. The goal is to train the `ScoreNet` model so that its output, the score, matches the direction of the noise `z` that was added to the clean data `x` at each time step `t`.
 $$
@@ -288,7 +282,6 @@ as the score function, which we have to learn for a single timestep of denoising
 
 
 ```{python}
-# @title Loss Function
 def loss_fn(model, x, marginal_prob_std, eps=1e-5):
     """The denoising score matching loss function."""
     # Sample a random time t
@@ -312,7 +305,6 @@ def loss_fn(model, x, marginal_prob_std, eps=1e-5):
 
 
 ```{python}
-# @title Training Loop
 def train_loop(train_loader, vesde, iterations=100_000, lr=1e-4, device='cuda', log_freq=10_000):
     # create our score model
     score_model = ScoreNet(
@@ -356,6 +348,8 @@ def train_loop(train_loader, vesde, iterations=100_000, lr=1e-4, device='cuda', 
     ema.eval()
     return ema
 ```
+
+Time to train! The following code takes a few minutes to run, but the results are cached after the first run.
 
 ```{python}
 # Train our SDE-based diffusion models for training data sizes: 2, 9, and 1000.
@@ -409,13 +403,12 @@ for sample_size in data_sizes:
     ema_set.append(ema)
 ```
 
-## 5. Sampling from the Trained Model
+## Sampling from the Trained Model
 
 To generate new samples, we run the diffusion process in reverse. We start with pure random noise (sampled at `t=1`) and use our trained score model to guide it back towards the data distribution (towards `t=0`). This is done using a numerical SDE solver, like the Euler-Maruyama method.
 
 
 ```{python}
-# @title Euler-Maruyama Sampler
 def Euler_Maruyama_sampler(score_model,
                            sde,
                            batch_size=64,
@@ -449,8 +442,9 @@ def Euler_Maruyama_sampler(score_model,
     return mean_x # Return the final denoised sample
 ```
 
+We can now sample from the trained models.
+
 ```{python}
-# @title Sample Data from The Models We Trained
 generated_set = []
 
 for ema in ema_set:
@@ -496,7 +490,7 @@ $$
 
 
 ```{python}
-# @title Code to Compute Laplacian and Log-Likelihood
+# Compute Laplacian and Log-Likelihood
 def compute_laplacian(score_fn, x, t):
     """Compute the Laplacian of the score function."""
     laplacian = torch.zeros(x.size(0), device=x.device)
@@ -568,8 +562,6 @@ Finally, when `K = 1000`, the energy now very closely matches that of the DenseA
 
 
 ```{python}
-# @title Plot Functions for Energy Landscape in 2D and 3D
-#@ Plotting functions
 def to_energy(loglikelihood, normalize=True):
     # nll = E + C
     energy = -loglikelihood
