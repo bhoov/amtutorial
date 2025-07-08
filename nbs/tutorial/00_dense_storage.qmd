@@ -147,7 +147,10 @@ def show_im(x, ax=None, do_gridify=True, grid_h=None, figsize=None):
     ax.imshow(x, cmap="gray", vmin=-1, vmax=1)
     ax.axis("off")
     return None if not empty_ax else fig, ax
+```
 
+```{python}
+#| echo: false
 sample_data = jr.choice(jr.PRNGKey(10), data, shape=(100,), replace=False)
 fig1, ax1 = show_im(sample_data, figsize=(6, 6));
 ax1.set_title("Example patterns (black=-1, white=1)")
