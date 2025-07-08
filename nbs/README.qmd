@@ -1,54 +1,64 @@
----
-authors: 
-    - name: Dmitry Krotov
-      email: krotov@ibm.com
-      affiliations: IBM Research, MIT
-    - name: Benjamin Hoover
-      email: bhoov@gatech.edu
-      affiliations: IBM Research, Georgia Tech
-    - name: Parikshit Ram
-      email: parikshit.ram@ibm.com
-      affiliations: IBM Research
----
+# Getting started
+> Playing with the codebase
 
-# Tutorial on Modern Methods in Associative Memory
-> A complete introduction to Associative Memories and Hopfield Networks for the Modern AI Era
+This website serves as a living companion to the [tutorial manuscript]() (coming soon!) to be presented at [ICML 2025](). It dreams of being a one-stop shop for learning all things about Associative Memory. It's definitely not there yet.
 
-## Getting started
+See the [tutorials](./tutorial/index.ipynb) for a brief introduction to the list of example notebooks.
 
-*Commits to the main branch will automatically build the docs website*. Develop in feature branches, merge to main for deployment.
+## Installation
 
 We have tried to streamline the installation of the repo as much as possible.
 
 ### Pre-requisites
 
-Install `quarto` (multi-step instructions [here](https://docs.posit.co/resources/install-quarto.html)) and `uv` (`curl -LsSf https://astral.sh/uv/install.sh | sh`). We also use `conda` for managing the `ffmpeg` dependency, which only matters if `ffmpeg` is not already installed on your system.
+- Install [`uv`](https://docs.astral.sh/uv/getting-started/installation/) using `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Install [`quarto`](https://quarto.org/docs/download/)
+- We use [`conda`](https://www.anaconda.com/docs/getting-started/miniconda/install) (or better yet, [`mamba`](https://github.com/conda-forge/miniforge)) for managing the `ffmpeg` dependency, which only matters if `ffmpeg` is not already installed on your system.
 
-### Running example notebooks in `nbs/tutorial`
+### Setting up the environment
+
+From the root of the repo:
 
 ```sh
-conda install conda-forge::ffmpeg conda-forge::openh264 
 uv sync
 source .venv/bin/activate
-```
+uv run ipython kernel install --user --env VIRTUAL_ENV $(pwd)/.venv --name=amtutorial # Expose venv to ipython
 
-With this env active, you can run the desired notebooks. The first time you run the notebooks will be slow -- we do some initial preprocessing for caching long-running code.
+# OPTIONAL: For rendering videos in notebooks
+conda install conda-forge::ffmpeg conda-forge::openh264 
 
-You can view a local version of the website with `nbdev_preview`.
-
-**Optional** If you want to develop the interactive frontend in `javascript/`, you can install `nodejs` and `npm` and run:
-
-```sh
-# OPTIONAL: install interactive frontend tooling
+# OPTIONAL: For developing the interactive frontend
 conda install conda-forge::nodejs
 npm install --prefix javascript && npm run build --prefix javascript 
 ```
 
+You can view a local version of the website with 
+
+```
+uv run nbdev_preview
+```
+
+### Website structure
+
+`.ipynb` versions of the tutorial notebooks are located in `tutorial_ipynbs`. Setup the `uv` environment above to play with them locally, or run them in Google Colab. 
+
+:::{.callout-note}
+The first time you run the notebooks will be slow. We cache some of the long-running code after the first time, but this will not persist across Colab sessions
+:::
+
+- [Binary Dense Storage Notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/00_dense_storage.ipynb)
+- [Energy Transformer Notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/01_energy_transformer.ipynb)
+- [Diffusion as Memory Notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/02_diffusion_as_memory.ipynb)
+- [Distributed Associative Memory Notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/03_distributed_memory.ipynb)
+
+The website ([](tutorial.amemory.net)) is built using an in-house fork of [`nbdev`](https://github.com/bhoov/nbdev/tree/qmd_support) to allow developing everything (i.e., the tutorials, corresponding `pip` package, and documentation) using plain text representations of jupyter notebooks in `.qmd` files. The website preserves the folder-based routing in the `nbs/` folder.
+
+With the [right extensions](https://quarto.org/docs/tools/vscode/index.html) and [hotkeys](https://github.com/bhoov/nbdev/blob/qmd_support/nbs/tutorials/develop_in_plain_text.qmd), `.qmd` files are pleasant to develop inside VSCode and interop seamlessly with both git and AI tooling.
+
 ## Deploying
 
-The site is deployed to [tutorial.amemory.net](https://tutorial.amemory.net) from the `main` branch.
+Deploy to `tutorial.amemory.net` by pushing commits to the `main` branch after building the site locally.
 
 ```sh
-bash scripts/prep_deploy.sh
-git add . && git commit -m "Update site" && git push
+uv run nbdev_export && uv run nbdev_docs && git add . && git commit -m "Update site" && git push
 ```

@@ -1,5 +1,0 @@
-
-
-# Index for tutorial
-
-A collection of example notebooks for AM.

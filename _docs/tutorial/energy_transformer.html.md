@@ -14,6 +14,15 @@
 
 > Squint, and the Transformer looks like a dynamical system.
 
+<div>
+
+> **🚧 Under construction**
+>
+> This notebook is under construction. It will be completed by July 14,
+> 2025.
+
+</div>
+
 At its core, the transformer is a stack of *L* transformer blocks that
 takes a length *N* sequence of input tokens
 {**x**<sub>1</sub><sup>(0)</sup>, …, **x**<sub>*N*</sub><sup>(0)</sup>}
