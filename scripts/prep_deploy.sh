@@ -12,7 +12,7 @@ uv run nbdev_docs
 
 # Convert the tutorial notebooks to ipynb
 echo "Converting tutorial notebooks to ipynb..."
-uv run nbdev_qmd_to_ipynb nbs/tutorial _tutorial_ipynbs --copy_other_files False
+uv run nbdev_qmd_to_ipynb nbs/tutorial tutorial_ipynbs --copy_other_files False
 
 echo "Done. Now you can run the following commands on the 'main' branch to deploy:"
 echo ""
