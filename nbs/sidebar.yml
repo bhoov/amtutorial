@@ -10,4 +10,5 @@ website:
         contents:
           - tutorial/00_dense_storage.ipynb
           - tutorial/01_energy_transformer.ipynb
+          - tutorial/03_distributed_memory.ipynb
         href: tutorial/index.ipynb
