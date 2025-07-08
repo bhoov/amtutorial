@@ -16,7 +16,9 @@ authors:
 
 ## Getting started
 
-We have tried to streamline the installation process as much as possible. Please leave an issue if you encounter any problems for your setup.
+*Commits to the main branch will automatically build the docs website*. Develop in feature branches, merge to main for deployment.
+
+We have tried to streamline the installation of the repo as much as possible.
 
 ### Pre-requisites
 
