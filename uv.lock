@@ -815,14 +815,14 @@ wheels = [
 
 [[package]]
 name = "fastcore"
-version = "1.8.4"
+version = "1.8.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fd/d4/1524196dd12077ef0ac17b89f486a049145692ef1e3c3a201555ea5c936f/fastcore-1.8.4.tar.gz", hash = "sha256:d85f97fb62e15a4be6b5401b79c0ef017f2c3ee297619f44045a9ba77b3c3247", size = 76092 }
+sdist = { url = "https://files.pythonhosted.org/packages/eb/a8/c3d0a2684efb94d0149eec9781db317e414dd4cfe8667afb31a2f638ab7f/fastcore-1.8.5.tar.gz", hash = "sha256:5b6549f44f8df2d81ec378885c17a6a706a02bb40e38f14f6b44f5296180b76d", size = 76516 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a7/42/e066578b4385b9c886d3e91bc85720865f35dcd179df73889bbc87c8dc23/fastcore-1.8.4-py3-none-any.whl", hash = "sha256:048f75d16eb10052157d3e1e73934f729a32e1c0ddf8b8342012ebe288eb6dba", size = 78845 },
+    { url = "https://files.pythonhosted.org/packages/7b/0a/a572b458862649a67511977ef5b744d0e856d94e12fe47e860428755d7fc/fastcore-1.8.5-py3-none-any.whl", hash = "sha256:84b0301691926a2fd2ea45f0cc66a0fbb4b531244d2995cf69e67db75b4a40f6", size = 79259 },
 ]
 
 [[package]]
@@ -2186,7 +2186,7 @@ wheels = [
 [[package]]
 name = "nbdev"
 version = "2.4.5"
-source = { git = "https://github.com/bhoov/nbdev.git?rev=qmd_support#f893026b9d42b0a72a18274c9bc83a820198bf0d" }
+source = { git = "https://github.com/bhoov/nbdev.git?rev=qmd_support#f10b4e926c66cdc6fbb81bd9b17aef5ca3283c2b" }
 dependencies = [
     { name = "asttokens" },
     { name = "astunparse" },
