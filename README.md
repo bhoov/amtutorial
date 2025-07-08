@@ -30,9 +30,12 @@ possible.
 
 ### Setting up the environment
 
+From the root of the repo:
+
 ``` sh
 uv sync
 source .venv/bin/activate
+uv run ipython kernel install --user --env VIRTUAL_ENV $(pwd)/.venv --name=amtutorial # Expose venv to ipython
 
 # OPTIONAL: For rendering videos in notebooks
 conda install conda-forge::ffmpeg conda-forge::openh264 
