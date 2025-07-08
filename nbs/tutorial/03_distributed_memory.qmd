@@ -1,6 +1,0 @@
-# Distributed Memory
-> Random Features enable Dense Associative Memory to store patterns in a distributed manner across a large number of neurons.
-
-:::{.callout-warning}
-## Under Construction
-:::
