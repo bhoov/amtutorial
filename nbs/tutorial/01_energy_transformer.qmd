@@ -134,6 +134,7 @@ class ETConfig(eqx.Module):
   Y: int = 64 # head dimension
   M: int = 3072 # MLP size
   beta: Optional[float] = None # Inverse temperature for attention, defaults to 1/sqrt(Y)
+  prevent_self_attention: bool = True # Prevent explicit self-attention
   def get_beta(self): return self.beta or 1/jnp.sqrt(self.Y)
 
 smallETConfig = ETConfig(D=12, H=2, Y=6, M=24)
@@ -150,7 +151,12 @@ class EnergyTransformer(eqx.Module):
     beta = self.config.get_beta()
     K = jnp.einsum("kd,hdy->khy", xhat, self.Wk)
     Q = jnp.einsum("qd,hdy->qhy", xhat, self.Wq)
-    A = jax.nn.logsumexp(beta * jnp.einsum("khy,qhy->hqk", K, Q), -1)
+    N = K.shape[0]
+    if self.config.prevent_self_attention:
+      bmask = jnp.ones((N, N)) - jnp.eye(N) # Prevent self-attention
+    else:
+      bmask = jnp.ones((N, N))
+    A = jax.nn.logsumexp(beta * jnp.einsum("khy,qhy->hqk", K, Q), b=bmask, axis=-1)
     return -1/beta * A.sum()
   
   def hn_energy(self, xhat: Float[Array, "N D"]):
@@ -522,7 +528,7 @@ def get_pretrained_et():
   H, Y, D = load_dict["Wk"].shape
   D, M = load_dict["Xi"].shape
 
-  et_config = ETConfig(D=D, H=H, Y=Y, M=M)
+  et_config = ETConfig(D=D, H=H, Y=Y, M=M, prevent_self_attention=False) # These weights were trained allowing self attention. But the arch works equally well both ways.
   et = EnergyTransformer(
     Wk = rearrange(load_dict["Wk"], "h y d -> h d y"),
     Wq = rearrange(load_dict["Wq"], "h y d -> h d y"),
@@ -547,59 +553,65 @@ def get_pretrained_et():
   )
 
   return iet
-
-iet.et.Xi.shape
 ```
 
 So can we inpaint images with ET?
 
 ```{python}
+def inpaint_image(et, img, n_mask, key, nsteps=12, step_size=0.1):
+    " Perform masked image inpainting with Energy Transformer"
+    # Create random mask
+    mask_idxs = jr.choice(
+        key, np.arange(iet.patcher.num_patches), shape=(n_mask,), replace=False
+    )
+    mask = jnp.zeros(iet.patcher.num_patches).at[mask_idxs].set(1)
+    
+    x = iet.encode(img)  # Img to embedded tokens
+    x = iet.prep_tokens(x, mask)[1:]  # N,D (remove CLS token)
+    masked_img = iet.decode(iet.lnorm(x))
+    
+    # Reconstruct image using Energy Transformer
+    recons_img = iet(img, mask, nsteps=nsteps, step_size=step_size)
+    
+    return masked_img, recons_img
+
 iet = get_pretrained_et()
-imgs = get_normalized_imgs()
+nh, nw = 2, 5
+N = nh*nw
+og_imgs = get_normalized_imgs()[:N]
 
-# Show original input image
-og_img = imgs[0]
-og_img_show = unnormalize_img(og_img)
+keys = jr.split(jr.PRNGKey(0), len(og_imgs))
+masked_imgs, recons_imgs = jax.vmap(inpaint_image, in_axes=(None, 0, None, 0))(iet, og_imgs, 100, keys)
 
-# Mask 100 tokens
-key = jr.PRNGKey(0)
-n_mask = 100
-mask_idxs = jr.choice(
-  key, np.arange(iet.patcher.num_patches), shape=(n_mask,), replace=False
-)
-mask = jnp.zeros(iet.patcher.num_patches).at[mask_idxs].set(1)
-
-# Show masked input, encoded & decoded but no ET
-x = iet.encode(og_img) # Img to embedded tokens
-x = iet.prep_tokens(x, mask)[1:]  # N,D
-masked_img = iet.decode(iet.lnorm(x))
-masked_img_show = unnormalize_img(masked_img)
-
-# Show reconstructed input
-recons = iet(og_img, mask, nsteps=12, step_size=0.1)
-recons_img = unnormalize_img(recons)
+vunnormalize_img = jax.vmap(unnormalize_img)
+og_imgs_show, masked_imgs_show, recons_imgs_show = [vunnormalize_img(im) for im in (og_imgs, masked_imgs, recons_imgs)]
 
 ```
 
-
 ```{python}
-fig, axs = plt.subplots(1, 3, figsize=(12, 4))
-def rm_ticks(ax):
-  ax.set_xticks([])
-  ax.set_yticks([])
-[rm_ticks(ax) for ax in axs]
-  
-ax = axs[0]
-ax.imshow(masked_img_show / 255.)
-ax.set_title("Masked Input")
+# Rearrange for plotting
+stacked_imgs = jnp.stack([masked_imgs_show, recons_imgs_show, og_imgs_show], axis=0)
+pw = 4
+stacked_imgs_padded = jnp.pad(stacked_imgs, 
+                              ((0,0), (0,0), (pw,pw), (0,0), (0,0)), 
+                              mode='constant', constant_values=0)
 
-ax = axs[1]
-ax.imshow(recons_img / 255.)
-ax.set_title("Reconstruction")
 
-ax = axs[2]
-ax.imshow(og_img_show / 255.)
-ax.set_title("Original Image")
+# Rearrange into a single grid: 3 rows (image types) × nh rows × nw columns
+combined_grid = rearrange(stacked_imgs_padded, 
+                         "t n h w c -> (t h) (n w) c")
 
+# Plot
+fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+ax.imshow(combined_grid / 255.)
+ax.set_xticks([])
+ax.set_yticks([])
+
+# Add row labels (horizontally readable, positioned to the left)
+h_per_row = combined_grid.shape[0] // 3
+for i, name in enumerate(['Masked Input', 'Reconstruction', 'Original Image']):
+  ax.text(-50, h_per_row // 2 + i * h_per_row, name, va='center', ha='right', fontsize=12, fontweight='bold')
+
+plt.tight_layout()
 plt.show()
 ```
