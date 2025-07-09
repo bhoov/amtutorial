@@ -255,21 +255,26 @@ Energy Transformer was originally trained on [ImageNet](https://image-net.org/).
 
 ```{python}
 # %% Load image from real dataset
-IMAGENET_MEAN = np.array([0.485, 0.456, 0.406]) * 255
-IMAGENET_STD = np.array([0.229, 0.224, 0.225]) * 255
+IMAGENET_MEAN = np.array([0.485, 0.456, 0.406]) * 255 # C, H, W
+IMAGENET_STD = np.array([0.229, 0.224, 0.225]) * 255 # C, H, W
 
-def normalize_img(x):
-  x = (np.array(x) - IMAGENET_MEAN) / IMAGENET_STD
-  return rearrange(x, "... h w c -> ... c h w")
+def normalize_img(im):
+  """Put into channel first format, normalize"""
+  x = (im - IMAGENET_MEAN) / IMAGENET_STD
+  x = rearrange(x, "h w c-> c h w")
+  return x
+
 
 def unnormalize_img(x):
-  x = rearrange(np.array(x), "... c h w -> ... h w c")
-  return ((x * IMAGENET_STD) + IMAGENET_MEAN).astype(np.uint8)
+  """Put back into channel last format, denormalize"""
+  x = rearrange(x, "c h w -> h w c")
+  im = (x * IMAGENET_STD) + IMAGENET_MEAN
+  return im.astype(jnp.uint8)
 
-@ft.lru_cache
+# @ft.lru_cache
 def get_normalized_imgs():
-  imgs = np.stack([imageio.imread(f) for f in sorted(glob("./assets/et-figs/*.png"))])
-  imgs = normalize_img(imgs)
+  imgs = jnp.stack([imageio.imread(f) for f in sorted(glob("./assets/et-figs/*.png"))])
+  imgs = jax.vmap(normalize_img)(imgs)
   return imgs
 ```
 
@@ -277,7 +282,7 @@ def get_normalized_imgs():
 #| echo: false
 nh, nw = 2, 5
 imgs = get_normalized_imgs()
-unnormalized_imgs = unnormalize_img(imgs[:nh*nw])
+unnormalized_imgs = jax.vmap(unnormalize_img)(imgs[:nh*nw])
 xshow = rearrange(unnormalized_imgs, "(nh nw) h w c -> (nh h) (nw w) c", nh=nh, nw=nw)
 plt.imshow(xshow)
 plt.imshow(xshow)
@@ -436,7 +441,6 @@ class ImageEnergyTransformer(eqx.Module):
 
   def decode(self, x):
     "Turn x from tokens to img patches"
-    x = self.lnorm(x) # (..., N, D)
     x = x @ self.W_unemb + self.b_unemb # (..., N, Z)
     return self.patcher.untokenify(x) # (..., C, H, W)
 
@@ -454,8 +458,7 @@ class ImageEnergyTransformer(eqx.Module):
     x = jnp.concatenate([self.cls_token[None], x]) # (..., N+1, D)
     return x + self.pos_embed # (..., N+1, D)
 
-  @delegates(energy_recall)
-  def __call__(self, x: jnp.ndarray, mask: jnp.ndarray, **kwargs):
+  def __call__(self, x: jnp.ndarray, mask: jnp.ndarray, nsteps=12, step_size=0.1):
     """A complete pipeline for masked image modeling in ET using `energy_recall`
     
     `kwargs` are passed to `energy_recall`
@@ -463,7 +466,12 @@ class ImageEnergyTransformer(eqx.Module):
     x = self.encode(x)
     x = self.prep_tokens(x, mask)  # (..., N+1, D)
 
-    final_x, energy_history = energy_recall(self.et.energy, x, **kwargs)
+
+    get_energy_info = jax.value_and_grad(self.et.energy)
+    for i in range(nsteps):
+      xhat = self.lnorm(x)
+      E, dEdg = get_energy_info(xhat)
+      x = x - step_size * dEdg
 
     x = x[1:]  # Discard CLS token for masked inpainting
     xhat = self.lnorm(x)
@@ -563,14 +571,13 @@ mask = jnp.zeros(iet.patcher.num_patches).at[mask_idxs].set(1)
 
 # Show masked input, encoded & decoded but no ET
 x = iet.encode(og_img) # Img to embedded tokens
-x = iet.prep_tokens(x, mask)[1:]  # N+1,D
+x = iet.prep_tokens(x, mask)[1:]  # N,D
 masked_img = iet.decode(iet.lnorm(x))
 masked_img_show = unnormalize_img(masked_img)
 
 # Show reconstructed input
 recons = iet(og_img, mask, nsteps=12, step_size=0.1)
 recons_img = unnormalize_img(recons)
-
 
 # print(out.shape)
 # return out
