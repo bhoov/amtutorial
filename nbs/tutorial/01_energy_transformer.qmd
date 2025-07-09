@@ -266,13 +266,17 @@ def unnormalize_img(x):
   x = rearrange(np.array(x), "... c h w -> ... h w c")
   return ((x * IMAGENET_STD) + IMAGENET_MEAN).astype(np.uint8)
 
-imgs = np.stack([imageio.imread(f) for f in sorted(glob("./assets/et-figs/*.png"))])
-imgs = normalize_img(imgs)
+@ft.lru_cache
+def get_normalized_imgs():
+  imgs = np.stack([imageio.imread(f) for f in sorted(glob("./assets/et-figs/*.png"))])
+  imgs = normalize_img(imgs)
+  return imgs
 ```
 
 ```{python}
 #| echo: false
 nh, nw = 2, 5
+imgs = get_normalized_imgs()
 unnormalized_imgs = unnormalize_img(imgs[:nh*nw])
 xshow = rearrange(unnormalized_imgs, "(nh nw) h w c -> (nh h) (nw w) c", nh=nh, nw=nw)
 plt.imshow(xshow)
@@ -426,14 +430,15 @@ class ImageEnergyTransformer(eqx.Module):
 
   def encode(self, x):
     "Turn x from img patches to tokens"
-    x = self.patcher.patchify(x) # (..., N, Z)
-    return x @ self.W_emb + self.b_emb # (..., N, D)
+    x = self.patcher.tokenify(x) # (..., N, Z)
+    out = x @ self.W_emb + self.b_emb # (..., N, D)
+    return out
 
   def decode(self, x):
     "Turn x from tokens to img patches"
     x = self.lnorm(x) # (..., N, D)
     x = x @ self.W_unemb + self.b_unemb # (..., N, Z)
-    return self.patcher.unpatchify(x) # (..., C, H, W)
+    return self.patcher.untokenify(x) # (..., C, H, W)
 
   def corrupt_tokens(self, x: jax.Array, mask: jax.Array, n_masked: int=100):
     """Corrupt tokens with MASK tokens wherever `mask` is 1.
@@ -455,7 +460,6 @@ class ImageEnergyTransformer(eqx.Module):
     
     `kwargs` are passed to `energy_recall`
     """
-    x = self.patcher.patchify(x)
     x = self.encode(x)
     x = self.prep_tokens(x, mask)  # (..., N+1, D)
 
@@ -463,8 +467,7 @@ class ImageEnergyTransformer(eqx.Module):
 
     x = x[1:]  # Discard CLS token for masked inpainting
     xhat = self.lnorm(x)
-    x = self.decode(xhat)
-    return self.patcher.unpatchify(x) # (..., C, H, W)
+    return self.decode(xhat) # (..., C, H, W)
 
   @classmethod
   def rand_init(cls, key, config=ImageETConfig()):
@@ -500,15 +503,7 @@ imageET = ImageEnergyTransformer.rand_init(key, ImageETConfig())
 
 ### Loading pretrained weights
 
-ET has publicly available pretrained weights that can be used for masked-image inpainting. Let's load those weights into our model.
-
-
-```{python}
-from amtutorial.eqx_utils import monkey_patch
-monkey_patch() # Make model surgery easier
-```
-
-The model itself is pretty small ~20MB. We load the state dict from a saved .npz file as follows:
+ET has publicly available pretrained weights that can be used for masked-image inpainting. The model itself is pretty small ~20MB. We load the state dict from a saved .npz file as follows:
 
 ```{python}
 @ft.lru_cache
@@ -521,9 +516,9 @@ def get_pretrained_et():
 
   et_config = ETConfig(D=D, H=H, Y=Y, M=M)
   et = EnergyTransformer(
-    Wk = load_dict["Wk"],
-    Wq = load_dict["Wq"],
-    Xi = load_dict["Xi"],
+    Wk = rearrange(load_dict["Wk"], "h y d -> h d y"),
+    Wq = rearrange(load_dict["Wq"], "h y d -> h d y"),
+    Xi = rearrange(load_dict["Xi"], "d m -> m d"),
     config = et_config
   )
 
@@ -545,12 +540,69 @@ def get_pretrained_et():
 
   return iet
 
-iet = get_pretrained_et()
+iet.et.Xi.shape
 ```
 
 So can we inpaint images with ET?
 
+```{python}
+iet = get_pretrained_et()
+imgs = get_normalized_imgs()
+
+# Show original input image
+og_img = imgs[0]
+og_img_show = unnormalize_img(og_img)
+
+# Mask 100 tokens
+key = jr.PRNGKey(10)
+n_mask = 100
+mask_idxs = jr.choice(
+  key, np.arange(iet.patcher.num_patches), shape=(n_mask,), replace=False
+)
+mask = jnp.zeros(iet.patcher.num_patches).at[mask_idxs].set(1)
+
+# Show masked input, encoded & decoded but no ET
+x = iet.encode(og_img) # Img to embedded tokens
+x = iet.prep_tokens(x, mask)[1:]  # N+1,D
+masked_img = iet.decode(iet.lnorm(x))
+masked_img_show = unnormalize_img(masked_img)
+
+# Show reconstructed input
+recons = iet(og_img, mask, nsteps=12, step_size=0.1)
+recons_img = unnormalize_img(recons)
+
+
+# print(out.shape)
+# return out
+# xin = iet.prep_tokens(xin, mask)  # N+1,D
+# masked_input = iet.patcher.unpatchify(iet.decode(iet.lnorm(xin[1:])))
+# og_input = np.array(im)
+
+# iet.encode(x)
+# # Reconstructed input
+# recons = iet(x, mask)
+
+```
+
 
 ```{python}
-# Preprocess image for tokenization
+fig, axs = plt.subplots(1, 3, figsize=(12, 4))
+def rm_ticks(ax):
+  ax.set_xticks([])
+  ax.set_yticks([])
+[rm_ticks(ax) for ax in axs]
+  
+ax = axs[0]
+ax.imshow(masked_img_show / 255.)
+ax.set_title("Masked Input")
+
+ax = axs[1]
+ax.imshow(recons_img / 255.)
+ax.set_title("Reconstruction")
+
+ax = axs[2]
+ax.imshow(og_img_show / 255.)
+ax.set_title("Original Image")
+
+plt.show()
 ```
