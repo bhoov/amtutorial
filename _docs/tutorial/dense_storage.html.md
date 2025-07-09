@@ -510,6 +510,18 @@ print(f"Storing {Xi.shape[0]} patterns")
 <img src="00_dense_storage_files/figure-commonmark/cell-18-output-2.png"
 width="640" height="588" />
 
+<div>
+
+> **Warning**
+>
+> **Depending on your RAM availability, the following cell may crash
+> your session**. Decrease to e.g., `nh = nw = 5` to avoid this (or
+> upgrade your runtime on Colab for more resources).
+>
+> ![](assets/figs/ResourceExhaustedWarning.png)
+
+</div>
+
 And of course, what’s the fun if we can’t animate the retrieval process?
 
     <IPython.core.display.Image object>
