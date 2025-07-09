@@ -150,7 +150,7 @@ class EnergyTransformer(eqx.Module):
     beta = self.config.get_beta()
     K = jnp.einsum("kd,hdy->khy", xhat, self.Wk)
     Q = jnp.einsum("qd,hdy->qhy", xhat, self.Wq)
-    A = jax.nn.logsumexp(beta * jnp.einsum("khy,qhy->hqk", Q, K), -1)
+    A = jax.nn.logsumexp(beta * jnp.einsum("khy,qhy->hqk", K, Q), -1)
     return -1/beta * A.sum()
   
   def hn_energy(self, xhat: Float[Array, "N D"]):
@@ -562,7 +562,7 @@ og_img = imgs[0]
 og_img_show = unnormalize_img(og_img)
 
 # Mask 100 tokens
-key = jr.PRNGKey(10)
+key = jr.PRNGKey(0)
 n_mask = 100
 mask_idxs = jr.choice(
   key, np.arange(iet.patcher.num_patches), shape=(n_mask,), replace=False
@@ -578,16 +578,6 @@ masked_img_show = unnormalize_img(masked_img)
 # Show reconstructed input
 recons = iet(og_img, mask, nsteps=12, step_size=0.1)
 recons_img = unnormalize_img(recons)
-
-# print(out.shape)
-# return out
-# xin = iet.prep_tokens(xin, mask)  # N+1,D
-# masked_input = iet.patcher.unpatchify(iet.decode(iet.lnorm(xin[1:])))
-# og_input = np.array(im)
-
-# iet.encode(x)
-# # Reconstructed input
-# recons = iet(x, mask)
 
 ```
 
