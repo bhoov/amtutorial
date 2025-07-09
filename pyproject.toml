@@ -21,8 +21,7 @@ dependencies = [
     "scikit-learn>=1.6.1",
     "scipy>=1.13.1",
     "seaborn>=0.13.2",
-    "torch>=2.7.1",
-    "tqdm>=4.67.1",
+    "tqdm<=4.66.5",
 ]
 
 [project.scripts]
