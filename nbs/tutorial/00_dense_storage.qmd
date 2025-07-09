@@ -561,6 +561,12 @@ ax1.set_title(f"Random sample of {Nshow} stored patterns")
 print(f"Storing {Xi.shape[0]} patterns")
 ```
 
+:::{.callout-warning}
+**Depending on your RAM availability, the following cell may crash your session**. Decrease to e.g., `nh = nw = 5` to avoid this (or upgrade your runtime on Colab for more resources).
+
+![](assets/figs/ResourceExhaustedWarning.png)
+:::
+
 
 ```{python}
 #| echo: false
