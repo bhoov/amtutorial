@@ -17,3 +17,4 @@ wheels/
 _proc/
 .quarto
 .DS_Store
+settings.ini.backup
