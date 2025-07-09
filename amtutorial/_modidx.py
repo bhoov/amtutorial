@@ -27,4 +27,11 @@ d = { 'settings': { 'branch': 'main',
                                        'amtutorial.data_utils.process_pokemon_sprites': ( 'lib/data_utils.html#process_pokemon_sprites',
                                                                                           'amtutorial/data_utils.py'),
                                        'amtutorial.data_utils.scale_to_fit': ( 'lib/data_utils.html#scale_to_fit',
-                                                                               'amtutorial/data_utils.py')}}}
+                                                                               'amtutorial/data_utils.py')},
+            'amtutorial.eqx_utils': { 'amtutorial.eqx_utils._AtWrapper': ('lib/eqx_utils.html#_atwrapper', 'amtutorial/eqx_utils.py'),
+                                      'amtutorial.eqx_utils._AtWrapper.set': ( 'lib/eqx_utils.html#_atwrapper.set',
+                                                                               'amtutorial/eqx_utils.py'),
+                                      'amtutorial.eqx_utils._AtWrapper.set_fn': ( 'lib/eqx_utils.html#_atwrapper.set_fn',
+                                                                                  'amtutorial/eqx_utils.py'),
+                                      'amtutorial.eqx_utils._at': ('lib/eqx_utils.html#_at', 'amtutorial/eqx_utils.py'),
+                                      'amtutorial.eqx_utils.monkey_patch': ('lib/eqx_utils.html#monkey_patch', 'amtutorial/eqx_utils.py')}}}

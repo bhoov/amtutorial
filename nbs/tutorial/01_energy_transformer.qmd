@@ -146,13 +146,6 @@ class EnergyTransformer(eqx.Module):
   Wk: Float[Array, "H D Y"] # Key projection
   Xi: Float[Array, "M D"]
 
-  def __init__(self, key, config: ETConfig=fullETConfig):
-    self.config = config
-    key1, key2, key3 = jr.split(key, 3)
-    self.Wq = jr.normal(key1, (config.H, config.D, config.Y)) / config.Y
-    self.Wk = jr.normal(key2, (config.H, config.D, config.Y)) / config.Y
-    self.Xi = jr.normal(key3, (config.M, config.D))
-
   def attn_energy(self, xhat: Float[Array, "N D"]):
     beta = self.config.get_beta()
     K = jnp.einsum("kd,hdy->khy", xhat, self.Wk)
@@ -168,6 +161,15 @@ class EnergyTransformer(eqx.Module):
   def energy(self, xhat: Float[Array, "N D"]):
     "Total energy of the Energy Transformer"
     return self.attn_energy(xhat) + self.hn_energy(xhat)
+
+  @classmethod
+  def rand_init(cls, key, config: ETConfig):
+    key1, key2, key3 = jr.split(key, 3)
+    return cls(config,
+      Wq=jr.normal(key1, (config.H, config.D, config.Y)) / jnp.sqrt(config.Y),
+      Wk=jr.normal(key2, (config.H, config.D, config.Y)) / jnp.sqrt(config.Y),
+      Xi=jr.normal(key3, (config.M, config.D)) / jnp.sqrt(config.D)
+    )
 ```
 
 Note that the `xhat` inputs above are all layer-normalized tokens. However, like other AMs, we restrict ourselves to using non-linearties that are gradients of a convex Lagrangian function. Our "special layernorm"  is the same as the standard layer normalization *except* that we need our learnable `gamma` parameter to be a scalar instead of a vector of shape `D`. We will just show this in code below.
@@ -203,7 +205,7 @@ Let's check that the energies of both attention and memory monotonically decreas
 
 ```{python}
 key = jr.PRNGKey(11)
-et = EnergyTransformer(key, config=smallETConfig)
+et = EnergyTransformer.rand_init(key, config=smallETConfig)
 lnorm = EnergyLayerNorm(gamma=1., delta=jnp.zeros(et.config.D))
 
 def energy_recall(Efn, x_init, nsteps, step_size):
@@ -252,14 +254,29 @@ To make the Energy Transformer described above work on real data, we need to add
 Energy Transformer was originally trained on [ImageNet](https://image-net.org/). We will load some example images (unseen during training) to demonstrate ET's ability to remember images.
 
 ```{python}
+# %% Load image from real dataset
+IMAGENET_MEAN = np.array([0.485, 0.456, 0.406]) * 255
+IMAGENET_STD = np.array([0.229, 0.224, 0.225]) * 255
+
+def normalize_img(x):
+  x = (np.array(x) - IMAGENET_MEAN) / IMAGENET_STD
+  return rearrange(x, "... h w c -> ... c h w")
+
+def unnormalize_img(x):
+  x = rearrange(np.array(x), "... c h w -> ... h w c")
+  return ((x * IMAGENET_STD) + IMAGENET_MEAN).astype(np.uint8)
+
 imgs = np.stack([imageio.imread(f) for f in sorted(glob("./assets/et-figs/*.png"))])
-imgs = rearrange(imgs, "n h w c -> n c h w")
+imgs = normalize_img(imgs)
 ```
 
 ```{python}
 #| echo: false
 nh, nw = 2, 5
-plt.imshow(rearrange(imgs[:nh*nw], "(nh nw) c h w -> (nh h) (nw w) c", nh=nh, nw=nw))
+unnormalized_imgs = unnormalize_img(imgs[:nh*nw])
+xshow = rearrange(unnormalized_imgs, "(nh nw) h w c -> (nh h) (nw w) c", nh=nh, nw=nw)
+plt.imshow(xshow)
+plt.imshow(xshow)
 plt.axis('off')
 plt.title("Example validation images")
 plt.show()
@@ -351,8 +368,8 @@ print(patched_img.shape)
 ```{python}
 #| echo: false
 pad_width = 1
-padded_patches = np.pad(patched_img, ((0,0), (0,0), (pad_width,pad_width+1), (pad_width,pad_width+1)), mode='constant')
-plt.imshow(rearrange(patcher.unpatchify(padded_patches), "c h w -> h w c"))
+padded_patches = np.pad(patched_img, ((0,0), (0,0), (pad_width,pad_width+1), (pad_width,pad_width+1)), mode='constant', constant_values=-np.inf)
+plt.imshow(unnormalize_img(patcher.unpatchify(padded_patches)))
 plt.axis('off')
 plt.title("Visualized patched image")
 plt.show()
@@ -471,7 +488,7 @@ class ImageEnergyTransformer(eqx.Module):
       pos_embed=pos_embed,
       cls_token=cls_token,
       mask_token=mask_token,
-      et=EnergyTransformer(key7, config.et_conf),
+      et=EnergyTransformer.rand_init(key7, config.et_conf),
       lnorm=EnergyLayerNorm(gamma=1., delta=jnp.zeros(config.et_conf.D)),
       config=config
     )
@@ -481,10 +498,59 @@ class ImageEnergyTransformer(eqx.Module):
 imageET = ImageEnergyTransformer.rand_init(key, ImageETConfig())
 ```
 
+### Loading pretrained weights
+
 ET has publicly available pretrained weights that can be used for masked-image inpainting. Let's load those weights into our model.
 
-## Training an Energy Transformer
 
-We train ET on a simple dataset, should work on CPU.
+```{python}
+from amtutorial.eqx_utils import monkey_patch
+monkey_patch() # Make model surgery easier
+```
 
-The Transformer is a very flexible computing paradigm that can be used for the two major approaches of modern language modeling: **masked token prediction** (e.g., BERT and diffusion-style transformers) where you predict the fraction of input tokens that are MASKed using information from the unmasked tokens, and **autoregressive language modeling** (e.g., GPT-style models), where each token in the input sequence is transformed into the next prediction token.
+The model itself is pretty small ~20MB. We load the state dict from a saved .npz file as follows:
+
+```{python}
+@ft.lru_cache
+def get_pretrained_et():
+  load_dict = {k:jnp.array(v) for k,v in np.load("./assets/et_ckpt.npz").items()}
+
+  # config from state_dict
+  H, Y, D = load_dict["Wk"].shape
+  D, M = load_dict["Xi"].shape
+
+  et_config = ETConfig(D=D, H=H, Y=Y, M=M)
+  et = EnergyTransformer(
+    Wk = load_dict["Wk"],
+    Wq = load_dict["Wq"],
+    Xi = load_dict["Xi"],
+    config = et_config
+  )
+
+  image_config = ImageETConfig(image_shape=(3, 224, 224), patch_size=16, et_conf=et_config)
+  patcher = Patcher.from_img_shape(image_config.image_shape, image_config.patch_size)
+  iet = ImageEnergyTransformer(
+    patcher = patcher,
+    W_emb = load_dict["Wenc"],
+    b_emb = load_dict["Benc"],
+    W_unemb = load_dict["Wdec"],
+    b_unemb = load_dict["Bdec"],
+    pos_embed = load_dict["POS_embed"],
+    cls_token = load_dict["CLS_token"],
+    mask_token = load_dict["MASK_token"],
+    et = et,
+    lnorm = EnergyLayerNorm(gamma=load_dict["LNORM_gamma"], delta=load_dict["LNORM_bias"]),
+    config = image_config
+  )
+
+  return iet
+
+iet = get_pretrained_et()
+```
+
+So can we inpaint images with ET?
+
+
+```{python}
+# Preprocess image for tokenization
+```
