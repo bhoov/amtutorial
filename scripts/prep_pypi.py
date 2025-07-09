@@ -15,7 +15,11 @@ version_part = sys.argv[1] if len(sys.argv) > 1 else '2'
 def main(
     version_part:int=2, # 0: major, 1: minor, 2: patch
 ):
+    print("Syncing dependencies from pyproject.toml to settings.ini...")
+    subprocess.run([sys.executable, ROOT / 'scripts' / 'sync_dependencies.py'], check=True)
+
     # Bump version
+    print("Bumping version...")
     subprocess.run(['uv', 'run', 'nbdev_bump_version', '--part', str(version_part)], check=True)
 
     # Read version from settings.ini
