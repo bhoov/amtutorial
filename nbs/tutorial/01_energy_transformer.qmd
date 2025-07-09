@@ -114,6 +114,8 @@ from dataclasses import dataclass
 from typing import *
 import matplotlib.pyplot as plt
 import numpy as np
+import imageio.v2 as imageio
+from glob import glob
 from fastcore.basics import *
 from fastcore.meta import *
 import matplotlib.pyplot as plt
@@ -168,7 +170,7 @@ class EnergyTransformer(eqx.Module):
     return self.attn_energy(xhat) + self.hn_energy(xhat)
 ```
 
-Note that the `xhat` inputs above are all layer-normalized tokens. However, like other AMs, we restrict ourselves to using non-linearties that are gradients of a convex Lagrangian function. Our "special layernorm"  is the same as the standard layer normalization *except* that we need our learnable `scale` parameter to be a scalar instead of a vector of shape `D`. We will just show this in code below.
+Note that the `xhat` inputs above are all layer-normalized tokens. However, like other AMs, we restrict ourselves to using non-linearties that are gradients of a convex Lagrangian function. Our "special layernorm"  is the same as the standard layer normalization *except* that we need our learnable `gamma` parameter to be a scalar instead of a vector of shape `D`. We will just show this in code below.
 
 ```{python}
 class EnergyLayerNorm(eqx.Module):
@@ -247,7 +249,21 @@ To make the Energy Transformer described above work on real data, we need to add
 
 ### Loading data
 
-Energy Transformer was originally trained on [ImageNet](https://image-net.org/). We will load some validation images of the same expected shape of ImageNet to test the performance of ET.
+Energy Transformer was originally trained on [ImageNet](https://image-net.org/). We will load some example images (unseen during training) to demonstrate ET's ability to remember images.
+
+```{python}
+imgs = np.stack([imageio.imread(f) for f in sorted(glob("./assets/et-figs/*.png"))])
+imgs = rearrange(imgs, "n h w c -> n c h w")
+```
+
+```{python}
+#| echo: false
+nh, nw = 2, 5
+plt.imshow(rearrange(imgs[:nh*nw], "(nh nw) c h w -> (nh h) (nw w) c", nh=nh, nw=nw))
+plt.axis('off')
+plt.title("Example validation images")
+plt.show()
+```
 
 ### Patching images
 
@@ -287,6 +303,23 @@ class Patcher(eqx.Module):
       patches, "... (kh kw) c h w -> ... c (kh h) (kw w)", kh=self.kh, kw=self.kw
     )
 
+  def rasterize(self, patches):
+    "Rasterize patches into tokens"
+    return rearrange(patches, "... c h w -> ... (c h w)")
+
+  def unrasterize(self, tokens):
+    "Unrasterize tokens into patches"
+    c,h,w = self.patch_shape
+    return rearrange(tokens, "... (c h w) -> ... c h w", c=c, h=h, w=w)
+
+  def tokenify(self, img):
+    "Turn img into rasterized patches"
+    return self.rasterize(self.patchify(img))
+
+  def untokenify(self, tokens):
+    "Untokenify tokens into original image"
+    return self.unpatchify(self.unrasterize(tokens))
+
   def patchified_shape(self):
     "The expected shape of a patchified image"
     return (self.num_patches, *self.patch_shape)
@@ -310,11 +343,41 @@ class Patcher(eqx.Module):
 It lets us do things like:
 
 ```{python}
-# show_doc(Patcher.patchify)
+patcher = Patcher.from_img_shape(imgs[0].shape, patch_size=16)
+patched_img = patcher.patchify(imgs[0])
+print(patched_img.shape)
 ```
 
 ```{python}
-# show_doc(Patcher.unpatchify)
+#| echo: false
+pad_width = 1
+padded_patches = np.pad(patched_img, ((0,0), (0,0), (pad_width,pad_width+1), (pad_width,pad_width+1)), mode='constant')
+plt.imshow(rearrange(patcher.unpatchify(padded_patches), "c h w -> h w c"))
+plt.axis('off')
+plt.title("Visualized patched image")
+plt.show()
+```
+
+`Patcher.unpatchify` gets us back to the original image.
+
+```{python}
+assert jnp.all(patcher.unpatchify(patched_img) == imgs[0])
+```
+
+We can process an images and batches of imags into tokens and back.
+
+```{python}
+tokenified_img = patcher.tokenify(imgs[0])
+print("Token pre-embedding shape: ", tokenified_img.shape)
+
+untokenified_img = patcher.untokenify(tokenified_img)
+assert jnp.all(untokenified_img == imgs[0])
+
+batch_tokenified_imgs = patcher.tokenify(imgs)
+print("Batch token pre-embedding shape: ", batch_tokenified_imgs.shape)
+
+batch_untokenified_imgs = patcher.untokenify(batch_tokenified_imgs)
+assert jnp.all(batch_untokenified_imgs == imgs)
 ```
 
 ### Image-compatible ET
