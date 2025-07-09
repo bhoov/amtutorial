@@ -467,21 +467,29 @@ class ImageEnergyTransformer(eqx.Module):
   def __call__(self, x: jnp.ndarray, mask: jnp.ndarray, nsteps=12, step_size=0.1):
     """A complete pipeline for masked image modeling in ET using `energy_recall`
     
-    `kwargs` are passed to `energy_recall`
+    Args:
+      return_intermediates: If True, return all intermediate xhat values from gradient descent
     """
     x = self.encode(x)
     x = self.prep_tokens(x, mask)  # (..., N+1, D)
 
-
     get_energy_info = jax.value_and_grad(self.et.energy)
-    for i in range(nsteps):
-      xhat = self.lnorm(x)
-      E, dEdg = get_energy_info(xhat)
-      x = x - step_size * dEdg
+    
+    def gd_step(x, i):
+        xhat = self.lnorm(x)
+        E, dEdg = get_energy_info(xhat)
+        x_next = x - step_size * dEdg
+        return x_next, {"energy": E, "xhat": xhat}
 
-    x = x[1:]  # Discard CLS token for masked inpainting
-    xhat = self.lnorm(x)
-    return self.decode(xhat) # (..., C, H, W)
+    x, traj_outputs = jax.lax.scan(gd_step, x, jnp.arange(nsteps))
+
+    xhat_final = self.lnorm(x)
+    E_final = self.et.energy(xhat_final)
+    traj_outputs['xhat'] = jnp.concatenate([traj_outputs['xhat'], xhat_final[None]], axis=0)
+    traj_outputs['energy'] = jnp.concatenate([traj_outputs['energy'], E_final[None]], axis=0)
+
+    xhat_final = xhat_final[1:]  # Discard CLS token for masked inpainting
+    return self.decode(xhat_final), traj_outputs
 
   @classmethod
   def rand_init(cls, key, config=ImageETConfig()):
@@ -555,7 +563,7 @@ def get_pretrained_et():
   return iet
 ```
 
-So can we inpaint images with ET?
+We can inpaint images with ET.
 
 ```{python}
 def inpaint_image(et, img, n_mask, key, nsteps=12, step_size=0.1):
@@ -571,9 +579,9 @@ def inpaint_image(et, img, n_mask, key, nsteps=12, step_size=0.1):
     masked_img = iet.decode(iet.lnorm(x))
     
     # Reconstruct image using Energy Transformer
-    recons_img = iet(img, mask, nsteps=nsteps, step_size=step_size)
+    recons_img, traj_outputs = iet(img, mask, nsteps=nsteps, step_size=step_size)
     
-    return masked_img, recons_img
+    return masked_img, recons_img, traj_outputs
 
 iet = get_pretrained_et()
 nh, nw = 2, 5
@@ -581,14 +589,14 @@ N = nh*nw
 og_imgs = get_normalized_imgs()[:N]
 
 keys = jr.split(jr.PRNGKey(0), len(og_imgs))
-masked_imgs, recons_imgs = jax.vmap(inpaint_image, in_axes=(None, 0, None, 0))(iet, og_imgs, 100, keys)
+masked_imgs, recons_imgs, traj_outputs = jax.vmap(inpaint_image, in_axes=(None, 0, None, 0))(iet, og_imgs, 100, keys)
 
 vunnormalize_img = jax.vmap(unnormalize_img)
 og_imgs_show, masked_imgs_show, recons_imgs_show = [vunnormalize_img(im) for im in (og_imgs, masked_imgs, recons_imgs)]
-
 ```
 
 ```{python}
+#| echo: false
 # Rearrange for plotting
 stacked_imgs = jnp.stack([masked_imgs_show, recons_imgs_show, og_imgs_show], axis=0)
 pw = 4
@@ -615,3 +623,140 @@ for i, name in enumerate(['Masked Input', 'Reconstruction', 'Original Image']):
 plt.tight_layout()
 plt.show()
 ```
+
+We can also animate the retrieval.
+
+```{python}
+
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Animation dependencies"
+from pathlib import Path
+import matplotlib.animation as animation
+from IPython.display import Video, Markdown
+from moviepy.editor import ipython_display
+import os
+```
+
+```{python}
+#| code-fold: true
+#| Caching videos
+CACHE_DIR = Path("./cache") / "01_energy_transformer"
+CACHE_DIR.mkdir(exist_ok=True)
+CACHE_VIDEOS = True
+```
+
+
+```{python}
+#| echo: false
+
+def show_et_recall_animation(traj_outputs, cache_name, steps_per_sample=1, force_remake=False, fps=2):
+    "Create animated video showing both image reconstruction evolution and energy descent"
+    video_fname = CACHE_DIR / (cache_name + ".mp4")
+    def decode_to_show(xhat): return unnormalize_img(iet.decode(xhat[1:])) # Drop CLS
+
+    xhats = jax.vmap(jax.vmap(decode_to_show))(traj_outputs['xhat']) # Map over steps and img
+    xhats = rearrange(xhats, "n t ...-> t n ...")
+    energies = rearrange(traj_outputs['energy'], "n t -> t n")
+    
+    if CACHE_VIDEOS:
+        # Downsample frames and energies
+        sampled_xhats = xhats[::steps_per_sample]  # (t_sampled, n, h, w, c)
+        sampled_energies = energies[::steps_per_sample]  # (t_sampled, n)
+        sampled_steps = np.arange(0, len(energies), steps_per_sample)
+        
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+        
+        # Initialize image grid plot (left side)
+        # Create initial grid from first timestep
+        first_grid = rearrange(sampled_xhats[0], "(nh nw) h w c -> (nh h) (nw w) c", nh=nh, nw=nw)
+        im = ax1.imshow(first_grid / 255.)
+        ax1.set_title("Step 0")
+        ax1.axis("off")
+        
+        # Initialize energy plot (right side)  
+        n_images = sampled_energies.shape[1]
+        lines = []
+        balls = []
+        for i in range(n_images):
+            line, = ax2.plot([], [], alpha=0.8, linewidth=3)  # Made thicker
+            lines.append(line)
+            # Add a ball at the end of each line
+            ball = ax2.scatter([], [], s=50, alpha=0.9, zorder=5)
+            balls.append(ball)
+        
+        ax2.set_xlabel('Iteration')
+        ax2.set_ylabel('Energy')
+        ax2.set_title('Energy During Reconstruction')
+        ax2.grid(True, alpha=0.3)
+        ax2.set_xlim(0, sampled_steps[-1])
+        ax2.set_ylim(sampled_energies.min() * 1.1, sampled_energies.max() * 1.1)
+
+        plt.tight_layout()
+
+        def update(i):
+            # Update left subplot (image grid evolution)
+            current_grid = rearrange(sampled_xhats[i], "(nh nw) h w c -> (nh h) (nw w) c", nh=nh, nw=nw)
+            im.set_data(current_grid / 255.)
+            ax1.set_title(f"Step {sampled_steps[i]}")
+            
+            # Update right subplot (energy curves and balls)
+            current_steps = sampled_steps[:i+1]
+            for j, (line, ball) in enumerate(zip(lines, balls)):
+                current_energies = sampled_energies[:i+1, j]
+                line.set_data(current_steps, current_energies)
+                # Update ball position to current end point
+                if len(current_steps) > 0:
+                    ball.set_offsets([[sampled_steps[i], sampled_energies[i, j]]])
+                else:
+                    ball.set_offsets([])
+            
+            return [im] + lines + balls
+
+        anim = animation.FuncAnimation(fig, update, frames=len(sampled_xhats), 
+                                     interval=100, blit=True)
+        
+        # Save as MP4
+        print(f"Saving ET reconstruction animation to {video_fname}")
+        anim.save(video_fname, writer='ffmpeg', fps=fps) 
+        plt.close(fig)
+    
+    return Video(video_fname, width=800), video_fname
+
+# Create the animation
+video, video_fname = show_et_recall_animation(traj_outputs, "et_reconstruction", 
+                                             steps_per_sample=1, force_remake=True)
+Markdown(f"![]({video_fname})")
+```
+
+```{python}
+#| hide
+#| eval: false
+# For google colab only
+ipython_display(str(video_fname))
+```
+
+These images are fully reconstructed using autograd down the parameterized energy function. You may notice the reconstructions are not perfect, e.g., the right eye of the white dog is missing.
+
+> The energy is still decreasing! Shouldn't the images get better if we run longer?
+
+Unfortunately, these weights were only trained to 12 steps at a fixed step size. Running longer will still cause the energy to decrease, but our image reconstruction quality will not improve. This reflects that our model has learned a kind of 'metastable state' at which nice reconstructions are retrieved, but these reconstructions are not "memories" in the formal definition of the term.
+
+
+```{python}
+masked_imgs, recons_imgs, traj_outputs = jax.vmap(ft.partial(inpaint_image, nsteps=40), in_axes=(None, 0, None, 0))(iet, og_imgs, 100, keys)
+video, video_fname = show_et_recall_animation(traj_outputs, "et_reconstruction_long", 
+                                             steps_per_sample=1, force_remake=True)
+Markdown(f"![]({video_fname})")
+```
+
+```{python}
+#| hide
+#| eval: false
+# For google colab only
+ipython_display(str(video_fname))
+```
+
+## Interpreting ET
