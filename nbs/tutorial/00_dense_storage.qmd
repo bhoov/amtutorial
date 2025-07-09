@@ -3,6 +3,12 @@
 
 ```{python}
 #| hide
+# Uncomment to download dependencies to colab
+# !pip install amtutorial
+```
+
+```{python}
+#| hide
 import jax, jax.numpy as jnp, jax.random as jr, jax.tree_util as jtu, jax.lax as lax
 import equinox as eqx
 import matplotlib.pyplot as plt
@@ -19,6 +25,7 @@ from jaxtyping import Float, Array, Scalar
 import matplotlib.gridspec as gridspec
 import functools as ft
 from pathlib import Path
+from moviepy.editor import ipython_display
 ```
 
 ```{python}
@@ -367,6 +374,13 @@ video, video_fname = show_cached_recall_animation(cache_name, steps_per_sample=3
 Markdown(f"![]({video_fname})")
 ```
 
+```{python}
+#| hide
+#| eval: false
+# For google colab only
+ipython_display(str(video_fname))
+```
+
 ### Retrieving "inverted" images {#sec-inverted-retrievals}
 
 If we initialize a query with *too much* noise, it's possible to retrieve the negative of a stored pattern or an "inverted image". Because the energy is quadratic, both $x$ and $-x$ produce the same small value of energy. Whether we retrieve the original $x$ or the inverted $-x$ is dependent on whether we initialize our query closer to the original or inverted pattern.
@@ -388,6 +402,13 @@ plt.show()
 print("Accidentally retrieved the inverted pattern!")
 video, video_fname = show_cached_recall_animation(cache_name, steps_per_sample=32)
 Markdown(f"![]({video_fname})")
+```
+
+```{python}
+#| hide
+#| eval: false
+# For google colab only
+ipython_display(str(video_fname))
 ```
 
 ### Memory retrieval failure 
@@ -419,8 +440,12 @@ video, video_fname = show_cached_recall_animation(fname, steps_per_sample=32)
 Markdown(f"![]({video_fname})") 
 ```
 
-<!-- To imagine what is happening under the hood, consider the following figure where two distinct basins "merge" and become unrecoverable when we add another basin. -->
-
+```{python}
+#| hide
+#| eval: false
+# For google colab only
+ipython_display(str(video_fname))
+```
 
 ## Dense Associative Memory
 
@@ -492,6 +517,13 @@ plt.show()
 
 video, video_fname = show_cached_recall_animation(fname, steps_per_sample=32)
 Markdown(f"![]({video_fname})")
+```
+
+```{python}
+#| hide
+#| eval: false
+# For google colab only
+ipython_display(str(video_fname))
 ```
 
 A higher degree polynomial gives us more **storage capacity**, which means that it is easier to retrieve the patterns we have stored in the network. Note that the higher the degree $n$, the narrower the basins of attraction, which makes it easier to pack more patterns into the energy landscape.

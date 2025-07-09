@@ -17,11 +17,13 @@ dependencies = [
     "ipywidgets>=8.1.7",
     "jax>=0.4.30",
     "matplotlib>=3.9.4",
+    "moviepy<2.0",
     "opencv-python>=4.11.0.86",
     "scikit-learn>=1.6.1",
     "scipy>=1.13.1",
     "seaborn>=0.13.2",
-    "tqdm<=4.66.5",
+    "torch>=2.7.1",
+    "tqdm>=4.67.1",
 ]
 
 [project.scripts]
