@@ -400,6 +400,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#pre-requisites" id="toc-pre-requisites" class="nav-link" data-scroll-target="#pre-requisites">Pre-requisites</a></li>
   <li><a href="#setting-up-the-environment" id="toc-setting-up-the-environment" class="nav-link" data-scroll-target="#setting-up-the-environment">Setting up the environment</a></li>
+  <li><a href="#development-pipelines" id="toc-development-pipelines" class="nav-link" data-scroll-target="#development-pipelines">Development pipelines</a></li>
   <li><a href="#website-structure" id="toc-website-structure" class="nav-link" data-scroll-target="#website-structure">Website structure</a></li>
   </ul></li>
   <li><a href="#deploying" id="toc-deploying" class="nav-link" data-scroll-target="#deploying">Deploying</a></li>
@@ -464,6 +465,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>You can view a local version of the website with</p>
 <pre><code>uv run nbdev_preview</code></pre>
 </section>
+<section id="development-pipelines" class="level3">
+<h3 class="anchored" data-anchor-id="development-pipelines">Development pipelines</h3>
+<p>To push a complete update to the website:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> checkout main</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># uv run python scripts/prep_pypi.py &amp;&amp; nbdev_pypi # ONLY if `amtutorial/src` was updated</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/prep_website_deploy.sh</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add . <span class="kw">&amp;&amp;</span> <span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Update site"</span> <span class="kw">&amp;&amp;</span> <span class="fu">git</span> push</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run nbdev_preview                         <span class="co"># Preview website locally</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/prep_website_deploy.sh          <span class="co"># Sync dependencies, export qmd notebooks to ipynb for colab, and build website</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/export_qmd_as_ipynb.sh          <span class="co"># Export qmd notebooks to ipynb for colab</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run python scripts/sync_dependencies.py   <span class="co"># Sync nbdev and pyproject.toml dependencies</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run python scripts/prep_pypi.py           <span class="co"># Bump patch version and sync dependencies</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run nbdev_pypi                            <span class="co"># Push to pypi</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
 <section id="website-structure" class="level3">
 <h3 class="anchored" data-anchor-id="website-structure">Website structure</h3>
 <p><code>.ipynb</code> versions of the tutorial notebooks are located in <code>tutorial_ipynbs</code>. Setup the <code>uv</code> environment above to play with them locally, or run them in Google Colab.</p>
@@ -493,7 +508,7 @@ Note
 <section id="deploying" class="level2">
 <h2 class="anchored" data-anchor-id="deploying">Deploying</h2>
 <p>Deploy to <code>tutorial.amemory.net</code> by pushing commits to the <code>main</code> branch after building the site locally.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run nbdev_export <span class="kw">&amp;&amp;</span> <span class="ex">uv</span> run nbdev_docs <span class="kw">&amp;&amp;</span> <span class="fu">git</span> add . <span class="kw">&amp;&amp;</span> <span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Update site"</span> <span class="kw">&amp;&amp;</span> <span class="fu">git</span> push</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run nbdev_export <span class="kw">&amp;&amp;</span> <span class="ex">uv</span> run nbdev_docs <span class="kw">&amp;&amp;</span> <span class="fu">git</span> add . <span class="kw">&amp;&amp;</span> <span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Update site"</span> <span class="kw">&amp;&amp;</span> <span class="fu">git</span> push</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 
 </section>

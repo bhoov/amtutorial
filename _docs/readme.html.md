@@ -49,6 +49,26 @@ You can view a local version of the website with
 
     uv run nbdev_preview
 
+### Development pipelines
+
+To push a complete update to the website:
+
+``` sh
+git checkout main
+# uv run python scripts/prep_pypi.py && nbdev_pypi # ONLY if `amtutorial/src` was updated
+bash scripts/prep_website_deploy.sh
+git add . && git commit -m "Update site" && git push
+```
+
+``` sh
+uv run nbdev_preview                         # Preview website locally
+bash scripts/prep_website_deploy.sh          # Sync dependencies, export qmd notebooks to ipynb for colab, and build website
+bash scripts/export_qmd_as_ipynb.sh          # Export qmd notebooks to ipynb for colab
+uv run python scripts/sync_dependencies.py   # Sync nbdev and pyproject.toml dependencies
+uv run python scripts/prep_pypi.py           # Bump patch version and sync dependencies
+uv run nbdev_pypi                            # Push to pypi
+```
+
 ### Website structure
 
 `.ipynb` versions of the tutorial notebooks are located in

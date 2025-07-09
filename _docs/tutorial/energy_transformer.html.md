@@ -10,8 +10,6 @@
     .yellow { color:rgb(252, 211, 28); }
 </style>
 
-## Transformers look like Dynamical Systems
-
 > Squint, and the Transformer looks like a dynamical system.
 
 <div>
@@ -71,7 +69,7 @@ weight constraints.
 This is one of those situations where the code ends up being
 significantly simpler than the equations. We write the equations for
 completeness, but feel free to skip to
-<a href="#sec-ET-implementation" class="quarto-xref">Section 2.3</a> for
+<a href="#sec-ET-implementation" class="quarto-xref">Section 1.3</a> for
 succinct code.
 
 ### Attention Energy
@@ -283,10 +281,10 @@ class EnergyTransformer(eqx.Module):
 
 Note that the `xhat` inputs above are all layer-normalized tokens.
 However, like other AMs, we restrict ourselves to using non-linearties
-that are gradients of a convex Lagrangian function. We will just show
-this in code, but our “special layernorm” is the same as the standard
-layer normalization *except* that we need our learnable `scale`
-parameter to be a scalar instead of a vector of shape `D`.
+that are gradients of a convex Lagrangian function. Our “special
+layernorm” is the same as the standard layer normalization *except* that
+we need our learnable `scale` parameter to be a scalar instead of a
+vector of shape `D`. We will just show this in code below.
 
 ``` python
 class EnergyLayerNorm(eqx.Module):
@@ -311,10 +309,6 @@ class EnergyLayerNorm(eqx.Module):
     v = self.gamma * (xmeaned) / jnp.sqrt((xmeaned**2).mean(-1, keepdims=True)+ self.eps)
     if self.use_bias: return v + self.delta
     return v
-    
-  def energy(self, x):
-    """Compute the energy of this Lagrangian through the Legendre Transform"""
-    return (self(x) * x).sum() - self.lagrangian(x)
 ```
 
 That’s it! We rely on autograd to do the energy minimization, or the

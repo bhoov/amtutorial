@@ -40,7 +40,20 @@ uv run nbdev_preview
 
 ### Development pipelines
 
-```{python}
+To push a complete update to the website:
+
+```sh
+git checkout main
+# uv run python scripts/prep_pypi.py && nbdev_pypi # ONLY if `amtutorial/src` was updated
+bash scripts/prep_website_deploy.sh
+git add . && git commit -m "Update site" && git push
+```
+
+The site will be live after a few minutes on github.
+
+**Reference scripts**
+
+```sh
 uv run nbdev_preview                         # Preview website locally
 bash scripts/prep_website_deploy.sh          # Sync dependencies, export qmd notebooks to ipynb for colab, and build website
 bash scripts/export_qmd_as_ipynb.sh          # Export qmd notebooks to ipynb for colab
