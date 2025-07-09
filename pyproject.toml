@@ -38,6 +38,7 @@ dev = [
     "nbclient>=0.10.2",
     "nbdev",
     "nbformat>=5.10.4",
+    "twine>=6.1.0",
 ]
 
 [tool.uv.sources]

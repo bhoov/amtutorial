@@ -6,6 +6,10 @@
 echo "Exporting library..."
 uv run nbdev_export 
 
+# Sync dependencies
+echo "Syncing dependencies..."
+uv run python scripts/sync_dependencies.py
+
 # Build the website
 echo "Building website..."
 uv run nbdev_docs
