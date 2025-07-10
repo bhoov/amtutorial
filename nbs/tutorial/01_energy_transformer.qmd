@@ -102,6 +102,11 @@ It is perfectly reasonable to consider other convex functions $F$ for use in the
 Let's implement the attention energy in code. We will use [`jax`](https://github.com/jax-ml/jax) and [`equinox`](https://github.com/patrick-kidger/equinox) for our code.
 
 ```{python}
+## Uncomment for colab users
+# !pip install amtutorial
+```
+
+```{python}
 #| code-fold: true
 #| code-summary: "Necessary imports"
 import jax, jax.numpy as jnp, jax.random as jr, jax.tree_util as jtu, jax.lax as lax
@@ -117,7 +122,6 @@ from fastcore.meta import *
 import matplotlib.pyplot as plt
 from jaxtyping import Float, Array
 import functools as ft
-from nbdev import show_doc
 from einops import rearrange
 ```
 
