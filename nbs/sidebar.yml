@@ -5,7 +5,7 @@ website:
       - readme.ipynb
       - section: lib
         contents:
-          - lib/01_pokemon_sprites.ipynb
+          - lib/01_data_utils.ipynb
         href: lib/00_index.ipynb
       - section: tutorial
         contents:
