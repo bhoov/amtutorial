@@ -19,3 +19,4 @@ _proc/
 .DS_Store
 settings.ini.backup
 .env
+_archive/
