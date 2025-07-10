@@ -6,9 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="description" content="A collection of useful functions and classes for downloading and processing the data used in this tutorial.">
+<meta name="description" content="A collection of useful functions and classes for downloading and processing the pokemon sprite data used in this tutorial.">
 
-<title>data_utils – amtutorial</title>
+<title>Pokemon Sprites – amtutorial</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -114,17 +114,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <link rel="stylesheet" href="../styles/styles.css">
-<meta property="og:title" content="data_utils – amtutorial">
-<meta property="og:description" content="A collection of useful functions and classes for downloading and processing the data used in this tutorial.">
-<meta property="og:image" content="https://bhoov.github.io/amtutorial/lib/01_data_utils_files/figure-html/cell-8-output-1.png">
+<meta property="og:title" content="Pokemon Sprites – amtutorial">
+<meta property="og:description" content="A collection of useful functions and classes for downloading and processing the pokemon sprite data used in this tutorial.">
+<meta property="og:image" content="https://bhoov.github.io/amtutorial/lib/01_pokemon_sprites_files/figure-html/cell-14-output-2.png">
 <meta property="og:site_name" content="amtutorial">
-<meta property="og:image:height" content="1180">
-<meta property="og:image:width" content="1179">
-<meta name="twitter:title" content="data_utils – amtutorial">
-<meta name="twitter:description" content="A collection of useful functions and classes for downloading and processing the data used in this tutorial.">
-<meta name="twitter:image" content="https://bhoov.github.io/amtutorial/lib/01_data_utils_files/figure-html/cell-8-output-1.png">
-<meta name="twitter:image-height" content="1180">
-<meta name="twitter:image-width" content="1179">
+<meta property="og:image:height" content="1417">
+<meta property="og:image:width" content="1416">
+<meta name="twitter:title" content="Pokemon Sprites – amtutorial">
+<meta name="twitter:description" content="A collection of useful functions and classes for downloading and processing the pokemon sprite data used in this tutorial.">
+<meta name="twitter:image" content="https://bhoov.github.io/amtutorial/lib/01_pokemon_sprites_files/figure-html/cell-14-output-2.png">
+<meta name="twitter:image-height" content="1417">
+<meta name="twitter:image-width" content="1416">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -317,7 +317,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
         <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-          <h1 class="quarto-secondary-nav-title">data_utils</h1>
+          <h1 class="quarto-secondary-nav-title">Pokemon Sprites</h1>
         </a>     
     </div>
   </nav>
@@ -351,8 +351,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../lib/data_utils.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">data_utils</span></a>
+  <a href="../lib/pokemon_sprites.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Pokemon Sprites</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -412,17 +412,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#get_cache_dir" id="toc-get_cache_dir" class="nav-link" data-scroll-target="#get_cache_dir">get_cache_dir</a></li>
   </ul></li>
-  <li><a href="#preparing-bipolar-mnist-data" id="toc-preparing-bipolar-mnist-data" class="nav-link" data-scroll-target="#preparing-bipolar-mnist-data">Preparing bipolar MNIST data</a>
+  <li><a href="#preparing-pokemon-sprites" id="toc-preparing-pokemon-sprites" class="nav-link" data-scroll-target="#preparing-pokemon-sprites">Preparing Pokemon Sprites</a>
   <ul class="collapse">
-  <li><a href="#prepare_bipolar_mnist" id="toc-prepare_bipolar_mnist" class="nav-link" data-scroll-target="#prepare_bipolar_mnist">prepare_bipolar_mnist</a></li>
-  <li><a href="#load_bipolar_mnist" id="toc-load_bipolar_mnist" class="nav-link" data-scroll-target="#load_bipolar_mnist">load_bipolar_mnist</a></li>
-  </ul></li>
-  <li><a href="#downloading-pokemon-sprites" id="toc-downloading-pokemon-sprites" class="nav-link" data-scroll-target="#downloading-pokemon-sprites">Downloading Pokemon Sprites</a>
-  <ul class="collapse">
+  <li><a href="#downloading-pokemon-sprites" id="toc-downloading-pokemon-sprites" class="nav-link" data-scroll-target="#downloading-pokemon-sprites">Downloading Pokemon Sprites</a></li>
   <li><a href="#download_pokemon_sprites" id="toc-download_pokemon_sprites" class="nav-link" data-scroll-target="#download_pokemon_sprites">download_pokemon_sprites</a></li>
-  </ul></li>
-  <li><a href="#processing-pokemon-sprites" id="toc-processing-pokemon-sprites" class="nav-link" data-scroll-target="#processing-pokemon-sprites">Processing Pokemon Sprites</a>
-  <ul class="collapse">
+  <li><a href="#processing-pokemon-sprites" id="toc-processing-pokemon-sprites" class="nav-link" data-scroll-target="#processing-pokemon-sprites">Processing Pokemon Sprites</a></li>
   <li><a href="#scale_to_fit" id="toc-scale_to_fit" class="nav-link" data-scroll-target="#scale_to_fit">scale_to_fit</a></li>
   <li><a href="#get_sprite_bbox" id="toc-get_sprite_bbox" class="nav-link" data-scroll-target="#get_sprite_bbox">get_sprite_bbox</a></li>
   <li><a href="#floyd_steinberg_dither" id="toc-floyd_steinberg_dither" class="nav-link" data-scroll-target="#floyd_steinberg_dither">floyd_steinberg_dither</a></li>
@@ -431,8 +425,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#datafy_pokemon_sprites" id="toc-datafy_pokemon_sprites" class="nav-link" data-scroll-target="#datafy_pokemon_sprites">datafy_pokemon_sprites</a></li>
   <li><a href="#load_bipolar_pokemon_sprites" id="toc-load_bipolar_pokemon_sprites" class="nav-link" data-scroll-target="#load_bipolar_pokemon_sprites">load_bipolar_pokemon_sprites</a></li>
   </ul></li>
+  <li><a href="#uploading-to-hugging-face" id="toc-uploading-to-hugging-face" class="nav-link" data-scroll-target="#uploading-to-hugging-face">Uploading to Hugging Face</a>
+  <ul class="collapse">
+  <li><a href="#download_pokemon_from_hf" id="toc-download_pokemon_from_hf" class="nav-link" data-scroll-target="#download_pokemon_from_hf">download_pokemon_from_hf</a></li>
+  <li><a href="#upload_pokemon_to_hf" id="toc-upload_pokemon_to_hf" class="nav-link" data-scroll-target="#upload_pokemon_to_hf">upload_pokemon_to_hf</a></li>
+  </ul></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/bhoov/amtutorial/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="data_utils.html.md"><i class="bi bi-file-code"></i>CommonMark</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/bhoov/amtutorial/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="pokemon_sprites.html.md"><i class="bi bi-file-code"></i>CommonMark</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content column-body" id="quarto-document-content">
@@ -440,12 +439,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title d-none d-lg-block">data_utils</h1>
+<h1 class="title d-none d-lg-block">Pokemon Sprites</h1>
 </div>
 
 <div>
   <div class="description">
-    A collection of useful functions and classes for downloading and processing the data used in this tutorial.
+    A collection of useful functions and classes for downloading and processing the pokemon sprite data used in this tutorial.
   </div>
 </div>
 
@@ -515,45 +514,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </section>
 </section>
-<section id="preparing-bipolar-mnist-data" class="level2">
-<h2 class="anchored" data-anchor-id="preparing-bipolar-mnist-data">Preparing bipolar MNIST data</h2>
-<hr>
-<section id="prepare_bipolar_mnist" class="level3">
-<h3 class="anchored" data-anchor-id="prepare_bipolar_mnist">prepare_bipolar_mnist</h3>
-<blockquote class="blockquote">
-<pre><code> prepare_bipolar_mnist (force=False)</code></pre>
-</blockquote>
-<p><em>Download and prepare the MNIST dataset</em></p>
+<section id="preparing-pokemon-sprites" class="level2">
+<h2 class="anchored" data-anchor-id="preparing-pokemon-sprites">Preparing Pokemon Sprites</h2>
+<p>For cutesies and funsies, let’s build our own black and white pokemon dataset from the <a href="https://pokemondb.net/sprites">Pokemon Database</a>. Let’s use a little help from AI to download and process our Pokemon sprites to be binary.</p>
+<section id="downloading-pokemon-sprites" class="level3">
+<h3 class="anchored" data-anchor-id="downloading-pokemon-sprites">Downloading Pokemon Sprites</h3>
 <hr>
 </section>
-<section id="load_bipolar_mnist" class="level3">
-<h3 class="anchored" data-anchor-id="load_bipolar_mnist">load_bipolar_mnist</h3>
-<blockquote class="blockquote">
-<pre><code> load_bipolar_mnist ()</code></pre>
-</blockquote>
-<p><em>Load the MNIST dataset</em></p>
-<div id="cell-10" class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>Xtrain, Xtest, Ytrain, Ytest <span class="op">=</span> load_bipolar_mnist()</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> Xtest.shape[<span class="op">-</span><span class="dv">2</span>:] <span class="op">==</span> (<span class="dv">28</span>, <span class="dv">28</span>)</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> Xtest.<span class="bu">min</span>() <span class="op">==</span> <span class="op">-</span><span class="dv">1</span> <span class="kw">and</span> Xtest.<span class="bu">max</span>() <span class="op">==</span> <span class="dv">1</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> <span class="bu">set</span>(np.unique(Xtest)) <span class="op">==</span> <span class="bu">set</span>([<span class="op">-</span><span class="fl">1.</span>, <span class="fl">1.</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div id="cell-11" class="cell">
-<div class="cell-output cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="01_data_utils_files/figure-html/cell-8-output-1.png" width="589" height="590" class="figure-img"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="downloading-pokemon-sprites" class="level2">
-<h2 class="anchored" data-anchor-id="downloading-pokemon-sprites">Downloading Pokemon Sprites</h2>
-<p>For cutesies and funsies, let’s build our own black and white pokemon dataset from the <a href="https://pokemondb.net/sprites">Pokemon Database</a>.</p>
-<hr>
 <section id="download_pokemon_sprites" class="level3">
 <h3 class="anchored" data-anchor-id="download_pokemon_sprites">download_pokemon_sprites</h3>
 <blockquote class="blockquote">
@@ -591,11 +558,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 </section>
-</section>
-<section id="processing-pokemon-sprites" class="level2">
-<h2 class="anchored" data-anchor-id="processing-pokemon-sprites">Processing Pokemon Sprites</h2>
-<p>With a little help from AI, we can process our Pokemon sprites to be binary.</p>
+<section id="processing-pokemon-sprites" class="level3">
+<h3 class="anchored" data-anchor-id="processing-pokemon-sprites">Processing Pokemon Sprites</h3>
 <hr>
+</section>
 <section id="scale_to_fit" class="level3">
 <h3 class="anchored" data-anchor-id="scale_to_fit">scale_to_fit</h3>
 <blockquote class="blockquote">
@@ -707,6 +673,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
+<p>We can experiment with different binarization methods.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Experimenting with different binarization methods</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>process_pokemon_sprites(<span class="st">"processed_adaptive"</span>, binarize_method<span class="op">=</span><span class="st">'adaptive'</span>) <span class="co"># Best</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>dither_strength <span class="op">=</span> <span class="fl">0.5</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>process_pokemon_sprites(<span class="ss">f"processed_dithered_</span><span class="sc">{</span>dither_strength<span class="sc">}</span><span class="ss">"</span><span class="st">",binarize_method='dithered', dither_strength=dither_strength, invert_colors=False)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>We only care about efficient representations of this data for this tutorial. <code>.npy</code> file and <code>.txt</code> file of names it is!</p>
 <hr>
 </section>
 <section id="datafy_pokemon_sprites" class="level3">
@@ -715,10 +688,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code> datafy_pokemon_sprites (ds_name:str)</code></pre>
 </blockquote>
 <p><em>Convert Pokemon sprites to numpy arrays and save filenames</em></p>
-<div id="cell-21" class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>download_pokemon_sprites()</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>process_pokemon_sprites(<span class="st">"processed_adaptive"</span>, binarize_method<span class="op">=</span><span class="st">'adaptive'</span>) <span class="co"># Best</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>poke_pixels_path, poke_names_path <span class="op">=</span> datafy_pokemon_sprites(<span class="st">"processed_adaptive"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-18" class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>download_pokemon_sprites()</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>process_pokemon_sprites(<span class="st">"processed_adaptive"</span>, binarize_method<span class="op">=</span><span class="st">'adaptive'</span>) <span class="co"># Best</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>poke_pixels_path, poke_names_path <span class="op">=</span> datafy_pokemon_sprites(<span class="st">"processed_adaptive"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Let’s load the data and take a look at it.</p>
 <hr>
@@ -730,7 +703,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
                                binarize_method:str='adaptive')</code></pre>
 </blockquote>
 <p><em>Load Pokemon sprites from numpy arrays</em></p>
-<div id="cell-24" class="cell">
+<p>This is what the pokemon data looks like after all the processing.</p>
+<div id="cell-22" class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>Fetching sprite page from: https://pokemondb.net/sprites
 Found 1025 Pokemon sprites to download
@@ -2795,10 +2769,39 @@ Processing complete! Successfully processed 1025/1025 sprites.</code></pre>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="01_data_utils_files/figure-html/cell-18-output-2.png" width="708" height="708" class="figure-img"></p>
+<p><img src="01_pokemon_sprites_files/figure-html/cell-14-output-2.png" width="708" height="708" class="figure-img"></p>
 </figure>
 </div>
 </div>
+</div>
+</section>
+</section>
+<section id="uploading-to-hugging-face" class="level2">
+<h2 class="anchored" data-anchor-id="uploading-to-hugging-face">Uploading to Hugging Face</h2>
+<p>It’s both easier and faster to use HuggingFace to download the data than to scrape the pokemon website every time.</p>
+<hr>
+<section id="download_pokemon_from_hf" class="level3">
+<h3 class="anchored" data-anchor-id="download_pokemon_from_hf">download_pokemon_from_hf</h3>
+<blockquote class="blockquote">
+<pre><code> download_pokemon_from_hf (repo_id:str)</code></pre>
+</blockquote>
+<p><em>Download Pokemon sprites from Hugging Face Hub (cached automatically)</em></p>
+<hr>
+</section>
+<section id="upload_pokemon_to_hf" class="level3">
+<h3 class="anchored" data-anchor-id="upload_pokemon_to_hf">upload_pokemon_to_hf</h3>
+<blockquote class="blockquote">
+<pre><code> upload_pokemon_to_hf (repo_id:str, token:str=None)</code></pre>
+</blockquote>
+<p><em>Upload Pokemon sprites to Hugging Face Hub</em></p>
+<p>Hugging Face automatically handles all the caching — files are downloaded once and reused on subsequent calls.</p>
+<div id="cell-27" class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Uploading only</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"># import os</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co"># os.environ["HF_TOKEN"] = "your_token_here"</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># upload_pokemon_to_hf("bhoov/pokemon-sprites-bipolar", os.environ["HF_TOKEN"])</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>poke_pixels, poke_names <span class="op">=</span> download_pokemon_from_hf(<span class="st">"bhoov/pokemon-sprites-bipolar"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 

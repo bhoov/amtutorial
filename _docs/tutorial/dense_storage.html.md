@@ -123,8 +123,8 @@ data, Hopfield Networks like to work with bipolar data where each
 datapoint *x* ∈ {−1, 1}<sup>*D*</sup>.
 
 ``` python
-from amtutorial.data_utils import load_bipolar_pokemon_sprites
-poke_pixels, poke_names = load_bipolar_pokemon_sprites()
+from amtutorial.pokemon_sprites import download_pokemon_from_hf
+poke_pixels, poke_names = download_pokemon_from_hf("bhoov/pokemon-sprites-bipolar")
 data = poke_pixels
 
 pxh, pxw = data.shape[-2:]
@@ -159,26 +159,8 @@ def show_im(x, ax=None, do_gridify=True, grid_h=None, figsize=None):
     return None if not empty_ax else fig, ax
 ```
 
-    ---------------------------------------------------------------------------
-    NameError                                 Traceback (most recent call last)
-    Cell In[1], line 2
-          1 #| echo: false
-    ----> 2 sample_data = jr.choice(jr.PRNGKey(10), data, shape=(100,), replace=False)
-          3 fig1, ax1 = show_im(sample_data, figsize=(6, 6));
-          4 ax1.set_title("Example patterns (black=-1, white=1)")
-
-    NameError: name 'data' is not defined
-
-    NameError: name 'data' is not defined
-    Traceback (most recent call last):
-
-      File "/Users/hoo/Projects/amtutorial/.venv/lib/python3.10/site-packages/IPython/core/interactiveshell.py", line 3579, in run_code
-        exec(code_obj, self.user_global_ns, self.user_ns)
-
-      File "<ipython-input-1-bede692deabb>", line 2, in <module>
-        sample_data = jr.choice(jr.PRNGKey(10), data, shape=(100,), replace=False)
-
-    NameError: name 'data' is not defined
+<img src="00_dense_storage_files/figure-commonmark/cell-5-output-1.png"
+width="481" height="503" />
 
 ## The Classical Hopfield Network
 
@@ -200,35 +182,10 @@ plt.show()
 print(f"K={Xi.shape[0]}, D={Xi.shape[1]}")
 ```
 
-    ---------------------------------------------------------------------------
-    NameError                                 Traceback (most recent call last)
-    Cell In[1], line 2
-          1 desired_names = ["eevee", "pichu"]
-    ----> 2 eevee_pichu_idxs = [poke_names.index(name) for name in desired_names]
-          3 Xi = data[eevee_pichu_idxs]
-          5 fig, ax = show_im(Xi, figsize=(6,3));
+    K=2, D=2304
 
-    Cell In[1], line 2, in <listcomp>(.0)
-          1 desired_names = ["eevee", "pichu"]
-    ----> 2 eevee_pichu_idxs = [poke_names.index(name) for name in desired_names]
-          3 Xi = data[eevee_pichu_idxs]
-          5 fig, ax = show_im(Xi, figsize=(6,3));
-
-    NameError: name 'poke_names' is not defined
-
-    NameError: name 'poke_names' is not defined
-    Traceback (most recent call last):
-
-      File "/Users/hoo/Projects/amtutorial/.venv/lib/python3.10/site-packages/IPython/core/interactiveshell.py", line 3579, in run_code
-        exec(code_obj, self.user_global_ns, self.user_ns)
-
-      File "<ipython-input-1-f2342d7c1682>", line 2, in <module>
-        eevee_pichu_idxs = [poke_names.index(name) for name in desired_names]
-
-      File "<ipython-input-1-f2342d7c1682>", line 2, in <listcomp>
-        eevee_pichu_idxs = [poke_names.index(name) for name in desired_names]
-
-    NameError: name 'poke_names' is not defined
+<img src="00_dense_storage_files/figure-commonmark/cell-6-output-2.png"
+width="481" height="272" />
 
 The Classical Hopfield Network (CHN) defines an energy function for this
 collection of patterns, putting the *μ*-th stored pattern
@@ -260,26 +217,6 @@ class CHN(BinaryAM):
 
 chn = CHN(Xi)
 ```
-
-    ---------------------------------------------------------------------------
-    NameError                                 Traceback (most recent call last)
-    Cell In[1], line 9
-          6         "Quadratic energy function for the CHN"
-          7         return -0.5 * jnp.sum((self.Xi @ x)**2, axis=0)
-    ----> 9 chn = CHN(Xi)
-
-    NameError: name 'Xi' is not defined
-
-    NameError: name 'Xi' is not defined
-    Traceback (most recent call last):
-
-      File "/Users/hoo/Projects/amtutorial/.venv/lib/python3.10/site-packages/IPython/core/interactiveshell.py", line 3579, in run_code
-        exec(code_obj, self.user_global_ns, self.user_ns)
-
-      File "<ipython-input-1-f560da26cfe1>", line 9, in <module>
-        chn = CHN(Xi)
-
-    NameError: name 'Xi' is not defined
 
 The asynchronous update rule of
 <a href="#eq-async-update" class="quarto-xref">Equation 1</a> uses the
@@ -327,16 +264,8 @@ x_noisy = flip_some_bits(jr.PRNGKey(0), x_og, 0.2)
 show_im(jnp.stack([x_og, x_noisy]), figsize=(6, 3));
 ```
 
-    NameError: name 'Xi' is not defined
-    Traceback (most recent call last):
-
-      File "/Users/hoo/Projects/amtutorial/.venv/lib/python3.10/site-packages/IPython/core/interactiveshell.py", line 3579, in run_code
-        exec(code_obj, self.user_global_ns, self.user_ns)
-
-      File "<ipython-input-1-849edf721eda>", line 6, in <module>
-        x_og = Xi[0]
-
-    NameError: name 'Xi' is not defined
+<img src="00_dense_storage_files/figure-commonmark/cell-8-output-1.png"
+width="481" height="251" />
 
 For the pedagogical purpose of this notebook, we’ll cache the recall
 process and results so we don’t have to run it every time.
@@ -359,46 +288,10 @@ cache_name = 'basic_hopfield_recovery'
 x_final, frames, energies = cached_recall(chn, cache_name, x_noisy, nsteps=12000, key=jr.PRNGKey(5))
 ```
 
-    ---------------------------------------------------------------------------
-    NameError                                 Traceback (most recent call last)
-    Cell In[1], line 15
-         12     return x_final, frames, energies
-         14 cache_name = 'basic_hopfield_recovery'
-    ---> 15 x_final, frames, energies = cached_recall(chn, cache_name, x_noisy, nsteps=12000, key=jr.PRNGKey(5))
+    Loading cached recall data
 
-    NameError: name 'chn' is not defined
-
-    NameError: name 'chn' is not defined
-    Traceback (most recent call last):
-
-      File "/Users/hoo/Projects/amtutorial/.venv/lib/python3.10/site-packages/IPython/core/interactiveshell.py", line 3579, in run_code
-        exec(code_obj, self.user_global_ns, self.user_ns)
-
-      File "<ipython-input-1-89a86417e3ee>", line 15, in <module>
-        x_final, frames, energies = cached_recall(chn, cache_name, x_noisy, nsteps=12000, key=jr.PRNGKey(5))
-
-    NameError: name 'chn' is not defined. Did you mean: 'chr'?
-
-    ---------------------------------------------------------------------------
-    NameError                                 Traceback (most recent call last)
-    Cell In[1], line 24
-         21         axes[3].set_title("Original pattern")
-         22     return fig, axes
-    ---> 24 fig, axes = show_recall_output(x_og, x_noisy, x_final, energies, show_original=False)
-         25 plt.show()
-
-    NameError: name 'x_og' is not defined
-
-    NameError: name 'x_og' is not defined
-    Traceback (most recent call last):
-
-      File "/Users/hoo/Projects/amtutorial/.venv/lib/python3.10/site-packages/IPython/core/interactiveshell.py", line 3579, in run_code
-        exec(code_obj, self.user_global_ns, self.user_ns)
-
-      File "<ipython-input-1-277b6b65ef33>", line 24, in <module>
-        fig, axes = show_recall_output(x_og, x_noisy, x_final, energies, show_original=False)
-
-    NameError: name 'x_og' is not defined
+<img src="00_dense_storage_files/figure-commonmark/cell-10-output-1.png"
+width="640" height="305" />
 
 We can animate the recall process to view the “thinking” process of the
 CHN.
@@ -418,26 +311,13 @@ $$
 E\_\text{CHN}(-x) = -\frac{1}{2} \left(\sum\_{\mu} \xi\_{\mu i} (-x_i)\right)^2 = E\_\text{CHN}(x)
 $$
 
-    ---------------------------------------------------------------------------
-    NameError                                 Traceback (most recent call last)
-    Cell In[1], line 2
-          1 #| echo: false
-    ----> 2 x_og = Xi[0] 
-          3 x_noisy = flip_some_bits(jr.PRNGKey(1), x_og, 0.6)
-          5 cache_name = 'hopfield_recovery_inverted'
+    Loading cached recall data
+    Accidentally retrieved the inverted pattern!
 
-    NameError: name 'Xi' is not defined
+<img src="00_dense_storage_files/figure-commonmark/cell-12-output-2.png"
+width="654" height="305" />
 
-    NameError: name 'Xi' is not defined
-    Traceback (most recent call last):
-
-      File "/Users/hoo/Projects/amtutorial/.venv/lib/python3.10/site-packages/IPython/core/interactiveshell.py", line 3579, in run_code
-        exec(code_obj, self.user_global_ns, self.user_ns)
-
-      File "<ipython-input-1-72d87cb893c3>", line 2, in <module>
-        x_og = Xi[0]
-
-    NameError: name 'Xi' is not defined
+![](cache/00_dense_storage/hopfield_recovery_inverted.mp4)
 
 ### Memory retrieval failure
 
@@ -453,46 +333,16 @@ ax.set_title(f"Stored patterns (K={Xi.shape[0]})")
 plt.show()
 ```
 
-    ---------------------------------------------------------------------------
-    NameError                                 Traceback (most recent call last)
-    Cell In[1], line 1
-    ----> 1 Xi = data[eevee_pichu_idxs]
-          2 Xi = jnp.concatenate([Xi, jr.choice(jr.PRNGKey(10), data, shape=(4,), replace=False)])
-          3 fig, ax = show_im(Xi, figsize=(6, 4));
+<img src="00_dense_storage_files/figure-commonmark/cell-13-output-1.png"
+width="481" height="349" />
 
-    NameError: name 'data' is not defined
+    Loading cached recall data
+    CHN failed to retrieve the correct pattern!
 
-    NameError: name 'data' is not defined
-    Traceback (most recent call last):
+<img src="00_dense_storage_files/figure-commonmark/cell-14-output-2.png"
+width="654" height="305" />
 
-      File "/Users/hoo/Projects/amtutorial/.venv/lib/python3.10/site-packages/IPython/core/interactiveshell.py", line 3579, in run_code
-        exec(code_obj, self.user_global_ns, self.user_ns)
-
-      File "<ipython-input-1-f15949de1ded>", line 1, in <module>
-        Xi = data[eevee_pichu_idxs]
-
-    NameError: name 'data' is not defined
-
-    ---------------------------------------------------------------------------
-    NameError                                 Traceback (most recent call last)
-    Cell In[1], line 2
-          1 #| echo: false
-    ----> 2 x_og = Xi[0]
-          3 x_noisy = flip_some_bits(jr.PRNGKey(0), x_og, 0.2)
-          5 chn = CHN(Xi)
-
-    NameError: name 'Xi' is not defined
-
-    NameError: name 'Xi' is not defined
-    Traceback (most recent call last):
-
-      File "/Users/hoo/Projects/amtutorial/.venv/lib/python3.10/site-packages/IPython/core/interactiveshell.py", line 3579, in run_code
-        exec(code_obj, self.user_global_ns, self.user_ns)
-
-      File "<ipython-input-1-ab11b499b723>", line 2, in <module>
-        x_og = Xi[0]
-
-    NameError: name 'Xi' is not defined
+![](cache/00_dense_storage/hopfield_recovery_fail.mp4)
 
 ## Dense Associative Memory
 
@@ -593,26 +443,15 @@ video, video_fname = show_cached_recall_animation(fname, steps_per_sample=32)
 Markdown(f"![]({video_fname})")
 ```
 
-    ---------------------------------------------------------------------------
-    NameError                                 Traceback (most recent call last)
-    Cell In[1], line 2
-          1 # Increase the number of stored patterns!
-    ----> 2 Xi = data[eevee_pichu_idxs]
-          3 Xi = jnp.concatenate([Xi, jr.choice(jr.PRNGKey(10), data, shape=(98,), replace=False)])
-          4 fig1, ax1 = show_im(Xi, figsize=(7,7));
+    Loading cached recall data
 
-    NameError: name 'data' is not defined
+<img src="00_dense_storage_files/figure-commonmark/cell-16-output-2.png"
+width="558" height="580" />
 
-    NameError: name 'data' is not defined
-    Traceback (most recent call last):
+<img src="00_dense_storage_files/figure-commonmark/cell-16-output-3.png"
+width="650" height="295" />
 
-      File "/Users/hoo/Projects/amtutorial/.venv/lib/python3.10/site-packages/IPython/core/interactiveshell.py", line 3579, in run_code
-        exec(code_obj, self.user_global_ns, self.user_ns)
-
-      File "<ipython-input-1-205bf6cd7c9d>", line 2, in <module>
-        Xi = data[eevee_pichu_idxs]
-
-    NameError: name 'data' is not defined
+![](cache/00_dense_storage/dam_recovery_n_6_K_100.mp4)
 
 A higher degree polynomial gives us more **storage capacity**, which
 means that it is easier to retrieve the patterns we have stored in the
@@ -666,26 +505,10 @@ ax1.set_title(f"Random sample of {Nshow} stored patterns")
 print(f"Storing {Xi.shape[0]} patterns")
 ```
 
-    ---------------------------------------------------------------------------
-    NameError                                 Traceback (most recent call last)
-    Cell In[1], line 2
-          1 # Show larger batch retrieval
-    ----> 2 Xi = data[:1024]
-          3 Nshow = 255
-          4 Xi_show = jnp.concatenate([data[eevee_pichu_idxs], jr.choice(jr.PRNGKey(10), Xi, shape=(Nshow - len(eevee_pichu_idxs),), replace=False)])
+    Storing 1024 patterns
 
-    NameError: name 'data' is not defined
-
-    NameError: name 'data' is not defined
-    Traceback (most recent call last):
-
-      File "/Users/hoo/Projects/amtutorial/.venv/lib/python3.10/site-packages/IPython/core/interactiveshell.py", line 3579, in run_code
-        exec(code_obj, self.user_global_ns, self.user_ns)
-
-      File "<ipython-input-1-69d49195a2cf>", line 2, in <module>
-        Xi = data[:1024]
-
-    NameError: name 'data' is not defined
+<img src="00_dense_storage_files/figure-commonmark/cell-18-output-2.png"
+width="640" height="588" />
 
 <div>
 
@@ -726,51 +549,11 @@ else:
 
 </details>
 
-    ---------------------------------------------------------------------------
-    NameError                                 Traceback (most recent call last)
-    Cell In[1], line 6
-          3 nh = nw = 10
-          4 N = nh * nw # Sample N patterns to show in grid
-          5 x_og = jnp.concatenate([
-    ----> 6     data[eevee_pichu_idxs], 
-          7     jr.choice(jr.PRNGKey(10), data, shape=(N - len(eevee_pichu_idxs),), replace=False)])
-          8 x_noisy = flip_some_bits(key2, x_og, 0.25)
-         10 mhn = ExponentialDenseAM(Xi, beta=50.)
-
-    NameError: name 'data' is not defined
-
-    NameError: name 'data' is not defined
-    Traceback (most recent call last):
-
-      File "/Users/hoo/Projects/amtutorial/.venv/lib/python3.10/site-packages/IPython/core/interactiveshell.py", line 3579, in run_code
-        exec(code_obj, self.user_global_ns, self.user_ns)
-
-      File "<ipython-input-1-661d99a45bee>", line 6, in <module>
-        data[eevee_pichu_idxs],
-
-    NameError: name 'data' is not defined
-
 And of course, what’s the fun if we can’t animate the retrieval process?
 
-------------------------------------------------------------------------
+    <IPython.core.display.Image object>
 
-NameError Traceback (most recent call last) Cell In\[1\], line 48 46 gif
-= Image(filename=gif_fname, width=400) 47 else: —\> 48 gif, gif_fname =
-show_batched_recall_animation(frames, energies, cache_name) 50
-display(gif) 51 Markdown(f”![](%7Bgif_fname%7D.png)“)
-
-NameError: name ‘frames’ is not defined
-
-    NameError: name 'frames' is not defined
-    Traceback (most recent call last):
-
-      File "/Users/hoo/Projects/amtutorial/.venv/lib/python3.10/site-packages/IPython/core/interactiveshell.py", line 3579, in run_code
-        exec(code_obj, self.user_global_ns, self.user_ns)
-
-      File "<ipython-input-1-0865c94fa7a5>", line 48, in <module>
-        gif, gif_fname = show_batched_recall_animation(frames, energies, cache_name)
-
-    NameError: name 'frames' is not defined
+![](cache/00_dense_storage/logsumexp_batched.gif)
 
 <div id="refs" class="references csl-bib-body hanging-indent"
 entry-spacing="0">

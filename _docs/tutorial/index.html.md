@@ -8,7 +8,9 @@
   Memory.
 - [Energy Transformer](./01_energy_transformer.ipynb). Rederiving the
   Transformer as a pure associative memory
-- [Diffusion as Memory](./02_diffusion_as_memory.ipynb).
+- [Diffusion as Memory](./02_diffusion_as_memory.ipynb). Diffusion
+  models try to learn implicitly the energy of data explicitly modeled
+  by AMs.
 - [Distributed memory](./03_distributed_memory.ipynb). A way to encode
   dense storage capacity in constant parameters.
 

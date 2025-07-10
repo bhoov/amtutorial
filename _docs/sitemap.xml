@@ -2,42 +2,42 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://bhoov.github.io/amtutorial/index.html</loc>
-    <lastmod>2025-07-10T15:06:33.815Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bhoov.github.io/amtutorial/lib/data_utils.html</loc>
-    <lastmod>2025-07-10T15:06:38.544Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bhoov.github.io/amtutorial/readme.html</loc>
-    <lastmod>2025-07-10T15:06:33.817Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bhoov.github.io/amtutorial/tutorial/distributed_memory.html</loc>
-    <lastmod>2025-07-10T15:06:33.871Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bhoov.github.io/amtutorial/tutorial/energy_transformer.html</loc>
-    <lastmod>2025-07-10T15:06:45.041Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bhoov.github.io/amtutorial/tutorial/dense_storage.html</loc>
-    <lastmod>2025-07-10T15:06:37.274Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bhoov.github.io/amtutorial/tutorial/diffusion_as_memory.html</loc>
-    <lastmod>2025-07-10T15:06:59.320Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bhoov.github.io/amtutorial/tutorial/index.html</loc>
-    <lastmod>2025-07-10T15:06:33.864Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bhoov.github.io/amtutorial/lib/index.html</loc>
-    <lastmod>2025-07-10T15:06:33.896Z</lastmod>
+    <lastmod>2025-07-10T16:13:29.681Z</lastmod>
   </url>
   <url>
     <loc>https://bhoov.github.io/amtutorial/lib/eqx_utils.html</loc>
-    <lastmod>2025-07-10T15:06:34.135Z</lastmod>
+    <lastmod>2025-07-10T16:13:30.238Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bhoov.github.io/amtutorial/readme.html</loc>
+    <lastmod>2025-07-10T16:13:29.681Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bhoov.github.io/amtutorial/tutorial/distributed_memory.html</loc>
+    <lastmod>2025-07-10T16:13:29.751Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bhoov.github.io/amtutorial/tutorial/energy_transformer.html</loc>
+    <lastmod>2025-07-10T16:13:43.533Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bhoov.github.io/amtutorial/tutorial/dense_storage.html</loc>
+    <lastmod>2025-07-10T16:13:49.205Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bhoov.github.io/amtutorial/tutorial/diffusion_as_memory.html</loc>
+    <lastmod>2025-07-10T16:14:03.246Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bhoov.github.io/amtutorial/tutorial/index.html</loc>
+    <lastmod>2025-07-10T16:13:29.750Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bhoov.github.io/amtutorial/lib/index.html</loc>
+    <lastmod>2025-07-10T16:13:29.781Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bhoov.github.io/amtutorial/lib/pokemon_sprites.html</loc>
+    <lastmod>2025-07-10T16:13:32.200Z</lastmod>
   </url>
 </urlset>
