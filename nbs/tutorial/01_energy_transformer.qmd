@@ -740,7 +740,9 @@ ipython_display(str(video_fname))
 
 These images are fully reconstructed using autograd down the parameterized energy function. You may notice the reconstructions are not perfect, e.g., the right eye of the white dog is missing.
 
-> The energy is still decreasing! Shouldn't the images get better if we run longer?
+:::{.callout-warning}
+
+## The energy is still decreasing! Shouldn't the images get better if we run longer?
 
 Unfortunately, these weights were only trained to 12 steps at a fixed step size. Running longer will still cause the energy to decrease, but our image reconstruction quality will not improve. This reflects that our model has learned a kind of 'metastable state' at which nice reconstructions are retrieved, but these reconstructions are not "memories" in the formal definition of the term.
 
@@ -759,4 +761,7 @@ Markdown(f"![]({video_fname})")
 ipython_display(str(video_fname))
 ```
 
+:::
+
 ## Interpreting ET
+
