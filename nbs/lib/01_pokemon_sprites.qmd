@@ -1,8 +1,8 @@
-# data_utils
-> A collection of useful functions and classes for downloading and processing the data used in this tutorial.
+# Pokemon Sprites
+> A collection of useful functions and classes for downloading and processing the pokemon sprite data used in this tutorial.
 
 ```{python}
-#| default_exp data_utils
+#| default_exp pokemon_sprites
 ```
 
 ## Cache Directory
@@ -57,88 +57,13 @@ POKEMON_DIR = get_cache_dir("data/pokemon")
 MODEL_DIR = get_cache_dir("models")
 ```
 
+## Preparing Pokemon Sprites
 
-## Preparing bipolar MNIST data
-
-```{python}
-#|export
-#|hide
-import datasets
-import numpy as np
-```
-
-```{python}
-#|export
-
-def prepare_bipolar_mnist(force=False):
-    """Download and prepare the MNIST dataset"""
-    required_files = ["Xtrain.npy", "Xtest.npy", "Ytrain.npy", "Ytest.npy"]
-    if not force and all((MNIST_DIR / file).exists() for file in required_files): return
-
-    mnist = datasets.load_dataset("mnist").with_format("jax")
-    Xtrain = mnist['train']['image']
-    Ytrain = mnist['train']['label']
-    Xtest = mnist['test']['image']
-    Ytest = mnist['test']['label']
-
-    # Bipolarize
-    Xtrain = Xtrain / 255.
-    Xtest = Xtest / 255.
-    Xtrain = (Xtrain > 0.5).astype(np.float32) * 2 - 1
-    Xtest = (Xtest > 0.5).astype(np.float32) * 2 - 1
-
-    # Save
-    np.save(MNIST_DIR / "Xtrain.npy", Xtrain)
-    np.save(MNIST_DIR / "Xtest.npy", Xtest)
-    np.save(MNIST_DIR / "Ytrain.npy", Ytrain)
-    np.save(MNIST_DIR / "Ytest.npy", Ytest)
-
-    print(f"Saved MNIST data to {DATA_DIR}")
-```
-
-```{python}
-#|export
-@ft.lru_cache()
-def load_bipolar_mnist():
-    """Load the MNIST dataset"""
-    prepare_bipolar_mnist()
-
-    Xtrain = np.load(MNIST_DIR / "Xtrain.npy")
-    Xtest = np.load(MNIST_DIR / "Xtest.npy")
-    Ytrain = np.load(MNIST_DIR / "Ytrain.npy")
-    Ytest = np.load(MNIST_DIR / "Ytest.npy")
-    return Xtrain, Xtest, Ytrain, Ytest
-```
-
-
-```{python}
-Xtrain, Xtest, Ytrain, Ytest = load_bipolar_mnist()
-
-assert Xtest.shape[-2:] == (28, 28)
-assert Xtest.min() == -1 and Xtest.max() == 1
-assert set(np.unique(Xtest)) == set([-1., 1.])
-```
-
-```{python}
-#| echo: false
-nrows = ncols = 5
-idxs = np.random.choice(np.arange(len(Xtest)), nrows * ncols, replace=False)
-fig, axs = plt.subplots(nrows, ncols, figsize=(nrows*1.2, ncols*1.2))
-for i, ax in enumerate(axs.flat):
-    ax.imshow(Xtest[idxs[i]], cmap='gray')
-    ax.axis('off')
-plt.tight_layout()
-plt.show()
-```
-
-
-
-## Downloading Pokemon Sprites
-
-For cutesies and funsies, let's build our own black and white pokemon dataset from the [Pokemon Database](https://pokemondb.net/sprites).
+For cutesies and funsies, let's build our own black and white pokemon dataset from the [Pokemon Database](https://pokemondb.net/sprites). Let's use a little help from AI to download and process our Pokemon sprites to be binary.
 
 ```{python}
 #| export
+#| hide
 from fastcore.script import *
 import requests
 from bs4 import BeautifulSoup
@@ -146,6 +71,8 @@ import os
 from urllib.parse import urlparse
 import time
 ```
+
+### Downloading Pokemon Sprites
 
 ```{python}
 #| export
@@ -226,12 +153,11 @@ def download_pokemon_sprites(
 download_pokemon_sprites()
 ```
 
-## Processing Pokemon Sprites
-
-With a little help from AI, we can process our Pokemon sprites to be binary.
+### Processing Pokemon Sprites
 
 ```{python}
 #| export
+#| hide
 from PIL import Image
 import numpy as np
 import cv2
@@ -407,15 +333,18 @@ def scale_to_fit(img, target_size):
 
 ```
 
-```{python}
-#| hide
+We can experiment with different binarization methods.
 
-## Experimenting with different binarization methods
-#  process_pokemon_sprites("processed_adaptive", binarize_method='adaptive') # Best
 
-#  dither_strength = 0.5
-#  process_pokemon_sprites(f"processed_dithered_{dither_strength}"",binarize_method='dithered', dither_strength=dither_strength, invert_colors=False)
+```python
+# Experimenting with different binarization methods
+process_pokemon_sprites("processed_adaptive", binarize_method='adaptive') # Best
+
+dither_strength = 0.5
+process_pokemon_sprites(f"processed_dithered_{dither_strength}"",binarize_method='dithered', dither_strength=dither_strength, invert_colors=False)
 ```
+
+We only care about efficient representations of this data for this tutorial. `.npy` file and `.txt` file of names it is!
 
 ```{python}
 #| export
@@ -441,6 +370,7 @@ poke_pixels_path, poke_names_path = datafy_pokemon_sprites("processed_adaptive")
 ```
 
 Let's load the data and take a look at it.
+
 ```{python}
 #| export
 @ft.lru_cache()
@@ -463,6 +393,8 @@ cli_process_pokemon_sprites = call_parse(process_pokemon_sprites)
 cli_datafy_pokemon_sprites = call_parse(datafy_pokemon_sprites)
 ```
 
+This is what the pokemon data looks like after all the processing.
+
 ```{python}
 #| echo: false
 poke_pixels, poke_names = load_bipolar_pokemon_sprites()
@@ -482,4 +414,74 @@ for i, ax in enumerate(axs.flat):
 
 plt.tight_layout()
 plt.show()
+```
+
+## Uploading to Hugging Face
+
+It's both easier and faster to use HuggingFace to download the data than to scrape the pokemon website every time.
+
+```{python}
+#| export
+def upload_pokemon_to_hf(repo_id: str, token: str = None):
+    """Upload Pokemon sprites to Hugging Face Hub"""
+    from huggingface_hub import HfApi, upload_file
+    
+    # Get the data files
+    input_dir = get_cache_dir("data/pokemon/processed_adaptive")
+    pixels_path = input_dir / 'pokesprites_pixels.npy'
+    names_path = input_dir / 'pokesprites_names.txt'
+    
+    # Create files if they don't exist
+    if not pixels_path.exists():
+        download_pokemon_sprites()
+        process_pokemon_sprites("processed_adaptive", binarize_method='adaptive')
+        datafy_pokemon_sprites("processed_adaptive")
+    
+    # Create repo
+    api = HfApi(token=token)
+    api.create_repo(repo_id, repo_type="dataset", exist_ok=True)
+    
+    # Upload files (call upload_file directly, not as method)
+    upload_file(
+        path_or_fileobj=str(pixels_path),
+        path_in_repo="pokesprites_pixels.npy", 
+        repo_id=repo_id,
+        repo_type="dataset",
+        token=token
+    )
+    upload_file(
+        path_or_fileobj=str(names_path),
+        path_in_repo="pokesprites_names.txt",
+        repo_id=repo_id, 
+        repo_type="dataset",
+        token=token
+    )
+    
+    print(f"Uploaded to https://huggingface.co/datasets/{repo_id}")
+
+@ft.lru_cache()
+def download_pokemon_from_hf(repo_id: str):
+    """Download Pokemon sprites from Hugging Face Hub (cached automatically)"""
+    from huggingface_hub import hf_hub_download
+    
+    # HF automatically caches these files - no need to manage cache ourselves!
+    pixels_path = hf_hub_download(repo_id, "pokesprites_pixels.npy", repo_type="dataset")
+    names_path = hf_hub_download(repo_id, "pokesprites_names.txt", repo_type="dataset")
+    
+    poke_pixels = np.load(pixels_path)
+    poke_pixels = (poke_pixels > 0).astype(np.float32) * 2 - 1
+    poke_names = [n.strip().replace('.png', '') for n in open(names_path).readlines()]
+    
+    return poke_pixels, poke_names
+```
+
+Hugging Face automatically handles all the caching --- files are downloaded once and reused on subsequent calls.
+
+```{python}
+## Uploading only
+# import os
+# os.environ["HF_TOKEN"] = "your_token_here"
+# upload_pokemon_to_hf("bhoov/pokemon-sprites-bipolar", os.environ["HF_TOKEN"])
+
+poke_pixels, poke_names = download_pokemon_from_hf("bhoov/pokemon-sprites-bipolar")
 ```

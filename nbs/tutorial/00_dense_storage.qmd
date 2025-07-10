@@ -120,8 +120,8 @@ Let's build some helper functions to load and view our data: binarized pokemon s
 
 ```{python}
 #| output: false
-from amtutorial.data_utils import load_bipolar_pokemon_sprites
-poke_pixels, poke_names = load_bipolar_pokemon_sprites()
+from amtutorial.pokemon_sprites import download_pokemon_from_hf
+poke_pixels, poke_names = download_pokemon_from_hf("bhoov/pokemon-sprites-bipolar")
 data = poke_pixels
 
 pxh, pxw = data.shape[-2:]
