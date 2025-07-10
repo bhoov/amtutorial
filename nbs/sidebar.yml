@@ -2,7 +2,7 @@ website:
   sidebar:
     contents:
       - index.ipynb
-      - README.ipynb
+      - readme.ipynb
       - section: lib
         contents:
           - lib/01_pokemon_sprites.ipynb
