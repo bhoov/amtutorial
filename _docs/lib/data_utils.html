@@ -116,13 +116,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link rel="stylesheet" href="../styles/styles.css">
 <meta property="og:title" content="Pokemon Sprites – amtutorial">
 <meta property="og:description" content="A collection of useful functions and classes for downloading and processing the pokemon sprite data used in this tutorial.">
-<meta property="og:image" content="https://bhoov.github.io/amtutorial/lib/01_pokemon_sprites_files/figure-html/cell-14-output-2.png">
+<meta property="og:image" content="https://bhoov.github.io/amtutorial/lib/01_data_utils_files/figure-html/cell-13-output-2.png">
 <meta property="og:site_name" content="amtutorial">
 <meta property="og:image:height" content="1417">
 <meta property="og:image:width" content="1416">
 <meta name="twitter:title" content="Pokemon Sprites – amtutorial">
 <meta name="twitter:description" content="A collection of useful functions and classes for downloading and processing the pokemon sprite data used in this tutorial.">
-<meta name="twitter:image" content="https://bhoov.github.io/amtutorial/lib/01_pokemon_sprites_files/figure-html/cell-14-output-2.png">
+<meta name="twitter:image" content="https://bhoov.github.io/amtutorial/lib/01_data_utils_files/figure-html/cell-13-output-2.png">
 <meta name="twitter:image-height" content="1417">
 <meta name="twitter:image-width" content="1416">
 <meta name="twitter:card" content="summary_large_image">
@@ -351,7 +351,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../lib/pokemon_sprites.html" class="sidebar-item-text sidebar-link active">
+  <a href="../lib/data_utils.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Pokemon Sprites</span></a>
   </div>
 </li>
@@ -406,7 +406,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#get_cache_dir" id="toc-get_cache_dir" class="nav-link" data-scroll-target="#get_cache_dir">get_cache_dir</a></li>
   </ul></li>
-  <li><a href="#preparing-pokemon-sprites" id="toc-preparing-pokemon-sprites" class="nav-link" data-scroll-target="#preparing-pokemon-sprites">Preparing Pokemon Sprites</a>
+  <li><a href="#preparing-pokemon" id="toc-preparing-pokemon" class="nav-link" data-scroll-target="#preparing-pokemon">Preparing Pokemon</a>
   <ul class="collapse">
   <li><a href="#downloading-pokemon-sprites" id="toc-downloading-pokemon-sprites" class="nav-link" data-scroll-target="#downloading-pokemon-sprites">Downloading Pokemon Sprites</a></li>
   <li><a href="#download_pokemon_sprites" id="toc-download_pokemon_sprites" class="nav-link" data-scroll-target="#download_pokemon_sprites">download_pokemon_sprites</a></li>
@@ -419,13 +419,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#datafy_pokemon_sprites" id="toc-datafy_pokemon_sprites" class="nav-link" data-scroll-target="#datafy_pokemon_sprites">datafy_pokemon_sprites</a></li>
   <li><a href="#load_bipolar_pokemon_sprites" id="toc-load_bipolar_pokemon_sprites" class="nav-link" data-scroll-target="#load_bipolar_pokemon_sprites">load_bipolar_pokemon_sprites</a></li>
   </ul></li>
-  <li><a href="#uploading-to-hugging-face" id="toc-uploading-to-hugging-face" class="nav-link" data-scroll-target="#uploading-to-hugging-face">Uploading to Hugging Face</a>
+  <li><a href="#downloading-data-from-github-repo" id="toc-downloading-data-from-github-repo" class="nav-link" data-scroll-target="#downloading-data-from-github-repo">Downloading data from github repo</a>
   <ul class="collapse">
-  <li><a href="#download_pokemon_from_hf" id="toc-download_pokemon_from_hf" class="nav-link" data-scroll-target="#download_pokemon_from_hf">download_pokemon_from_hf</a></li>
-  <li><a href="#upload_pokemon_to_hf" id="toc-upload_pokemon_to_hf" class="nav-link" data-scroll-target="#upload_pokemon_to_hf">upload_pokemon_to_hf</a></li>
+  <li><a href="#get_et_checkpoint" id="toc-get_et_checkpoint" class="nav-link" data-scroll-target="#get_et_checkpoint">get_et_checkpoint</a></li>
+  <li><a href="#get_et_imgs" id="toc-get_et_imgs" class="nav-link" data-scroll-target="#get_et_imgs">get_et_imgs</a></li>
+  <li><a href="#get_pokemon_data" id="toc-get_pokemon_data" class="nav-link" data-scroll-target="#get_pokemon_data">get_pokemon_data</a></li>
+  <li><a href="#download_remote_data" id="toc-download_remote_data" class="nav-link" data-scroll-target="#download_remote_data">download_remote_data</a></li>
+  <li><a href="#download_github_folder" id="toc-download_github_folder" class="nav-link" data-scroll-target="#download_github_folder">download_github_folder</a></li>
   </ul></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/bhoov/amtutorial/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="pokemon_sprites.html.md"><i class="bi bi-file-code"></i>CommonMark</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/bhoov/amtutorial/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="data_utils.html.md"><i class="bi bi-file-code"></i>CommonMark</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content column-body" id="quarto-document-content">
@@ -490,26 +493,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 </tbody>
 </table>
-<div id="cell-4" class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(get_cache_dir())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>/Users/hoo/.cache/amtutorial</code></pre>
-</div>
-</div>
-<p>Let’s make a data directory for the tutorial.</p>
-<div id="cell-6" class="cell">
-<details open="" class="code-fold">
-<summary>Exported source</summary>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>DATA_DIR <span class="op">=</span> get_cache_dir(<span class="st">"data"</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>MNIST_DIR <span class="op">=</span> get_cache_dir(<span class="st">"data/mnist"</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>POKEMON_DIR <span class="op">=</span> get_cache_dir(<span class="st">"data/pokemon"</span>)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>MODEL_DIR <span class="op">=</span> get_cache_dir(<span class="st">"models"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-</div>
 </section>
 </section>
-<section id="preparing-pokemon-sprites" class="level2">
-<h2 class="anchored" data-anchor-id="preparing-pokemon-sprites">Preparing Pokemon Sprites</h2>
+<section id="preparing-pokemon" class="level2">
+<h2 class="anchored" data-anchor-id="preparing-pokemon">Preparing Pokemon</h2>
 <p>For cutesies and funsies, let’s build our own black and white pokemon dataset from the <a href="https://pokemondb.net/sprites">Pokemon Database</a>. Let’s use a little help from AI to download and process our Pokemon sprites to be binary.</p>
 <section id="downloading-pokemon-sprites" class="level3">
 <h3 class="anchored" data-anchor-id="downloading-pokemon-sprites">Downloading Pokemon Sprites</h3>
@@ -668,11 +655,1042 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 <p>We can experiment with different binarization methods.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Experimenting with different binarization methods</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>process_pokemon_sprites(<span class="st">"processed_adaptive"</span>, binarize_method<span class="op">=</span><span class="st">'adaptive'</span>) <span class="co"># Best</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>dither_strength <span class="op">=</span> <span class="fl">0.5</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>process_pokemon_sprites(<span class="ss">f"processed_dithered_</span><span class="sc">{</span>dither_strength<span class="sc">}</span><span class="ss">"</span><span class="st">",binarize_method='dithered', dither_strength=dither_strength, invert_colors=False)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-14" class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Experimenting with different binarization methods</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>process_pokemon_sprites(<span class="st">"processed_adaptive"</span>, binarize_method<span class="op">=</span><span class="st">'adaptive'</span>) <span class="co"># Best</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Processing 1025 Pokemon sprites...
+Canvas size: 48x48
+Sprite will occupy 95.0% of canvas (45 pixels max)
+Binarization using 'adaptive' method
+Processed 1/1025: parasect.png
+Processed 2/1025: sobble.png
+Processed 3/1025: lumineon.png
+Processed 4/1025: raikou.png
+Processed 5/1025: runerigus.png
+Processed 6/1025: dedenne.png
+Processed 7/1025: pyroar.png
+Processed 8/1025: pawmi.png
+Processed 9/1025: articuno.png
+Processed 10/1025: meowstic.png
+Processed 11/1025: magmortar.png
+Processed 12/1025: bulbasaur.png
+Processed 13/1025: banette.png
+Processed 14/1025: staraptor.png
+Processed 15/1025: pidove.png
+Processed 16/1025: morgrem.png
+Processed 17/1025: comfey.png
+Processed 18/1025: taillow.png
+Processed 19/1025: charizard.png
+Processed 20/1025: infernape.png
+Processed 21/1025: sandshrew.png
+Processed 22/1025: marshadow.png
+Processed 23/1025: alakazam.png
+Processed 24/1025: lickitung.png
+Processed 25/1025: starmie.png
+Processed 26/1025: wishiwashi.png
+Processed 27/1025: yanmega.png
+Processed 28/1025: yveltal.png
+Processed 29/1025: zigzagoon.png
+Processed 30/1025: petilil.png
+Processed 31/1025: torterra.png
+Processed 32/1025: purugly.png
+Processed 33/1025: tandemaus.png
+Processed 34/1025: cresselia.png
+Processed 35/1025: regigigas.png
+Processed 36/1025: palkia.png
+Processed 37/1025: impidimp.png
+Processed 38/1025: froakie.png
+Processed 39/1025: kilowattrel.png
+Processed 40/1025: arrokuda.png
+Processed 41/1025: munna.png
+Processed 42/1025: bellossom.png
+Processed 43/1025: gabite.png
+Processed 44/1025: tapu-koko.png
+Processed 45/1025: mareep.png
+Processed 46/1025: shieldon.png
+Processed 47/1025: sneasler.png
+Processed 48/1025: stoutland.png
+Processed 49/1025: corviknight.png
+Processed 50/1025: walking-wake.png
+Processed 51/1025: accelgor.png
+Processed 52/1025: makuhita.png
+Processed 53/1025: seviper.png
+Processed 54/1025: tirtouga.png
+Processed 55/1025: lampent.png
+Processed 56/1025: chi-yu.png
+Processed 57/1025: ceruledge.png
+Processed 58/1025: nidoking.png
+Processed 59/1025: huntail.png
+Processed 60/1025: nosepass.png
+Processed 61/1025: carracosta.png
+Processed 62/1025: nidoqueen.png
+Processed 63/1025: inkay.png
+Processed 64/1025: archeops.png
+Processed 65/1025: avalugg.png
+Processed 66/1025: grubbin.png
+Processed 67/1025: sentret.png
+Processed 68/1025: golbat.png
+Processed 69/1025: skorupi.png
+Processed 70/1025: conkeldurr.png
+Processed 71/1025: jellicent.png
+Processed 72/1025: yungoos.png
+Processed 73/1025: meltan.png
+Processed 74/1025: arctovish.png
+Processed 75/1025: barraskewda.png
+Processed 76/1025: luxio.png
+Processed 77/1025: duraludon.png
+Processed 78/1025: binacle.png
+Processed 79/1025: galvantula.png
+Processed 80/1025: crawdaunt.png
+Processed 81/1025: hippopotas.png
+Processed 82/1025: swirlix.png
+Processed 83/1025: finneon.png
+Processed 84/1025: kleavor.png
+Processed 85/1025: medicham.png
+Processed 86/1025: yamper.png
+Processed 87/1025: poliwrath.png
+Processed 88/1025: deoxys.png
+Processed 89/1025: magnemite.png
+Processed 90/1025: florges.png
+Processed 91/1025: serperior.png
+Processed 92/1025: coalossal.png
+Processed 93/1025: shinx.png
+Processed 94/1025: quaquaval.png
+Processed 95/1025: budew.png
+Processed 96/1025: shellos.png
+Processed 97/1025: gothita.png
+Processed 98/1025: overqwil.png
+Processed 99/1025: porygon.png
+Processed 100/1025: alomomola.png
+Processed 101/1025: urshifu.png
+Processed 102/1025: electrike.png
+Processed 103/1025: dratini.png
+Processed 104/1025: mienfoo.png
+Processed 105/1025: reshiram.png
+Processed 106/1025: sawsbuck.png
+Processed 107/1025: blaziken.png
+Processed 108/1025: flareon.png
+Processed 109/1025: gliscor.png
+Processed 110/1025: heatran.png
+Processed 111/1025: gholdengo.png
+Processed 112/1025: thievul.png
+Processed 113/1025: beedrill.png
+Processed 114/1025: butterfree.png
+Processed 115/1025: tadbulb.png
+Processed 116/1025: fletchinder.png
+Processed 117/1025: tsareena.png
+Processed 118/1025: ludicolo.png
+Processed 119/1025: phanpy.png
+Processed 120/1025: toxicroak.png
+Processed 121/1025: cyndaquil.png
+Processed 122/1025: swellow.png
+Processed 123/1025: machop.png
+Processed 124/1025: eternatus.png
+Processed 125/1025: fletchling.png
+Processed 126/1025: naganadel.png
+Processed 127/1025: ariados.png
+Processed 128/1025: mr-mime.png
+Processed 129/1025: passimian.png
+Processed 130/1025: frogadier.png
+Processed 131/1025: roggenrola.png
+Processed 132/1025: shroodle.png
+Processed 133/1025: shedinja.png
+Processed 134/1025: duosion.png
+Processed 135/1025: scraggy.png
+Processed 136/1025: gumshoos.png
+Processed 137/1025: latias.png
+Processed 138/1025: shelmet.png
+Processed 139/1025: sawk.png
+Processed 140/1025: pawmo.png
+Processed 141/1025: venusaur.png
+Processed 142/1025: azelf.png
+Processed 143/1025: sinistea.png
+Processed 144/1025: tornadus.png
+Processed 145/1025: quaxwell.png
+Processed 146/1025: obstagoon.png
+Processed 147/1025: musharna.png
+Processed 148/1025: drampa.png
+Processed 149/1025: liepard.png
+Processed 150/1025: aipom.png
+Processed 151/1025: seaking.png
+Processed 152/1025: arboliva.png
+Processed 153/1025: xurkitree.png
+Processed 154/1025: meditite.png
+Processed 155/1025: heatmor.png
+Processed 156/1025: chandelure.png
+Processed 157/1025: ivysaur.png
+Processed 158/1025: calyrex.png
+Processed 159/1025: gible.png
+Processed 160/1025: corphish.png
+Processed 161/1025: octillery.png
+Processed 162/1025: cubone.png
+Processed 163/1025: crocalor.png
+Processed 164/1025: dusclops.png
+Processed 165/1025: koffing.png
+Processed 166/1025: wo-chien.png
+Processed 167/1025: gengar.png
+Processed 168/1025: larvitar.png
+Processed 169/1025: rampardos.png
+Processed 170/1025: tyrogue.png
+Processed 171/1025: wigglytuff.png
+Processed 172/1025: oricorio.png
+Processed 173/1025: castform.png
+Processed 174/1025: quaxly.png
+Processed 175/1025: dusknoir.png
+Processed 176/1025: chinchou.png
+Processed 177/1025: litleo.png
+Processed 178/1025: floragato.png
+Processed 179/1025: manectric.png
+Processed 180/1025: grapploct.png
+Processed 181/1025: ditto.png
+Processed 182/1025: scrafty.png
+Processed 183/1025: great-tusk.png
+Processed 184/1025: kakuna.png
+Processed 185/1025: gastrodon.png
+Processed 186/1025: wingull.png
+Processed 187/1025: flaaffy.png
+Processed 188/1025: sunflora.png
+Processed 189/1025: iron-jugulis.png
+Processed 190/1025: gastly.png
+Processed 191/1025: tarountula.png
+Processed 192/1025: delcatty.png
+Processed 193/1025: granbull.png
+Processed 194/1025: iron-leaves.png
+Processed 195/1025: whismur.png
+Processed 196/1025: gourgeist.png
+Processed 197/1025: cleffa.png
+Processed 198/1025: growlithe.png
+Processed 199/1025: sigilyph.png
+Processed 200/1025: cascoon.png
+Processed 201/1025: pecharunt.png
+Processed 202/1025: rapidash.png
+Processed 203/1025: hydreigon.png
+Processed 204/1025: cryogonal.png
+Processed 205/1025: stunfisk.png
+Processed 206/1025: stantler.png
+Processed 207/1025: dracovish.png
+Processed 208/1025: tapu-fini.png
+Processed 209/1025: steenee.png
+Processed 210/1025: slither-wing.png
+Processed 211/1025: snubbull.png
+Processed 212/1025: crabominable.png
+Processed 213/1025: surskit.png
+Processed 214/1025: ampharos.png
+Processed 215/1025: monferno.png
+Processed 216/1025: terapagos.png
+Processed 217/1025: rhydon.png
+Processed 218/1025: orthworm.png
+Processed 219/1025: clodsire.png
+Processed 220/1025: arbok.png
+Processed 221/1025: amaura.png
+Processed 222/1025: lucario.png
+Processed 223/1025: hatterene.png
+Processed 224/1025: pupitar.png
+Processed 225/1025: elekid.png
+Processed 226/1025: goomy.png
+Processed 227/1025: vullaby.png
+Processed 228/1025: venipede.png
+Processed 229/1025: doublade.png
+Processed 230/1025: bellibolt.png
+Processed 231/1025: regieleki.png
+Processed 232/1025: tangela.png
+Processed 233/1025: pignite.png
+Processed 234/1025: sandile.png
+Processed 235/1025: brionne.png
+Processed 236/1025: machamp.png
+Processed 237/1025: wailord.png
+Processed 238/1025: rhyhorn.png
+Processed 239/1025: ninjask.png
+Processed 240/1025: salandit.png
+Processed 241/1025: grotle.png
+Processed 242/1025: dragonair.png
+Processed 243/1025: mime-jr.png
+Processed 244/1025: zebstrika.png
+Processed 245/1025: zarude.png
+Processed 246/1025: pikachu.png
+Processed 247/1025: typhlosion.png
+Processed 248/1025: sizzlipede.png
+Processed 249/1025: aromatisse.png
+Processed 250/1025: chimecho.png
+Processed 251/1025: diggersby.png
+Processed 252/1025: trevenant.png
+Processed 253/1025: audino.png
+Processed 254/1025: dodrio.png
+Processed 255/1025: azumarill.png
+Processed 256/1025: perrserker.png
+Processed 257/1025: aggron.png
+Processed 258/1025: dialga.png
+Processed 259/1025: tapu-bulu.png
+Processed 260/1025: totodile.png
+Processed 261/1025: tauros.png
+Processed 262/1025: silcoon.png
+Processed 263/1025: cottonee.png
+Processed 264/1025: araquanid.png
+Processed 265/1025: gallade.png
+Processed 266/1025: tropius.png
+Processed 267/1025: bouffalant.png
+Processed 268/1025: wattrel.png
+Processed 269/1025: frigibax.png
+Processed 270/1025: woobat.png
+Processed 271/1025: archen.png
+Processed 272/1025: ho-oh.png
+Processed 273/1025: scorbunny.png
+Processed 274/1025: iron-valiant.png
+Processed 275/1025: noibat.png
+Processed 276/1025: wartortle.png
+Processed 277/1025: chien-pao.png
+Processed 278/1025: eevee.png
+Processed 279/1025: mewtwo.png
+Processed 280/1025: buneary.png
+Processed 281/1025: sableye.png
+Processed 282/1025: bidoof.png
+Processed 283/1025: rookidee.png
+Processed 284/1025: scovillain.png
+Processed 285/1025: braixen.png
+Processed 286/1025: raging-bolt.png
+Processed 287/1025: elgyem.png
+Processed 288/1025: gloom.png
+Processed 289/1025: electabuzz.png
+Processed 290/1025: piloswine.png
+Processed 291/1025: miltank.png
+Processed 292/1025: guzzlord.png
+Processed 293/1025: cinccino.png
+Processed 294/1025: greavard.png
+Processed 295/1025: hattrem.png
+Processed 296/1025: hatenna.png
+Processed 297/1025: anorith.png
+Processed 298/1025: wurmple.png
+Processed 299/1025: shelgon.png
+Processed 300/1025: toxapex.png
+Processed 301/1025: swalot.png
+Processed 302/1025: lurantis.png
+Processed 303/1025: tyrunt.png
+Processed 304/1025: pidgey.png
+Processed 305/1025: quagsire.png
+Processed 306/1025: gurdurr.png
+Processed 307/1025: amoonguss.png
+Processed 308/1025: archaludon.png
+Processed 309/1025: mankey.png
+Processed 310/1025: illumise.png
+Processed 311/1025: cacturne.png
+Processed 312/1025: tinkatink.png
+Processed 313/1025: igglybuff.png
+Processed 314/1025: maschiff.png
+Processed 315/1025: qwilfish.png
+Processed 316/1025: goldeen.png
+Processed 317/1025: abra.png
+Processed 318/1025: tinkatuff.png
+Processed 319/1025: nidoran-f.png
+Processed 320/1025: purrloin.png
+Processed 321/1025: gulpin.png
+Processed 322/1025: munchlax.png
+Processed 323/1025: crobat.png
+Processed 324/1025: volcanion.png
+Processed 325/1025: lillipup.png
+Processed 326/1025: xerneas.png
+Processed 327/1025: lechonk.png
+Processed 328/1025: lapras.png
+Processed 329/1025: gyarados.png
+Processed 330/1025: walrein.png
+Processed 331/1025: sneasel.png
+Processed 332/1025: lickilicky.png
+Processed 333/1025: skuntank.png
+Processed 334/1025: murkrow.png
+Processed 335/1025: bibarel.png
+Processed 336/1025: tentacool.png
+Processed 337/1025: watchog.png
+Processed 338/1025: oshawott.png
+Processed 339/1025: pidgeotto.png
+Processed 340/1025: espurr.png
+Processed 341/1025: houndoom.png
+Processed 342/1025: nidorino.png
+Processed 343/1025: hariyama.png
+Processed 344/1025: milcery.png
+Processed 345/1025: talonflame.png
+Processed 346/1025: dustox.png
+Processed 347/1025: mimikyu.png
+Processed 348/1025: kommo-o.png
+Processed 349/1025: weepinbell.png
+Processed 350/1025: seel.png
+Processed 351/1025: houndstone.png
+Processed 352/1025: pyukumuku.png
+Processed 353/1025: naclstack.png
+Processed 354/1025: annihilape.png
+Processed 355/1025: pineco.png
+Processed 356/1025: cosmog.png
+Processed 357/1025: kadabra.png
+Processed 358/1025: swablu.png
+Processed 359/1025: skitty.png
+Processed 360/1025: regidrago.png
+Processed 361/1025: masquerain.png
+Processed 362/1025: minun.png
+Processed 363/1025: heracross.png
+Processed 364/1025: cursola.png
+Processed 365/1025: trapinch.png
+Processed 366/1025: girafarig.png
+Processed 367/1025: tyrantrum.png
+Processed 368/1025: graveler.png
+Processed 369/1025: corvisquire.png
+Processed 370/1025: poochyena.png
+Processed 371/1025: electivire.png
+Processed 372/1025: shiinotic.png
+Processed 373/1025: melmetal.png
+Processed 374/1025: ledian.png
+Processed 375/1025: cherrim.png
+Processed 376/1025: popplio.png
+Processed 377/1025: sandy-shocks.png
+Processed 378/1025: polteageist.png
+Processed 379/1025: primeape.png
+Processed 380/1025: glastrier.png
+Processed 381/1025: vanillish.png
+Processed 382/1025: aegislash.png
+Processed 383/1025: probopass.png
+Processed 384/1025: skiploom.png
+Processed 385/1025: chesnaught.png
+Processed 386/1025: kyurem.png
+Processed 387/1025: drakloak.png
+Processed 388/1025: carnivine.png
+Processed 389/1025: torracat.png
+Processed 390/1025: gardevoir.png
+Processed 391/1025: pinsir.png
+Processed 392/1025: snorunt.png
+Processed 393/1025: samurott.png
+Processed 394/1025: necrozma.png
+Processed 395/1025: darmanitan.png
+Processed 396/1025: charcadet.png
+Processed 397/1025: smeargle.png
+Processed 398/1025: cetoddle.png
+Processed 399/1025: rellor.png
+Processed 400/1025: inteleon.png
+Processed 401/1025: magby.png
+Processed 402/1025: ursaring.png
+Processed 403/1025: crabrawler.png
+Processed 404/1025: haxorus.png
+Processed 405/1025: geodude.png
+Processed 406/1025: foongus.png
+Processed 407/1025: hippowdon.png
+Processed 408/1025: poltchageist.png
+Processed 409/1025: toedscool.png
+Processed 410/1025: ursaluna.png
+Processed 411/1025: delibird.png
+Processed 412/1025: oranguru.png
+Processed 413/1025: drapion.png
+Processed 414/1025: koraidon.png
+Processed 415/1025: smoochum.png
+Processed 416/1025: scyther.png
+Processed 417/1025: stunky.png
+Processed 418/1025: swadloon.png
+Processed 419/1025: klefki.png
+Processed 420/1025: vivillon.png
+Processed 421/1025: wormadam.png
+Processed 422/1025: honedge.png
+Processed 423/1025: entei.png
+Processed 424/1025: servine.png
+Processed 425/1025: zubat.png
+Processed 426/1025: umbreon.png
+Processed 427/1025: reuniclus.png
+Processed 428/1025: froslass.png
+Processed 429/1025: pheromosa.png
+Processed 430/1025: brute-bonnet.png
+Processed 431/1025: magcargo.png
+Processed 432/1025: boldore.png
+Processed 433/1025: genesect.png
+Processed 434/1025: larvesta.png
+Processed 435/1025: meowscarada.png
+Processed 436/1025: golett.png
+Processed 437/1025: kartana.png
+Processed 438/1025: voltorb.png
+Processed 439/1025: regirock.png
+Processed 440/1025: cherubi.png
+Processed 441/1025: barboach.png
+Processed 442/1025: wooper.png
+Processed 443/1025: escavalier.png
+Processed 444/1025: vileplume.png
+Processed 445/1025: mismagius.png
+Processed 446/1025: blastoise.png
+Processed 447/1025: litten.png
+Processed 448/1025: sealeo.png
+Processed 449/1025: dreepy.png
+Processed 450/1025: snivy.png
+Processed 451/1025: keldeo.png
+Processed 452/1025: snorlax.png
+Processed 453/1025: zamazenta.png
+Processed 454/1025: lopunny.png
+Processed 455/1025: persian.png
+Processed 456/1025: beartic.png
+Processed 457/1025: gothorita.png
+Processed 458/1025: giratina.png
+Processed 459/1025: rattata.png
+Processed 460/1025: starly.png
+Processed 461/1025: bewear.png
+Processed 462/1025: nymble.png
+Processed 463/1025: houndour.png
+Processed 464/1025: eelektrik.png
+Processed 465/1025: appletun.png
+Processed 466/1025: quilava.png
+Processed 467/1025: whimsicott.png
+Processed 468/1025: magikarp.png
+Processed 469/1025: skeledirge.png
+Processed 470/1025: drowzee.png
+Processed 471/1025: squawkabilly.png
+Processed 472/1025: claydol.png
+Processed 473/1025: clamperl.png
+Processed 474/1025: seedot.png
+Processed 475/1025: dottler.png
+Processed 476/1025: garchomp.png
+Processed 477/1025: skiddo.png
+Processed 478/1025: hypno.png
+Processed 479/1025: weedle.png
+Processed 480/1025: garganacl.png
+Processed 481/1025: greedent.png
+Processed 482/1025: stakataka.png
+Processed 483/1025: ambipom.png
+Processed 484/1025: spoink.png
+Processed 485/1025: pikipek.png
+Processed 486/1025: frillish.png
+Processed 487/1025: cutiefly.png
+Processed 488/1025: honchkrow.png
+Processed 489/1025: tympole.png
+Processed 490/1025: ting-lu.png
+Processed 491/1025: meganium.png
+Processed 492/1025: incineroar.png
+Processed 493/1025: landorus.png
+Processed 494/1025: lileep.png
+Processed 495/1025: pachirisu.png
+Processed 496/1025: iron-moth.png
+Processed 497/1025: tyranitar.png
+Processed 498/1025: magnezone.png
+Processed 499/1025: beldum.png
+Processed 500/1025: glameow.png
+Processed 501/1025: dondozo.png
+Processed 502/1025: swanna.png
+Processed 503/1025: primarina.png
+Processed 504/1025: nuzleaf.png
+Processed 505/1025: zangoose.png
+Processed 506/1025: gogoat.png
+Processed 507/1025: jolteon.png
+Processed 508/1025: moltres.png
+Processed 509/1025: dragonite.png
+Processed 510/1025: golurk.png
+Processed 511/1025: metapod.png
+Processed 512/1025: golisopod.png
+Processed 513/1025: marowak.png
+Processed 514/1025: gigalith.png
+Processed 515/1025: emboar.png
+Processed 516/1025: exeggutor.png
+Processed 517/1025: magneton.png
+Processed 518/1025: mesprit.png
+Processed 519/1025: dipplin.png
+Processed 520/1025: groudon.png
+Processed 521/1025: wobbuffet.png
+Processed 522/1025: delphox.png
+Processed 523/1025: exploud.png
+Processed 524/1025: dracozolt.png
+Processed 525/1025: mantyke.png
+Processed 526/1025: malamar.png
+Processed 527/1025: simisage.png
+Processed 528/1025: espeon.png
+Processed 529/1025: paras.png
+Processed 530/1025: noctowl.png
+Processed 531/1025: hitmonlee.png
+Processed 532/1025: slaking.png
+Processed 533/1025: solrock.png
+Processed 534/1025: pelipper.png
+Processed 535/1025: komala.png
+Processed 536/1025: poliwhirl.png
+Processed 537/1025: palpitoad.png
+Processed 538/1025: eelektross.png
+Processed 539/1025: patrat.png
+Processed 540/1025: spheal.png
+Processed 541/1025: seadra.png
+Processed 542/1025: lotad.png
+Processed 543/1025: flutter-mane.png
+Processed 544/1025: ralts.png
+Processed 545/1025: registeel.png
+Processed 546/1025: slurpuff.png
+Processed 547/1025: arcanine.png
+Processed 548/1025: fomantis.png
+Processed 549/1025: smoliv.png
+Processed 550/1025: eiscue.png
+Processed 551/1025: tangrowth.png
+Processed 552/1025: aerodactyl.png
+Processed 553/1025: pincurchin.png
+Processed 554/1025: bronzor.png
+Processed 555/1025: sylveon.png
+Processed 556/1025: munkidori.png
+Processed 557/1025: kyogre.png
+Processed 558/1025: sharpedo.png
+Processed 559/1025: cufant.png
+Processed 560/1025: flabebe.png
+Processed 561/1025: quilladin.png
+Processed 562/1025: feebas.png
+Processed 563/1025: metagross.png
+Processed 564/1025: maractus.png
+Processed 565/1025: muk.png
+Processed 566/1025: empoleon.png
+Processed 567/1025: chimchar.png
+Processed 568/1025: sandaconda.png
+Processed 569/1025: staryu.png
+Processed 570/1025: scream-tail.png
+Processed 571/1025: pancham.png
+Processed 572/1025: dwebble.png
+Processed 573/1025: bruxish.png
+Processed 574/1025: joltik.png
+Processed 575/1025: armaldo.png
+Processed 576/1025: grimmsnarl.png
+Processed 577/1025: phione.png
+Processed 578/1025: frosmoth.png
+Processed 579/1025: rhyperior.png
+Processed 580/1025: pansear.png
+Processed 581/1025: alcremie.png
+Processed 582/1025: happiny.png
+Processed 583/1025: spearow.png
+Processed 584/1025: helioptile.png
+Processed 585/1025: kingambit.png
+Processed 586/1025: fearow.png
+Processed 587/1025: wooloo.png
+Processed 588/1025: prinplup.png
+Processed 589/1025: diancie.png
+Processed 590/1025: rabsca.png
+Processed 591/1025: poipole.png
+Processed 592/1025: ogerpon.png
+Processed 593/1025: klink.png
+Processed 594/1025: farfetchd.png
+Processed 595/1025: gorebyss.png
+Processed 596/1025: iron-bundle.png
+Processed 597/1025: noivern.png
+Processed 598/1025: herdier.png
+Processed 599/1025: tynamo.png
+Processed 600/1025: whiscash.png
+Processed 601/1025: nidoran-m.png
+Processed 602/1025: diglett.png
+Processed 603/1025: wyrdeer.png
+Processed 604/1025: krokorok.png
+Processed 605/1025: scizor.png
+Processed 606/1025: nihilego.png
+Processed 607/1025: skarmory.png
+Processed 608/1025: remoraid.png
+Processed 609/1025: shaymin.png
+Processed 610/1025: hitmontop.png
+Processed 611/1025: snom.png
+Processed 612/1025: cosmoem.png
+Processed 613/1025: miraidon.png
+Processed 614/1025: slowbro.png
+Processed 615/1025: numel.png
+Processed 616/1025: glalie.png
+Processed 617/1025: vaporeon.png
+Processed 618/1025: porygon-z.png
+Processed 619/1025: lunatone.png
+Processed 620/1025: machoke.png
+Processed 621/1025: mareanie.png
+Processed 622/1025: bastiodon.png
+Processed 623/1025: mandibuzz.png
+Processed 624/1025: arceus.png
+Processed 625/1025: throh.png
+Processed 626/1025: abomasnow.png
+Processed 627/1025: bronzong.png
+Processed 628/1025: flittle.png
+Processed 629/1025: greninja.png
+Processed 630/1025: hoppip.png
+Processed 631/1025: kecleon.png
+Processed 632/1025: crustle.png
+Processed 633/1025: shuppet.png
+Processed 634/1025: stonjourner.png
+Processed 635/1025: gossifleur.png
+Processed 636/1025: ducklett.png
+Processed 637/1025: plusle.png
+Processed 638/1025: poliwag.png
+Processed 639/1025: treecko.png
+Processed 640/1025: torchic.png
+Processed 641/1025: kabutops.png
+Processed 642/1025: dunsparce.png
+Processed 643/1025: flygon.png
+Processed 644/1025: morpeko.png
+Processed 645/1025: spectrier.png
+Processed 646/1025: orbeetle.png
+Processed 647/1025: dugtrio.png
+Processed 648/1025: marill.png
+Processed 649/1025: magearna.png
+Processed 650/1025: toxtricity.png
+Processed 651/1025: fezandipiti.png
+Processed 652/1025: silvally.png
+Processed 653/1025: cacnea.png
+Processed 654/1025: slugma.png
+Processed 655/1025: oddish.png
+Processed 656/1025: jirachi.png
+Processed 657/1025: veluza.png
+Processed 658/1025: ribombee.png
+Processed 659/1025: glimmora.png
+Processed 660/1025: litwick.png
+Processed 661/1025: pidgeot.png
+Processed 662/1025: sandslash.png
+Processed 663/1025: drilbur.png
+Processed 664/1025: cranidos.png
+Processed 665/1025: chansey.png
+Processed 666/1025: blacephalon.png
+Processed 667/1025: camerupt.png
+Processed 668/1025: arctozolt.png
+Processed 669/1025: dudunsparce.png
+Processed 670/1025: pichu.png
+Processed 671/1025: duskull.png
+Processed 672/1025: palafin.png
+Processed 673/1025: kangaskhan.png
+Processed 674/1025: chingling.png
+Processed 675/1025: whirlipede.png
+Processed 676/1025: silicobra.png
+Processed 677/1025: ferroseed.png
+Processed 678/1025: toucannon.png
+Processed 679/1025: barbaracle.png
+Processed 680/1025: salamence.png
+Processed 681/1025: zekrom.png
+Processed 682/1025: haunter.png
+Processed 683/1025: glaceon.png
+Processed 684/1025: golduck.png
+Processed 685/1025: milotic.png
+Processed 686/1025: politoed.png
+Processed 687/1025: indeedee.png
+Processed 688/1025: absol.png
+Processed 689/1025: mienshao.png
+Processed 690/1025: sprigatito.png
+Processed 691/1025: aron.png
+Processed 692/1025: tepig.png
+Processed 693/1025: klang.png
+Processed 694/1025: zapdos.png
+Processed 695/1025: clauncher.png
+Processed 696/1025: riolu.png
+Processed 697/1025: skwovet.png
+Processed 698/1025: raichu.png
+Processed 699/1025: varoom.png
+Processed 700/1025: hitmonchan.png
+Processed 701/1025: slakoth.png
+Processed 702/1025: ponyta.png
+Processed 703/1025: togepi.png
+Processed 704/1025: snover.png
+Processed 705/1025: dubwool.png
+Processed 706/1025: solosis.png
+Processed 707/1025: fraxure.png
+Processed 708/1025: caterpie.png
+Processed 709/1025: iron-hands.png
+Processed 710/1025: gimmighoul.png
+Processed 711/1025: psyduck.png
+Processed 712/1025: teddiursa.png
+Processed 713/1025: tapu-lele.png
+Processed 714/1025: piplup.png
+Processed 715/1025: flamigo.png
+Processed 716/1025: okidogi.png
+Processed 717/1025: nickit.png
+Processed 718/1025: darumaka.png
+Processed 719/1025: finizen.png
+Processed 720/1025: weavile.png
+Processed 721/1025: mawile.png
+Processed 722/1025: sewaddle.png
+Processed 723/1025: unfezant.png
+Processed 724/1025: buzzwole.png
+Processed 725/1025: rockruff.png
+Processed 726/1025: manaphy.png
+Processed 727/1025: bunnelby.png
+Processed 728/1025: seismitoad.png
+Processed 729/1025: simipour.png
+Processed 730/1025: vanilluxe.png
+Processed 731/1025: cubchoo.png
+Processed 732/1025: mantine.png
+Processed 733/1025: maushold.png
+Processed 734/1025: basculin.png
+Processed 735/1025: dartrix.png
+Processed 736/1025: weezing.png
+Processed 737/1025: corsola.png
+Processed 738/1025: roserade.png
+Processed 739/1025: carbink.png
+Processed 740/1025: heliolisk.png
+Processed 741/1025: omanyte.png
+Processed 742/1025: rufflet.png
+Processed 743/1025: zygarde.png
+Processed 744/1025: mothim.png
+Processed 745/1025: klinklang.png
+Processed 746/1025: sliggoo.png
+Processed 747/1025: raticate.png
+Processed 748/1025: grookey.png
+Processed 749/1025: carkol.png
+Processed 750/1025: dhelmise.png
+Processed 751/1025: vibrava.png
+Processed 752/1025: wiglett.png
+Processed 753/1025: shiftry.png
+Processed 754/1025: swampert.png
+Processed 755/1025: excadrill.png
+Processed 756/1025: brambleghast.png
+Processed 757/1025: morelull.png
+Processed 758/1025: fuecoco.png
+Processed 759/1025: chatot.png
+Processed 760/1025: klawf.png
+Processed 761/1025: jigglypuff.png
+Processed 762/1025: enamorus.png
+Processed 763/1025: loudred.png
+Processed 764/1025: forretress.png
+Processed 765/1025: togetic.png
+Processed 766/1025: feraligatr.png
+Processed 767/1025: bisharp.png
+Processed 768/1025: lycanroc.png
+Processed 769/1025: iron-treads.png
+Processed 770/1025: mabosstiff.png
+Processed 771/1025: vikavolt.png
+Processed 772/1025: victreebel.png
+Processed 773/1025: decidueye.png
+Processed 774/1025: cinderace.png
+Processed 775/1025: spinarak.png
+Processed 776/1025: onix.png
+Processed 777/1025: wugtrio.png
+Processed 778/1025: aurorus.png
+Processed 779/1025: venonat.png
+Processed 780/1025: thundurus.png
+Processed 781/1025: wimpod.png
+Processed 782/1025: nidorina.png
+Processed 783/1025: tranquill.png
+Processed 784/1025: hydrapple.png
+Processed 785/1025: farigiraf.png
+Processed 786/1025: buizel.png
+Processed 787/1025: mightyena.png
+Processed 788/1025: vulpix.png
+Processed 789/1025: clawitzer.png
+Processed 790/1025: revavroom.png
+Processed 791/1025: lilligant.png
+Processed 792/1025: togedemaru.png
+Processed 793/1025: minccino.png
+Processed 794/1025: roaring-moon.png
+Processed 795/1025: charjabug.png
+Processed 796/1025: doduo.png
+Processed 797/1025: ferrothorn.png
+Processed 798/1025: misdreavus.png
+Processed 799/1025: kingdra.png
+Processed 800/1025: shuckle.png
+Processed 801/1025: rayquaza.png
+Processed 802/1025: palossand.png
+Processed 803/1025: spidops.png
+Processed 804/1025: mudbray.png
+Processed 805/1025: kricketune.png
+Processed 806/1025: skrelp.png
+Processed 807/1025: luxray.png
+Processed 808/1025: ledyba.png
+Processed 809/1025: baltoy.png
+Processed 810/1025: basculegion.png
+Processed 811/1025: trumbeak.png
+Processed 812/1025: dewpider.png
+Processed 813/1025: applin.png
+Processed 814/1025: sandygast.png
+Processed 815/1025: yanma.png
+Processed 816/1025: kubfu.png
+Processed 817/1025: lugia.png
+Processed 818/1025: turtonator.png
+Processed 819/1025: hawlucha.png
+Processed 820/1025: leavanny.png
+Processed 821/1025: vespiquen.png
+Processed 822/1025: solgaleo.png
+Processed 823/1025: squirtle.png
+Processed 824/1025: slowking.png
+Processed 825/1025: exeggcute.png
+Processed 826/1025: emolga.png
+Processed 827/1025: carvanha.png
+Processed 828/1025: zacian.png
+Processed 829/1025: grafaiai.png
+Processed 830/1025: clefairy.png
+Processed 831/1025: bayleef.png
+Processed 832/1025: drifloon.png
+Processed 833/1025: stufful.png
+Processed 834/1025: sceptile.png
+Processed 835/1025: azurill.png
+Processed 836/1025: chespin.png
+Processed 837/1025: jangmo-o.png
+Processed 838/1025: panpour.png
+Processed 839/1025: meloetta.png
+Processed 840/1025: glimmet.png
+Processed 841/1025: sinistcha.png
+Processed 842/1025: staravia.png
+Processed 843/1025: linoone.png
+Processed 844/1025: tinkaton.png
+Processed 845/1025: iron-crown.png
+Processed 846/1025: spiritomb.png
+Processed 847/1025: zoroark.png
+Processed 848/1025: chikorita.png
+Processed 849/1025: vanillite.png
+Processed 850/1025: scatterbug.png
+Processed 851/1025: spinda.png
+Processed 852/1025: beheeyem.png
+Processed 853/1025: grimer.png
+Processed 854/1025: pawmot.png
+Processed 855/1025: leafeon.png
+Processed 856/1025: cyclizar.png
+Processed 857/1025: deerling.png
+Processed 858/1025: celebi.png
+Processed 859/1025: breloom.png
+Processed 860/1025: turtwig.png
+Processed 861/1025: zweilous.png
+Processed 862/1025: burmy.png
+Processed 863/1025: dolliv.png
+Processed 864/1025: copperajah.png
+Processed 865/1025: swinub.png
+Processed 866/1025: axew.png
+Processed 867/1025: dragapult.png
+Processed 868/1025: pangoro.png
+Processed 869/1025: darkrai.png
+Processed 870/1025: krabby.png
+Processed 871/1025: dewgong.png
+Processed 872/1025: eldegoss.png
+Processed 873/1025: sirfetchd.png
+Processed 874/1025: volcarona.png
+Processed 875/1025: vigoroth.png
+Processed 876/1025: bombirdier.png
+Processed 877/1025: falinks.png
+Processed 878/1025: ninetales.png
+Processed 879/1025: pawniard.png
+Processed 880/1025: rolycoly.png
+Processed 881/1025: blitzle.png
+Processed 882/1025: porygon2.png
+Processed 883/1025: croagunk.png
+Processed 884/1025: xatu.png
+Processed 885/1025: lairon.png
+Processed 886/1025: tentacruel.png
+Processed 887/1025: toedscruel.png
+Processed 888/1025: krookodile.png
+Processed 889/1025: gothitelle.png
+Processed 890/1025: regice.png
+Processed 891/1025: goodra.png
+Processed 892/1025: thwackey.png
+Processed 893/1025: meowth.png
+Processed 894/1025: grovyle.png
+Processed 895/1025: volbeat.png
+Processed 896/1025: unown.png
+Processed 897/1025: terrakion.png
+Processed 898/1025: togekiss.png
+Processed 899/1025: kricketot.png
+Processed 900/1025: zeraora.png
+Processed 901/1025: bellsprout.png
+Processed 902/1025: luvdisc.png
+Processed 903/1025: garbodor.png
+Processed 904/1025: horsea.png
+Processed 905/1025: nincada.png
+Processed 906/1025: dragalge.png
+Processed 907/1025: electrode.png
+Processed 908/1025: salazzle.png
+Processed 909/1025: fennekin.png
+Processed 910/1025: metang.png
+Processed 911/1025: donphan.png
+Processed 912/1025: jynx.png
+Processed 913/1025: yamask.png
+Processed 914/1025: druddigon.png
+Processed 915/1025: kabuto.png
+Processed 916/1025: magmar.png
+Processed 917/1025: swoobat.png
+Processed 918/1025: braviary.png
+Processed 919/1025: iron-thorns.png
+Processed 920/1025: charmander.png
+Processed 921/1025: baxcalibur.png
+Processed 922/1025: rowlet.png
+Processed 923/1025: lombre.png
+Processed 924/1025: durant.png
+Processed 925/1025: golem.png
+Processed 926/1025: sunkern.png
+Processed 927/1025: chewtle.png
+Processed 928/1025: dewott.png
+Processed 929/1025: croconaw.png
+Processed 930/1025: clobbopus.png
+Processed 931/1025: cobalion.png
+Processed 932/1025: pansage.png
+Processed 933/1025: deino.png
+Processed 934/1025: spewpa.png
+Processed 935/1025: floette.png
+Processed 936/1025: combee.png
+Processed 937/1025: flapple.png
+Processed 938/1025: iron-boulder.png
+Processed 939/1025: cofagrigus.png
+Processed 940/1025: drednaw.png
+Processed 941/1025: furfrou.png
+Processed 942/1025: gouging-fire.png
+Processed 943/1025: furret.png
+Processed 944/1025: clefable.png
+Processed 945/1025: wailmer.png
+Processed 946/1025: grumpig.png
+Processed 947/1025: charmeleon.png
+Processed 948/1025: phantump.png
+Processed 949/1025: venomoth.png
+Processed 950/1025: natu.png
+Processed 951/1025: boltund.png
+Processed 952/1025: simisear.png
+Processed 953/1025: blissey.png
+Processed 954/1025: spritzee.png
+Processed 955/1025: virizion.png
+Processed 956/1025: armarouge.png
+Processed 957/1025: scolipede.png
+Processed 958/1025: rillaboom.png
+Processed 959/1025: lokix.png
+Processed 960/1025: fidough.png
+Processed 961/1025: mamoswine.png
+Processed 962/1025: minior.png
+Processed 963/1025: mr-rime.png
+Processed 964/1025: kirlia.png
+Processed 965/1025: capsakid.png
+Processed 966/1025: omastar.png
+Processed 967/1025: drizzile.png
+Processed 968/1025: bramblin.png
+Processed 969/1025: hoopa.png
+Processed 970/1025: steelix.png
+Processed 971/1025: rotom.png
+Processed 972/1025: hoothoot.png
+Processed 973/1025: karrablast.png
+Processed 974/1025: torkoal.png
+Processed 975/1025: cramorant.png
+Processed 976/1025: victini.png
+Processed 977/1025: cloyster.png
+Processed 978/1025: espathra.png
+Processed 979/1025: relicanth.png
+Processed 980/1025: wynaut.png
+Processed 981/1025: raboot.png
+Processed 982/1025: zorua.png
+Processed 983/1025: blipbug.png
+Processed 984/1025: timburr.png
+Processed 985/1025: drifblim.png
+Processed 986/1025: altaria.png
+Processed 987/1025: cradily.png
+Processed 988/1025: mudkip.png
+Processed 989/1025: toxel.png
+Processed 990/1025: lunala.png
+Processed 991/1025: mudsdale.png
+Processed 992/1025: shellder.png
+Processed 993/1025: jumpluff.png
+Processed 994/1025: bounsweet.png
+Processed 995/1025: trubbish.png
+Processed 996/1025: beautifly.png
+Processed 997/1025: bagon.png
+Processed 998/1025: oinkologne.png
+Processed 999/1025: celesteela.png
+Processed 1000/1025: centiskorch.png
+Processed 1001/1025: marshtomp.png
+Processed 1002/1025: uxie.png
+Processed 1003/1025: suicune.png
+Processed 1004/1025: pumpkaboo.png
+Processed 1005/1025: sudowoodo.png
+Processed 1006/1025: bergmite.png
+Processed 1007/1025: lanturn.png
+Processed 1008/1025: kingler.png
+Processed 1009/1025: shroomish.png
+Processed 1010/1025: gligar.png
+Processed 1011/1025: roselia.png
+Processed 1012/1025: bonsly.png
+Processed 1013/1025: tatsugiri.png
+Processed 1014/1025: type-null.png
+Processed 1015/1025: dachsbun.png
+Processed 1016/1025: combusken.png
+Processed 1017/1025: arctibax.png
+Processed 1018/1025: slowpoke.png
+Processed 1019/1025: nacli.png
+Processed 1020/1025: floatzel.png
+Processed 1021/1025: latios.png
+Processed 1022/1025: mew.png
+Processed 1023/1025: ekans.png
+Processed 1024/1025: cetitan.png
+Processed 1025/1025: hakamo-o.png
+Processing complete! Successfully processed 1025/1025 sprites.</code></pre>
+</div>
+</div>
 <p>We only care about efficient representations of this data for this tutorial. <code>.npy</code> file and <code>.txt</code> file of names it is!</p>
 <hr>
 </section>
@@ -682,10 +1700,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code> datafy_pokemon_sprites (ds_name:str)</code></pre>
 </blockquote>
 <p><em>Convert Pokemon sprites to numpy arrays and save filenames</em></p>
-<div id="cell-18" class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>download_pokemon_sprites()</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>process_pokemon_sprites(<span class="st">"processed_adaptive"</span>, binarize_method<span class="op">=</span><span class="st">'adaptive'</span>) <span class="co"># Best</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>poke_pixels_path, poke_names_path <span class="op">=</span> datafy_pokemon_sprites(<span class="st">"processed_adaptive"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="cell-17" class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>download_pokemon_sprites()</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>process_pokemon_sprites(<span class="st">"processed_adaptive"</span>, binarize_method<span class="op">=</span><span class="st">'adaptive'</span>) <span class="co"># Best</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>poke_pixels_path, poke_names_path <span class="op">=</span> datafy_pokemon_sprites(<span class="st">"processed_adaptive"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Let’s load the data and take a look at it.</p>
 <hr>
@@ -698,7 +1716,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </blockquote>
 <p><em>Load Pokemon sprites from numpy arrays</em></p>
 <p>This is what the pokemon data looks like after all the processing.</p>
-<div id="cell-22" class="cell">
+<div id="cell-21" class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>Fetching sprite page from: https://pokemondb.net/sprites
 Found 1025 Pokemon sprites to download
@@ -2763,40 +3781,59 @@ Processing complete! Successfully processed 1025/1025 sprites.</code></pre>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="01_pokemon_sprites_files/figure-html/cell-14-output-2.png" width="708" height="708" class="figure-img"></p>
+<p><img src="01_data_utils_files/figure-html/cell-13-output-2.png" width="708" height="708" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
 </section>
 </section>
-<section id="uploading-to-hugging-face" class="level2">
-<h2 class="anchored" data-anchor-id="uploading-to-hugging-face">Uploading to Hugging Face</h2>
-<p>It’s both easier and faster to use HuggingFace to download the data than to scrape the pokemon website every time.</p>
+<section id="downloading-data-from-github-repo" class="level2">
+<h2 class="anchored" data-anchor-id="downloading-data-from-github-repo">Downloading data from github repo</h2>
+<p>All data used in this tutorial are small, so we upload and download them from the <a href="https://github.com/bhoov/amtutorial/tree/main/data">github</a> itself.</p>
+<div id="cell-23" class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># poke_pixels, poke_names = get_pokemon_data()</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>poke_pixels, poke_names <span class="op">=</span> load_bipolar_pokemon_sprites()</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>np.save(pf.DATA <span class="op">/</span> <span class="st">"pokesprites_pixels.npy"</span>, poke_pixels)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(pf.DATA <span class="op">/</span> <span class="st">"pokesprites_names.txt"</span>, <span class="st">'w'</span>) <span class="im">as</span> f: f.write(<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>.join(poke_names))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We can download the github repo to our cache directory.</p>
 <hr>
-<section id="download_pokemon_from_hf" class="level3">
-<h3 class="anchored" data-anchor-id="download_pokemon_from_hf">download_pokemon_from_hf</h3>
+<section id="get_et_checkpoint" class="level3">
+<h3 class="anchored" data-anchor-id="get_et_checkpoint">get_et_checkpoint</h3>
 <blockquote class="blockquote">
-<pre><code> download_pokemon_from_hf (repo_id:str)</code></pre>
+<pre><code> get_et_checkpoint ()</code></pre>
 </blockquote>
-<p><em>Download Pokemon sprites from Hugging Face Hub (cached automatically)</em></p>
 <hr>
 </section>
-<section id="upload_pokemon_to_hf" class="level3">
-<h3 class="anchored" data-anchor-id="upload_pokemon_to_hf">upload_pokemon_to_hf</h3>
+<section id="get_et_imgs" class="level3">
+<h3 class="anchored" data-anchor-id="get_et_imgs">get_et_imgs</h3>
 <blockquote class="blockquote">
-<pre><code> upload_pokemon_to_hf (repo_id:str, token:str=None)</code></pre>
+<pre><code> get_et_imgs ()</code></pre>
 </blockquote>
-<p><em>Upload Pokemon sprites to Hugging Face Hub</em></p>
-<p>Hugging Face automatically handles all the caching — files are downloaded once and reused on subsequent calls.</p>
-<div id="cell-27" class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Uploading only</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"># import os</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co"># os.environ["HF_TOKEN"] = "your_token_here"</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># upload_pokemon_to_hf("bhoov/pokemon-sprites-bipolar", os.environ["HF_TOKEN"])</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>poke_pixels, poke_names <span class="op">=</span> download_pokemon_from_hf(<span class="st">"bhoov/pokemon-sprites-bipolar"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<hr>
+</section>
+<section id="get_pokemon_data" class="level3">
+<h3 class="anchored" data-anchor-id="get_pokemon_data">get_pokemon_data</h3>
+<blockquote class="blockquote">
+<pre><code> get_pokemon_data ()</code></pre>
+</blockquote>
+<hr>
+</section>
+<section id="download_remote_data" class="level3">
+<h3 class="anchored" data-anchor-id="download_remote_data">download_remote_data</h3>
+<blockquote class="blockquote">
+<pre><code> download_remote_data ()</code></pre>
+</blockquote>
+<hr>
+</section>
+<section id="download_github_folder" class="level3">
+<h3 class="anchored" data-anchor-id="download_github_folder">download_github_folder</h3>
+<blockquote class="blockquote">
+<pre><code> download_github_folder (repo:str='bhoov/amtutorial', branch:str='main',
+                         folder_path:str='data', cache_subdir:str='')</code></pre>
+</blockquote>
+<p><em>Download GitHub folder in one API call using Trees API.</em></p>
 
 
 </section>

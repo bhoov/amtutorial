@@ -400,7 +400,7 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../lib/pokemon_sprites.html" class="sidebar-item-text sidebar-link">
+  <a href="../lib/data_utils.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Pokemon Sprites</span></a>
   </div>
 </li>
@@ -578,8 +578,8 @@ Note
 </div>
 <p>Let’s build some helper functions to load and view our data: binarized pokemon sprites. While other fields like to work with <span class="math inline">\(\{0,1\}\)</span> binary data, Hopfield Networks like to work with bipolar data where each datapoint <span class="math inline">\(x \in \{-1, 1\}^D\)</span>.</p>
 <div id="cell-6" class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> amtutorial.pokemon_sprites <span class="im">import</span> download_pokemon_from_hf</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>poke_pixels, poke_names <span class="op">=</span> download_pokemon_from_hf(<span class="st">"bhoov/pokemon-sprites-bipolar"</span>)</span>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> amtutorial.data_utils <span class="im">import</span> get_pokemon_data</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>poke_pixels, poke_names <span class="op">=</span> get_pokemon_data()</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> poke_pixels</span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>pxh, pxw <span class="op">=</span> data.shape[<span class="op">-</span><span class="dv">2</span>:]</span>
@@ -621,21 +621,24 @@ Note
 </figure>
 </div>
 </div>
+<div class="cell-output cell-output-display">
+<pre><code>array([  0, 255], dtype=uint8)</code></pre>
+</div>
 </div>
 </section>
 <section id="the-classical-hopfield-network" class="level2">
 <h2 class="anchored" data-anchor-id="the-classical-hopfield-network">The Classical Hopfield Network</h2>
 <p>Let’s revisit our task to store <span class="math inline">\(K\)</span> binary patterns each of dimension <span class="math inline">\(D\)</span> into an energy function. Let’s keep things simple and fast for the first part of this notebook and focus on storing and retrieving <span class="math inline">\(K=2\)</span> patterns: an eevee and pichu, where each <code>(48,48)</code> image is rasterized to a vector dimension of <span class="math inline">\(D=2304\)</span>.</p>
 <div id="cell-9" class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>desired_names <span class="op">=</span> [<span class="st">"eevee"</span>, <span class="st">"pichu"</span>]</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>eevee_pichu_idxs <span class="op">=</span> [poke_names.index(name) <span class="cf">for</span> name <span class="kw">in</span> desired_names]</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[eevee_pichu_idxs]</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> show_im(Xi, figsize<span class="op">=</span>(<span class="dv">6</span>,<span class="dv">3</span>))<span class="op">;</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Stored patterns"</span>)</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"K=</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">, D=</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>desired_names <span class="op">=</span> [<span class="st">"eevee"</span>, <span class="st">"pichu"</span>]</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>eevee_pichu_idxs <span class="op">=</span> [poke_names.index(name) <span class="cf">for</span> name <span class="kw">in</span> desired_names]</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[eevee_pichu_idxs]</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> show_im(Xi, figsize<span class="op">=</span>(<span class="dv">6</span>,<span class="dv">3</span>))<span class="op">;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Stored patterns"</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"K=</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">, D=</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>K=2, D=2304</code></pre>
 </div>
@@ -654,15 +657,15 @@ E_\text{CHN}(x) = -\frac{1}{2} \left(\sum_{\mu} \xi_{\mu i} x_i\right)^2 = -\fra
 <p>We see the familiar equation for CHN energy on the RHS if we expand the quadratic function, where <span class="math inline">\(T_{ij} := \sum_{\mu=1}^K \xi_{\mu i} \xi_{\mu_j}\)</span> is the matrix of symmetric synapses. Learned patterns <span class="math inline">\(\xi_\mu\)</span> are stored in <span class="math inline">\(T\)</span> via a simple, Hebbian learning rule.</p>
 <p>The CHN can be easily implemented in code via</p>
 <div id="cell-11" class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CHN(BinaryAM):</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, </span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        x: Float[Array, <span class="st">"D"</span>] <span class="co"># Possibly noisy query pattern</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        ): </span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">"Quadratic energy function for the CHN"</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> jnp.<span class="bu">sum</span>((<span class="va">self</span>.Xi <span class="op">@</span> x)<span class="op">**</span><span class="dv">2</span>, axis<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>chn <span class="op">=</span> CHN(Xi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CHN(BinaryAM):</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        x: Float[Array, <span class="st">"D"</span>] <span class="co"># Possibly noisy query pattern</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        ): </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">"Quadratic energy function for the CHN"</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> jnp.<span class="bu">sum</span>((<span class="va">self</span>.Xi <span class="op">@</span> x)<span class="op">**</span><span class="dv">2</span>, axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>chn <span class="op">=</span> CHN(Xi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The asynchronous update rule of <a href="#eq-async-update" class="quarto-xref">Equation&nbsp;1</a> uses the energy difference of a flipped bit to determine whether to keep the flip or not. That update rule is equivalent to the following, arguably more familiar update rule, which describes the next state based on the sign of the <em>total input current</em> to the neuron <span class="math inline">\(x_i\)</span>.</p>
 <p><span class="math display">\[
@@ -685,15 +688,15 @@ def async_update(self:BinaryCHN, x, idx):
 .``` -->
 <p>Let’s observe the recall process! We’ll start with a noisy version of the first pattern and see if we can recover it.</p>
 <div id="cell-13" class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> flip_some_bits(key, x, p<span class="op">=</span><span class="fl">0.1</span>):</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Flip `p` fraction of bits in `x`"</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    prange <span class="op">=</span> np.array([p, <span class="dv">1</span><span class="op">-</span>p])</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x <span class="op">*</span> jr.choice(key, np.array([<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>]), p<span class="op">=</span>prange, shape<span class="op">=</span>x.shape)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>x_og <span class="op">=</span> Xi[<span class="dv">0</span>] </span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>x_noisy <span class="op">=</span> flip_some_bits(jr.PRNGKey(<span class="dv">0</span>), x_og, <span class="fl">0.2</span>)</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>show_im(jnp.stack([x_og, x_noisy]), figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">3</span>))<span class="op">;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> flip_some_bits(key, x, p<span class="op">=</span><span class="fl">0.1</span>):</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Flip `p` fraction of bits in `x`"</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    prange <span class="op">=</span> np.array([p, <span class="dv">1</span><span class="op">-</span>p])</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x <span class="op">*</span> jr.choice(key, np.array([<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>]), p<span class="op">=</span>prange, shape<span class="op">=</span>x.shape)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>x_og <span class="op">=</span> Xi[<span class="dv">0</span>] </span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>x_noisy <span class="op">=</span> flip_some_bits(jr.PRNGKey(<span class="dv">0</span>), x_og, <span class="fl">0.2</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>show_im(jnp.stack([x_og, x_noisy]), figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">3</span>))<span class="op">;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -704,21 +707,21 @@ def async_update(self:BinaryCHN, x, idx):
 </div>
 <p>For the pedagogical purpose of this notebook, we’ll cache the recall process and results so we don’t have to run it every time.</p>
 <div id="cell-15" class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="at">@delegates</span>(BinaryAM.async_recall)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cached_recall(am, cache_name, x_noisy, key<span class="op">=</span>jr.PRNGKey(<span class="dv">0</span>), save<span class="op">=</span><span class="va">True</span>, <span class="op">**</span>kwargs):</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Cache the recall process using key `cache_name`"</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    npz_fname <span class="op">=</span> Path(CACHE_DIR) <span class="op">/</span> (cache_name <span class="op">+</span> <span class="st">'.npz'</span>)</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> npz_fname.exists() <span class="kw">and</span> CACHE_RECALL: </span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        npz_data <span class="op">=</span> np.load(npz_fname)</span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        x_final, frames, energies <span class="op">=</span> npz_data[<span class="st">'x_final'</span>], npz_data[<span class="st">'frames'</span>], npz_data[<span class="st">'energies'</span>]</span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"Loading cached recall data"</span>)</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>: </span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        x_final, (frames, energies) <span class="op">=</span> am.async_recall(x_noisy, key<span class="op">=</span>key, <span class="op">**</span>kwargs)</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> save: jnp.savez(npz_fname, x_final<span class="op">=</span>x_final, frames<span class="op">=</span>frames, energies<span class="op">=</span>energies)</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x_final, frames, energies</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>cache_name <span class="op">=</span> <span class="st">'basic_hopfield_recovery'</span></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>x_final, frames, energies <span class="op">=</span> cached_recall(chn, cache_name, x_noisy, nsteps<span class="op">=</span><span class="dv">12000</span>, key<span class="op">=</span>jr.PRNGKey(<span class="dv">5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="at">@delegates</span>(BinaryAM.async_recall)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cached_recall(am, cache_name, x_noisy, key<span class="op">=</span>jr.PRNGKey(<span class="dv">0</span>), save<span class="op">=</span><span class="va">True</span>, <span class="op">**</span>kwargs):</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Cache the recall process using key `cache_name`"</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    npz_fname <span class="op">=</span> Path(CACHE_DIR) <span class="op">/</span> (cache_name <span class="op">+</span> <span class="st">'.npz'</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> npz_fname.exists() <span class="kw">and</span> CACHE_RECALL: </span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        npz_data <span class="op">=</span> np.load(npz_fname)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        x_final, frames, energies <span class="op">=</span> npz_data[<span class="st">'x_final'</span>], npz_data[<span class="st">'frames'</span>], npz_data[<span class="st">'energies'</span>]</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"Loading cached recall data"</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>: </span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        x_final, (frames, energies) <span class="op">=</span> am.async_recall(x_noisy, key<span class="op">=</span>key, <span class="op">**</span>kwargs)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> save: jnp.savez(npz_fname, x_final<span class="op">=</span>x_final, frames<span class="op">=</span>frames, energies<span class="op">=</span>energies)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x_final, frames, energies</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>cache_name <span class="op">=</span> <span class="st">'basic_hopfield_recovery'</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>x_final, frames, energies <span class="op">=</span> cached_recall(chn, cache_name, x_noisy, nsteps<span class="op">=</span><span class="dv">12000</span>, key<span class="op">=</span>jr.PRNGKey(<span class="dv">5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Loading cached recall data</code></pre>
 </div>
@@ -773,11 +776,11 @@ Accidentally retrieved the inverted pattern!</code></pre>
 <h3 class="anchored" data-anchor-id="memory-retrieval-failure">Memory retrieval failure</h3>
 <p>Unfortunately, the CHN is terrible at storing and retrieving multiple patterns. If we add even four more patterns into the synaptic memory, our network will fail to retrieve our eevee.</p>
 <div id="cell-22" class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[eevee_pichu_idxs]</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> jnp.concatenate([Xi, jr.choice(jr.PRNGKey(<span class="dv">10</span>), data, shape<span class="op">=</span>(<span class="dv">4</span>,), replace<span class="op">=</span><span class="va">False</span>)])</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> show_im(Xi, figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">4</span>))<span class="op">;</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="ss">f"Stored patterns (K=</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">)"</span>)</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[eevee_pichu_idxs]</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> jnp.concatenate([Xi, jr.choice(jr.PRNGKey(<span class="dv">10</span>), data, shape<span class="op">=</span>(<span class="dv">4</span>,), replace<span class="op">=</span><span class="va">False</span>)])</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> show_im(Xi, figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">4</span>))<span class="op">;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="ss">f"Stored patterns (K=</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -841,41 +844,41 @@ x_i^{(t+1)} &amp;\leftarrow \text{sgn}\left( \sum_{\mu} \xi_{\mu i} f_n\left( \s
 <p>Here we introduced an activation function <span class="math inline">\(f_n(\cdot) = F_n'(\cdot)\)</span> that is the derivative of the rectified polynomial used to define the energy. This update can be viewed as the negative gradient of the energy function, ensuring that the network always moves toward lower energy states. Like before, this energy is bounded from below and we will eventually converge to a local minimum that corresponds to one of the stored patterns.</p>
 <p>Let’s implement the DenseAM model. The primary difference from the CHN is that now we generalize the quadratic energy to a (possibly rectified) polynomial energy.</p>
 <div id="cell-25" class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> PolynomialDenseAM(BinaryAM):</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    Xi: jax.Array <span class="co"># (K, D) Memory patterns </span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    n: <span class="bu">int</span> <span class="co"># Power of polynomial F</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    rectified: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span> <span class="co"># Whether to rectify inputs to F</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> F_n(<span class="va">self</span>, sims): </span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Rectified polynomial of degree `n` for energy"""</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>        sims <span class="op">=</span> sims.clip(<span class="dv">0</span>) <span class="cf">if</span> <span class="va">self</span>.rectified <span class="cf">else</span> sims</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">1</span> <span class="op">/</span> <span class="va">self</span>.n <span class="op">*</span> sims <span class="op">**</span> <span class="va">self</span>.n</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(<span class="va">self</span>, x): </span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>jnp.<span class="bu">sum</span>(<span class="va">self</span>.F_n(<span class="va">self</span>.Xi <span class="op">@</span> x))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> PolynomialDenseAM(BinaryAM):</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    Xi: jax.Array <span class="co"># (K, D) Memory patterns </span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    n: <span class="bu">int</span> <span class="co"># Power of polynomial F</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    rectified: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span> <span class="co"># Whether to rectify inputs to F</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> F_n(<span class="va">self</span>, sims): </span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Rectified polynomial of degree `n` for energy"""</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>        sims <span class="op">=</span> sims.clip(<span class="dv">0</span>) <span class="cf">if</span> <span class="va">self</span>.rectified <span class="cf">else</span> sims</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">1</span> <span class="op">/</span> <span class="va">self</span>.n <span class="op">*</span> sims <span class="op">**</span> <span class="va">self</span>.n</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(<span class="va">self</span>, x): </span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>jnp.<span class="bu">sum</span>(<span class="va">self</span>.F_n(<span class="va">self</span>.Xi <span class="op">@</span> x))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>A simple change to using a polynomial of degree <span class="math inline">\(6\)</span> instead of the CHN’s quadratic energy function allows us to store and retrieve our desired eevee even with up to <span class="math inline">\(K=100\)</span> patterns.</p>
 <div id="cell-27" class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Increase the number of stored patterns!</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[eevee_pichu_idxs]</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> jnp.concatenate([Xi, jr.choice(jr.PRNGKey(<span class="dv">10</span>), data, shape<span class="op">=</span>(<span class="dv">98</span>,), replace<span class="op">=</span><span class="va">False</span>)])</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>fig1, ax1 <span class="op">=</span> show_im(Xi, figsize<span class="op">=</span>(<span class="dv">7</span>,<span class="dv">7</span>))<span class="op">;</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>ax1.set_title(<span class="st">"Stored patterns"</span>)</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>dam <span class="op">=</span> PolynomialDenseAM(Xi, n<span class="op">=</span><span class="dv">6</span>, rectified<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>fname <span class="op">=</span> <span class="ss">f'dam_recovery_n_</span><span class="sc">{</span>dam<span class="sc">.</span>n<span class="sc">}</span><span class="ss">_K_</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">'</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>x_og <span class="op">=</span> Xi[<span class="dv">0</span>]</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>x_noisy <span class="op">=</span> flip_some_bits(jr.PRNGKey(<span class="dv">0</span>), x_og, <span class="fl">0.2</span>)</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>x_final, frames, energies <span class="op">=</span> cached_recall(dam, fname, x_noisy, nsteps<span class="op">=</span><span class="dv">20000</span>, key<span class="op">=</span>jr.PRNGKey(<span class="dv">5</span>))</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>fig2, axes2 <span class="op">=</span> show_recall_output(x_og, x_noisy, x_final, energies, show_original<span class="op">=</span><span class="va">False</span>)</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>fig2.suptitle(<span class="ss">f"DenseAM(n=</span><span class="sc">{</span>dam<span class="sc">.</span>n<span class="sc">}</span><span class="ss">, K=</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">)"</span>)</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>plt.subplots_adjust(top<span class="op">=</span><span class="fl">0.75</span>)</span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>video, video_fname <span class="op">=</span> show_cached_recall_animation(fname, steps_per_sample<span class="op">=</span><span class="dv">32</span>)</span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>Markdown(<span class="ss">f"![](</span><span class="sc">{</span>video_fname<span class="sc">}</span><span class="ss">)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Increase the number of stored patterns!</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[eevee_pichu_idxs]</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> jnp.concatenate([Xi, jr.choice(jr.PRNGKey(<span class="dv">10</span>), data, shape<span class="op">=</span>(<span class="dv">98</span>,), replace<span class="op">=</span><span class="va">False</span>)])</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>fig1, ax1 <span class="op">=</span> show_im(Xi, figsize<span class="op">=</span>(<span class="dv">7</span>,<span class="dv">7</span>))<span class="op">;</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>ax1.set_title(<span class="st">"Stored patterns"</span>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>dam <span class="op">=</span> PolynomialDenseAM(Xi, n<span class="op">=</span><span class="dv">6</span>, rectified<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>fname <span class="op">=</span> <span class="ss">f'dam_recovery_n_</span><span class="sc">{</span>dam<span class="sc">.</span>n<span class="sc">}</span><span class="ss">_K_</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">'</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>x_og <span class="op">=</span> Xi[<span class="dv">0</span>]</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>x_noisy <span class="op">=</span> flip_some_bits(jr.PRNGKey(<span class="dv">0</span>), x_og, <span class="fl">0.2</span>)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>x_final, frames, energies <span class="op">=</span> cached_recall(dam, fname, x_noisy, nsteps<span class="op">=</span><span class="dv">20000</span>, key<span class="op">=</span>jr.PRNGKey(<span class="dv">5</span>))</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>fig2, axes2 <span class="op">=</span> show_recall_output(x_og, x_noisy, x_final, energies, show_original<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>fig2.suptitle(<span class="ss">f"DenseAM(n=</span><span class="sc">{</span>dam<span class="sc">.</span>n<span class="sc">}</span><span class="ss">, K=</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>plt.subplots_adjust(top<span class="op">=</span><span class="fl">0.75</span>)</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>video, video_fname <span class="op">=</span> show_cached_recall_animation(fname, steps_per_sample<span class="op">=</span><span class="dv">32</span>)</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>Markdown(<span class="ss">f"![](</span><span class="sc">{</span>video_fname<span class="sc">}</span><span class="ss">)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Loading cached recall data</code></pre>
 </div>
@@ -914,21 +917,21 @@ E_\text{MHN}(x) &amp;= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi_{\
 \tag{5}\]</span></span></p>
 <p>where increasing the inverse temperature <span class="math inline">\(\beta\)</span> has a similar effect to increasing <span class="math inline">\(n\)</span> in the DenseAM polynomial energy function. Because the <code>log</code> is a monotonically increasing function, the energy minima of the original energy function are preserved, while simultaneously making the energy function more numerically stable.</p>
 <div id="cell-29" class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ExponentialDenseAM(BinaryAM):</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    Xi: jax.Array <span class="co"># (K, D) Memory patterns </span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    beta: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.0</span> <span class="co"># Temperature parameter</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(<span class="va">self</span>, x):</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>jax.nn.logsumexp(<span class="va">self</span>.beta <span class="op">*</span> <span class="va">self</span>.Xi <span class="op">@</span> x, axis<span class="op">=-</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ExponentialDenseAM(BinaryAM):</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    Xi: jax.Array <span class="co"># (K, D) Memory patterns </span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    beta: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.0</span> <span class="co"># Temperature parameter</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(<span class="va">self</span>, x):</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>jax.nn.logsumexp(<span class="va">self</span>.beta <span class="op">*</span> <span class="va">self</span>.Xi <span class="op">@</span> x, axis<span class="op">=-</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div id="cell-30" class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Show larger batch retrieval</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[:<span class="dv">1024</span>]</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>Nshow <span class="op">=</span> <span class="dv">255</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>Xi_show <span class="op">=</span> jnp.concatenate([data[eevee_pichu_idxs], jr.choice(jr.PRNGKey(<span class="dv">10</span>), Xi, shape<span class="op">=</span>(Nshow <span class="op">-</span> <span class="bu">len</span>(eevee_pichu_idxs),), replace<span class="op">=</span><span class="va">False</span>)])</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>fig1, ax1 <span class="op">=</span> show_im(Xi_show, figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">8</span>))<span class="op">;</span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>ax1.set_title(<span class="ss">f"Random sample of </span><span class="sc">{</span>Nshow<span class="sc">}</span><span class="ss"> stored patterns"</span>)</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Storing </span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> patterns"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Show larger batch retrieval</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[:<span class="dv">1024</span>]</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>Nshow <span class="op">=</span> <span class="dv">255</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>Xi_show <span class="op">=</span> jnp.concatenate([data[eevee_pichu_idxs], jr.choice(jr.PRNGKey(<span class="dv">10</span>), Xi, shape<span class="op">=</span>(Nshow <span class="op">-</span> <span class="bu">len</span>(eevee_pichu_idxs),), replace<span class="op">=</span><span class="va">False</span>)])</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>fig1, ax1 <span class="op">=</span> show_im(Xi_show, figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">8</span>))<span class="op">;</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>ax1.set_title(<span class="ss">f"Random sample of </span><span class="sc">{</span>Nshow<span class="sc">}</span><span class="ss"> stored patterns"</span>)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Storing </span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> patterns"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Storing 1024 patterns</code></pre>
 </div>
@@ -960,25 +963,25 @@ Memory usage warning
 <div id="cell-32" class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>key1, key2 <span class="op">=</span> jr.split(jr.PRNGKey(<span class="dv">3</span>))</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>nh <span class="op">=</span> nw <span class="op">=</span> <span class="dv">10</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>N <span class="op">=</span> nh <span class="op">*</span> nw <span class="co"># Sample N patterns to show in grid</span></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>x_og <span class="op">=</span> jnp.concatenate([</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    data[eevee_pichu_idxs], </span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    jr.choice(jr.PRNGKey(<span class="dv">10</span>), data, shape<span class="op">=</span>(N <span class="op">-</span> <span class="bu">len</span>(eevee_pichu_idxs),), replace<span class="op">=</span><span class="va">False</span>)])</span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>x_noisy <span class="op">=</span> flip_some_bits(key2, x_og, <span class="fl">0.25</span>)</span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>mhn <span class="op">=</span> ExponentialDenseAM(Xi, beta<span class="op">=</span><span class="fl">50.</span>)</span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>cache_name <span class="op">=</span> <span class="st">"logsumexp_batched"</span></span>
-<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>keys <span class="op">=</span> jr.split(key2, x_noisy.shape[<span class="dv">0</span>])</span>
-<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>npz_fname <span class="op">=</span> Path(CACHE_DIR) <span class="op">/</span> (cache_name <span class="op">+</span> <span class="st">".npz"</span>)</span>
-<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> os.path.exists(npz_fname) <span class="kw">and</span> CACHE_RECALL:</span>
-<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>    npz_data <span class="op">=</span> np.load(npz_fname)</span>
-<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>    x_final, frames, energies <span class="op">=</span> npz_data[<span class="st">'x_final'</span>], npz_data[<span class="st">'frames'</span>], npz_data[<span class="st">'energies'</span>]</span>
-<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
-<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>    x_final, frames, energies <span class="op">=</span> jax.vmap(ft.partial(cached_recall, nsteps<span class="op">=</span><span class="dv">16000</span>, save<span class="op">=</span><span class="va">False</span>), in_axes<span class="op">=</span>(<span class="va">None</span>, <span class="va">None</span>, <span class="dv">0</span>,<span class="dv">0</span>))(mhn, cache_name, x_noisy, keys)</span>
-<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>    np.savez(npz_fname, x_final<span class="op">=</span>x_final, frames<span class="op">=</span>frames, energies<span class="op">=</span>energies)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>key1, key2 <span class="op">=</span> jr.split(jr.PRNGKey(<span class="dv">3</span>))</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>nh <span class="op">=</span> nw <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>N <span class="op">=</span> nh <span class="op">*</span> nw <span class="co"># Sample N patterns to show in grid</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>x_og <span class="op">=</span> jnp.concatenate([</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    data[eevee_pichu_idxs], </span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    jr.choice(jr.PRNGKey(<span class="dv">10</span>), data, shape<span class="op">=</span>(N <span class="op">-</span> <span class="bu">len</span>(eevee_pichu_idxs),), replace<span class="op">=</span><span class="va">False</span>)])</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>x_noisy <span class="op">=</span> flip_some_bits(key2, x_og, <span class="fl">0.25</span>)</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>mhn <span class="op">=</span> ExponentialDenseAM(Xi, beta<span class="op">=</span><span class="fl">50.</span>)</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>cache_name <span class="op">=</span> <span class="st">"logsumexp_batched"</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>keys <span class="op">=</span> jr.split(key2, x_noisy.shape[<span class="dv">0</span>])</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>npz_fname <span class="op">=</span> Path(CACHE_DIR) <span class="op">/</span> (cache_name <span class="op">+</span> <span class="st">".npz"</span>)</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> os.path.exists(npz_fname) <span class="kw">and</span> CACHE_RECALL:</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    npz_data <span class="op">=</span> np.load(npz_fname)</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    x_final, frames, energies <span class="op">=</span> npz_data[<span class="st">'x_final'</span>], npz_data[<span class="st">'frames'</span>], npz_data[<span class="st">'energies'</span>]</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>    x_final, frames, energies <span class="op">=</span> jax.vmap(ft.partial(cached_recall, nsteps<span class="op">=</span><span class="dv">16000</span>, save<span class="op">=</span><span class="va">False</span>), in_axes<span class="op">=</span>(<span class="va">None</span>, <span class="va">None</span>, <span class="dv">0</span>,<span class="dv">0</span>))(mhn, cache_name, x_noisy, keys)</span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>    np.savez(npz_fname, x_final<span class="op">=</span>x_final, frames<span class="op">=</span>frames, energies<span class="op">=</span>energies)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p>And of course, what’s the fun if we can’t animate the retrieval process?</p>

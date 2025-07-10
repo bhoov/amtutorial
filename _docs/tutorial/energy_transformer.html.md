@@ -208,6 +208,11 @@ Let’s implement the attention energy in code. We will use
 [`jax`](https://github.com/jax-ml/jax) and
 [`equinox`](https://github.com/patrick-kidger/equinox) for our code.
 
+``` python
+## Uncomment for colab users
+# !pip install amtutorial
+```
+
 <details class="code-fold">
 <summary>Necessary imports</summary>
 
@@ -225,8 +230,8 @@ from fastcore.meta import *
 import matplotlib.pyplot as plt
 from jaxtyping import Float, Array
 import functools as ft
-from nbdev import show_doc
 from einops import rearrange
+from amtutorial.data_utils import get_et_imgs, get_et_checkpoint
 ```
 
 </details>
@@ -424,13 +429,13 @@ def unnormalize_img(x):
 
 @ft.lru_cache
 def get_normalized_imgs():
-  imgs = jnp.stack([imageio.imread(f) for f in sorted(glob("./assets/et-figs/*.png"))])
+  imgs = jnp.array(get_et_imgs())
   imgs = jax.vmap(normalize_img)(imgs)
   return imgs
 ```
 
 <img
-src="01_energy_transformer_files/figure-commonmark/cell-12-output-1.png"
+src="01_energy_transformer_files/figure-commonmark/cell-13-output-1.png"
 width="515" height="239" />
 
 ### Patching images
@@ -526,7 +531,7 @@ print(patched_img.shape)
       return im.astype(jnp.uint8)
 
 <img
-src="01_energy_transformer_files/figure-commonmark/cell-15-output-2.png"
+src="01_energy_transformer_files/figure-commonmark/cell-16-output-2.png"
 width="389" height="410" />
 
 `Patcher.unpatchify` gets us back to the original image.
@@ -732,7 +737,7 @@ the state dict from a saved `.npz` file as follows:
 ``` python
 @ft.lru_cache
 def get_pretrained_et():
-  load_dict = {k:jnp.array(v) for k,v in np.load("./assets/et_ckpt.npz").items()}
+  load_dict = {k: jnp.array(v) for k,v in get_et_checkpoint().items()}
 
   # config from state_dict
   H, Y, D = load_dict["Wk"].shape
@@ -806,7 +811,7 @@ og_imgs_show, masked_imgs_show, recons_imgs_show = [vunnormalize_img(im) for im 
 ```
 
 <img
-src="01_energy_transformer_files/figure-commonmark/cell-26-output-1.png"
+src="01_energy_transformer_files/figure-commonmark/cell-27-output-1.png"
 width="1192" height="333" />
 
 We can also animate the retrieval.
@@ -875,7 +880,7 @@ Xi_show = jax.vmap(ft.partial(decode_stored_pattern, iet))(iet.et.Xi)
 
 <figure>
 <img
-src="01_energy_transformer_files/figure-commonmark/cell-32-output-1.png"
+src="01_energy_transformer_files/figure-commonmark/cell-33-output-1.png"
 width="747" height="790"
 alt="Sampling the stored patterns in the Hopfield Network, sorted by frequency content" />
 <figcaption aria-hidden="true">Sampling the stored patterns in the
@@ -887,7 +892,7 @@ Hopfield Network, sorted by frequency content</figcaption>
 > **Interpretability by design**
 >
 > You can think of the Hopfield Network like an SAE that is integrated
-> into the core computation of the model – interpretability is a natural
+> into the core computation of the model. Interpretability is a natural
 > byproduct of good architecture design.
 
 </div>

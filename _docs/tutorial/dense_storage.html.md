@@ -123,8 +123,8 @@ data, Hopfield Networks like to work with bipolar data where each
 datapoint *x* ∈ {−1, 1}<sup>*D*</sup>.
 
 ``` python
-from amtutorial.pokemon_sprites import download_pokemon_from_hf
-poke_pixels, poke_names = download_pokemon_from_hf("bhoov/pokemon-sprites-bipolar")
+from amtutorial.data_utils import get_pokemon_data
+poke_pixels, poke_names = get_pokemon_data()
 data = poke_pixels
 
 pxh, pxw = data.shape[-2:]
@@ -161,6 +161,8 @@ def show_im(x, ax=None, do_gridify=True, grid_h=None, figsize=None):
 
 <img src="00_dense_storage_files/figure-commonmark/cell-5-output-1.png"
 width="481" height="503" />
+
+    array([  0, 255], dtype=uint8)
 
 ## The Classical Hopfield Network
 
