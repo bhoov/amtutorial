@@ -440,15 +440,14 @@ class ImageEnergyTransformer(eqx.Module):
   config: ImageETConfig
 
   def encode(self, x):
-    "Turn x from img patches to tokens"
-    x = self.patcher.tokenify(x) # (..., N, Z)
+    "Embed rasterized patches to tokens"
     out = x @ self.W_emb + self.b_emb # (..., N, D)
     return out
 
   def decode(self, x):
-    "Turn x from tokens to img patches"
+    "Turn x from tokens to rasterized img patches"
     x = x @ self.W_unemb + self.b_unemb # (..., N, Z)
-    return self.patcher.untokenify(x) # (..., C, H, W)
+    return x
 
   def corrupt_tokens(self, x: jax.Array, mask: jax.Array, n_masked: int=100):
     """Corrupt tokens with MASK tokens wherever `mask` is 1.
@@ -470,6 +469,7 @@ class ImageEnergyTransformer(eqx.Module):
     Args:
       return_intermediates: If True, return all intermediate xhat values from gradient descent
     """
+    x = self.patcher.tokenify(x) # (..., N, Z)
     x = self.encode(x)
     x = self.prep_tokens(x, mask)  # (..., N+1, D)
 
@@ -489,7 +489,8 @@ class ImageEnergyTransformer(eqx.Module):
     traj_outputs['energy'] = jnp.concatenate([traj_outputs['energy'], E_final[None]], axis=0)
 
     xhat_final = xhat_final[1:]  # Discard CLS token for masked inpainting
-    return self.decode(xhat_final), traj_outputs
+    x_decoded = self.decode(xhat_final)
+    return self.patcher.untokenify(x_decoded), traj_outputs
 
   @classmethod
   def rand_init(cls, key, config=ImageETConfig()):
@@ -566,7 +567,7 @@ def get_pretrained_et():
 We can inpaint images with ET.
 
 ```{python}
-def inpaint_image(et, img, n_mask, key, nsteps=12, step_size=0.1):
+def inpaint_image(iet, img, n_mask, key, nsteps=12, step_size=0.1):
     " Perform masked image inpainting with Energy Transformer"
     # Create random mask
     mask_idxs = jr.choice(
@@ -574,9 +575,11 @@ def inpaint_image(et, img, n_mask, key, nsteps=12, step_size=0.1):
     )
     mask = jnp.zeros(iet.patcher.num_patches).at[mask_idxs].set(1)
     
-    x = iet.encode(img)  # Img to embedded tokens
+    x = iet.patcher.tokenify(img)
+    x = iet.encode(x)  # Img to embedded tokens
     x = iet.prep_tokens(x, mask)[1:]  # N,D (remove CLS token)
     masked_img = iet.decode(iet.lnorm(x))
+    masked_img = iet.patcher.untokenify(masked_img)
     
     # Reconstruct image using Energy Transformer
     recons_img, traj_outputs = iet(img, mask, nsteps=nsteps, step_size=step_size)
@@ -652,10 +655,14 @@ CACHE_VIDEOS = True
 ```{python}
 #| echo: false
 
-def show_et_recall_animation(traj_outputs, cache_name, steps_per_sample=1, force_remake=False, fps=2):
+def show_et_recall_animation(iet, traj_outputs, cache_name, steps_per_sample=1, force_remake=False, fps=2):
     "Create animated video showing both image reconstruction evolution and energy descent"
     video_fname = CACHE_DIR / (cache_name + ".mp4")
-    def decode_to_show(xhat): return unnormalize_img(iet.decode(xhat[1:])) # Drop CLS
+
+    def decode_to_show(xhat): 
+        decoded = iet.decode(xhat[1:]) # Drop CLS
+        decoded = iet.patcher.untokenify(decoded)
+        return unnormalize_img(decoded) 
 
     xhats = jax.vmap(jax.vmap(decode_to_show))(traj_outputs['xhat']) # Map over steps and img
     xhats = rearrange(xhats, "n t ...-> t n ...")
@@ -726,7 +733,7 @@ def show_et_recall_animation(traj_outputs, cache_name, steps_per_sample=1, force
     return Video(video_fname, width=800), video_fname
 
 # Create the animation
-video, video_fname = show_et_recall_animation(traj_outputs, "et_reconstruction", 
+video, video_fname = show_et_recall_animation(iet, traj_outputs, "et_reconstruction", 
                                              steps_per_sample=1, force_remake=True)
 Markdown(f"![]({video_fname})")
 ```
@@ -740,7 +747,7 @@ ipython_display(str(video_fname))
 
 These images are fully reconstructed using autograd down the parameterized energy function. You may notice the reconstructions are not perfect, e.g., the right eye of the white dog is missing.
 
-:::{.callout-warning}
+:::{.callout-warning collapse="true"}
 
 ## The energy is still decreasing! Shouldn't the images get better if we run longer?
 
@@ -749,8 +756,12 @@ Unfortunately, these weights were only trained to 12 steps at a fixed step size.
 
 ```{python}
 masked_imgs, recons_imgs, traj_outputs = jax.vmap(ft.partial(inpaint_image, nsteps=40), in_axes=(None, 0, None, 0))(iet, og_imgs, 100, keys)
-video, video_fname = show_et_recall_animation(traj_outputs, "et_reconstruction_long", 
+video, video_fname = show_et_recall_animation(iet, traj_outputs, "et_reconstruction_long", 
                                              steps_per_sample=1, force_remake=True)
+```
+
+```{python}
+#|echo: false
 Markdown(f"![]({video_fname})")
 ```
 
@@ -765,3 +776,84 @@ ipython_display(str(video_fname))
 
 ## Interpreting ET
 
+The representations learned by ET are attractors of the dynamics. That is, the weights of the Hofield Network in ET are not arbitrary linear transformations --- they are actual stored data patterns. Visualizing the weights reveals what the model has actually learned. 
+
+```{python}
+def decode_stored_pattern(iet, xi):
+  c,h,w = iet.patcher.patch_shape
+  decoded = iet.decode(iet.lnorm(xi))
+  patches = rearrange(decoded, '... (c h w) -> ... c h w', c=c, h=h, w=w)
+  return unnormalize_img(patches) 
+
+Xi_show = jax.vmap(ft.partial(decode_stored_pattern, iet))(iet.et.Xi)
+```
+
+```{python}
+#| echo: false
+#| fig-label: Sampling the stored patterns in the Hopfield Network, sorted by frequency content
+
+def compute_frequency_score(patch):
+    "Compute a score based on frequency content"
+    gray = jnp.mean(patch, axis=-1)  # (h, w)
+    
+    # Compute 2D FFT
+    fft = jnp.fft.fft2(gray)
+    fft_magnitude = jnp.abs(fft)
+    
+    # Create frequency coordinates
+    h, w = gray.shape
+    freqs_h = jnp.fft.fftfreq(h)
+    freqs_w = jnp.fft.fftfreq(w)
+    fh, fw = jnp.meshgrid(freqs_h, freqs_w, indexing='ij')
+    
+    # Compute radial frequency (distance from DC component)
+    radial_freq = jnp.sqrt(fh**2 + fw**2)
+    
+    # Weight higher frequencies more to find patterns with edges/textures
+    # Also compute directional content (x and y frequency components)
+    high_freq_weight = (radial_freq > 0.1).astype(float)
+    x_directional = jnp.abs(fw) * fft_magnitude
+    y_directional = jnp.abs(fh) * fft_magnitude
+    
+    # Combine different frequency measures
+    high_freq_content = jnp.sum(fft_magnitude * high_freq_weight)
+    directional_content = jnp.sum(x_directional) + jnp.sum(y_directional)
+    total_energy = jnp.sum(fft_magnitude)
+    
+    # Avoid division by zero and normalize
+    score = (high_freq_content + 0.5 * directional_content) / (total_energy + 1e-8)
+    
+    # Also add a penalty for too-uniform patterns (low variance)
+    variance_penalty = jnp.var(gray)
+    
+    return score * (1 + 0.1 * variance_penalty)
+
+frequency_scores = jax.vmap(compute_frequency_score)(Xi_show)
+sorted_indices = jnp.argsort(frequency_scores)  # Ascending order (low to high)
+sorted_patterns = Xi_show[sorted_indices]
+
+# Select "middle" 2500 patterns (remove lowest and highest freq info)
+nh = nw = 50
+Nshow = nh * nw
+offset =300 # Show predominantly high freq
+selected_patterns = sorted_patterns[offset:Nshow+offset]
+
+# Create the visualization
+fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+pattern_grid = rearrange(selected_patterns, "(nh nw) h w c -> (nh h) (nw w) c", nh=nh, nw=nw)
+ax.imshow(pattern_grid / 255.)
+ax.set_xticks([])
+ax.set_yticks([])
+ax.set_title("Sample of stored patterns", fontsize=14, pad=20)
+
+plt.tight_layout()
+plt.show()
+```
+
+
+:::{.callout-tip} 
+
+## Interpretability by design 
+
+You can think of the Hopfield Network like an SAE that is integrated into the core computation of the model -- interpretability is a natural byproduct of good architecture design.
+:::
