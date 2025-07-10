@@ -664,7 +664,7 @@ def show_et_recall_animation(iet, traj_outputs, cache_name, steps_per_sample=1, 
     xhats = rearrange(xhats, "n t ...-> t n ...")
     energies = rearrange(traj_outputs['energy'], "n t -> t n")
     
-    if CACHE_VIDEOS:
+    if not CACHE_VIDEOS or not video_fname.exists():
         # Downsample frames and energies
         sampled_xhats = xhats[::steps_per_sample]  # (t_sampled, n, h, w, c)
         sampled_energies = energies[::steps_per_sample]  # (t_sampled, n)
