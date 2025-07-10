@@ -1,5 +1,5 @@
 # Energy Transformer
-> Rederiving the Transformer as an Associative Memory.
+> Rederiving the Transformer as an energy-based Associative Memory.
 
 <style>
     .red { color:rgb(247, 109, 104); }
@@ -123,6 +123,7 @@ import matplotlib.pyplot as plt
 from jaxtyping import Float, Array
 import functools as ft
 from einops import rearrange
+from amtutorial.data_utils import get_et_imgs, get_et_checkpoint
 ```
 
 **The `EnergyTransformer` class captures all the token processing in the entire transformer.** There are maybe 7 lines of code that perform the actual energy computation. This single energy function, when paired with a layer-norm, is analogous to the full computation across all layers of a traditional transformer. The only things missing are some some token and position embedding matrices to make it work on real data, but we will do that in the following section.
@@ -305,7 +306,7 @@ def unnormalize_img(x):
 
 @ft.lru_cache
 def get_normalized_imgs():
-  imgs = jnp.stack([imageio.imread(f) for f in sorted(glob("./assets/et-figs/*.png"))])
+  imgs = jnp.array(get_et_imgs())
   imgs = jax.vmap(normalize_img)(imgs)
   return imgs
 ```
@@ -597,7 +598,7 @@ ET has publicly available pretrained weights that can be used for masked-image i
 ```{python}
 @ft.lru_cache
 def get_pretrained_et():
-  load_dict = {k:jnp.array(v) for k,v in np.load("./assets/et_ckpt.npz").items()}
+  load_dict = {k: jnp.array(v) for k,v in get_et_checkpoint().items()}
 
   # config from state_dict
   H, Y, D = load_dict["Wk"].shape
@@ -920,5 +921,5 @@ plt.show()
 
 ## Interpretability by design 
 
-You can think of the Hopfield Network like an SAE that is integrated into the core computation of the model -- interpretability is a natural byproduct of good architecture design.
+You can think of the Hopfield Network like an SAE that is integrated into the core computation of the model. Interpretability is a natural byproduct of good architecture design.
 :::

@@ -120,8 +120,8 @@ Let's build some helper functions to load and view our data: binarized pokemon s
 
 ```{python}
 #| output: false
-from amtutorial.pokemon_sprites import download_pokemon_from_hf
-poke_pixels, poke_names = download_pokemon_from_hf("bhoov/pokemon-sprites-bipolar")
+from amtutorial.data_utils import get_pokemon_data
+poke_pixels, poke_names = get_pokemon_data()
 data = poke_pixels
 
 pxh, pxw = data.shape[-2:]
@@ -162,6 +162,8 @@ sample_data = jr.choice(jr.PRNGKey(10), data, shape=(100,), replace=False)
 fig1, ax1 = show_im(sample_data, figsize=(6, 6));
 ax1.set_title("Example patterns (black=-1, white=1)")
 plt.show()
+
+np.unique(sample_data)
 ```
 
 
