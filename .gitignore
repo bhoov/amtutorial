@@ -20,3 +20,5 @@ _proc/
 settings.ini.backup
 .env
 _archive/
+
+!data/*.npz
