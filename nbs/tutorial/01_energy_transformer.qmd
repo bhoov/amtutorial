@@ -123,6 +123,8 @@ from einops import rearrange
 
 **The `EnergyTransformer` class captures all the token processing in the entire transformer.** There are maybe 7 lines of code that perform the actual energy computation. This single energy function, when paired with a layer-norm, is analogous to the full computation across all layers of a traditional transformer. The only things missing are some some token and position embedding matrices to make it work on real data, but we will do that in the following section.
 
+First, let's describe the configuration for ET:
+
 ```{python}
 class ETConfig(eqx.Module):
   D: int = 768 # token dimension
@@ -136,45 +138,69 @@ class ETConfig(eqx.Module):
 smallETConfig = ETConfig(D=12, H=2, Y=6, M=24)
 mediumETConfig = ETConfig(D=128, H=4, Y=32, M=256)
 fullETConfig = ETConfig(D=768, H=12, Y=64, M=3072, beta=1/jnp.sqrt(64))
+```
 
+The `ETConfig` class captures all the dimensions and default hyperparameters for ET. The only thing left to do is implement the energies of Energy Transformer
+
+```{python}
 class EnergyTransformer(eqx.Module):
   config: ETConfig
   Wq: Float[Array, "H D Y"] # Query projection
   Wk: Float[Array, "H D Y"] # Key projection
   Xi: Float[Array, "M D"]
-
-  def attn_energy(self, xhat: Float[Array, "N D"]):
-    beta = self.config.get_beta()
-    K = jnp.einsum("kd,hdy->khy", xhat, self.Wk)
-    Q = jnp.einsum("qd,hdy->qhy", xhat, self.Wq)
-    N = K.shape[0]
-    if self.config.prevent_self_attention:
-      bmask = jnp.ones((N, N)) - jnp.eye(N) # Prevent self-attention
-    else:
-      bmask = jnp.ones((N, N))
-    A = jax.nn.logsumexp(beta * jnp.einsum("khy,qhy->hqk", K, Q), b=bmask, axis=-1)
-    return -1/beta * A.sum()
-  
-  def hn_energy(self, xhat: Float[Array, "N D"]):
-    "ReLU energy of a Hopfield Network"
-    hid = jnp.einsum("nd,md->nm", xhat, self.Xi)
-    return -0.5 * (hid.clip(0) ** 2).sum()
-  
-  def energy(self, xhat: Float[Array, "N D"]):
-    "Total energy of the Energy Transformer"
-    return self.attn_energy(xhat) + self.hn_energy(xhat)
-
-  @classmethod
-  def rand_init(cls, key, config: ETConfig):
-    key1, key2, key3 = jr.split(key, 3)
-    return cls(config,
-      Wq=jr.normal(key1, (config.H, config.D, config.Y)) / jnp.sqrt(config.Y),
-      Wk=jr.normal(key2, (config.H, config.D, config.Y)) / jnp.sqrt(config.Y),
-      Xi=jr.normal(key3, (config.M, config.D)) / jnp.sqrt(config.D)
-    )
 ```
 
-Note that the `xhat` inputs above are all layer-normalized tokens. However, like other AMs, we restrict ourselves to using non-linearties that are gradients of a convex Lagrangian function. Our "special layernorm"  is the same as the standard layer normalization *except* that we need our learnable `gamma` parameter to be a scalar instead of a vector of shape `D`. We will just show this in code below.
+`EnergyTransformer` is parameterized by **only** three matrices: $\mathbf{W}^Q, \mathbf{W}^K$ and $\mathbf{Xi}$ (we did not choose to introduce any biases, though we could have).
+
+We use these parameters to define both the **attention energy** and the **memory energy**.
+
+```{python}
+@patch
+def attn_energy(self: EnergyTransformer, xhat: Float[Array, "N D"]):
+  beta = self.config.get_beta()
+  K = jnp.einsum("kd,hdy->khy", xhat, self.Wk)
+  Q = jnp.einsum("qd,hdy->qhy", xhat, self.Wq)
+  N = K.shape[0]
+  if self.config.prevent_self_attention:
+    bmask = jnp.ones((N, N)) - jnp.eye(N) # Prevent self-attention
+  else:
+    bmask = jnp.ones((N, N))
+  A = jax.nn.logsumexp(beta * jnp.einsum("khy,qhy->hqk", K, Q), b=bmask, axis=-1)
+  return -1/beta * A.sum()
+
+@patch
+def hn_energy(self: EnergyTransformer, xhat: Float[Array, "N D"]):
+  """ReLU-based "memory energy" using a Hopfield Network"""
+  hid = jnp.einsum("nd,md->nm", xhat, self.Xi)
+  return -0.5 * (hid.clip(0) ** 2).sum()
+```
+
+The total energy is just the sum of the attention and memory energies.
+  
+```{python}
+@patch
+def energy(self: EnergyTransformer, xhat: Float[Array, "N D"]):
+  "Total energy of the Energy Transformer"
+  return self.attn_energy(xhat) + self.hn_energy(xhat)
+```
+
+And finally, let's make a `classmethod` to easily initialize the module with random parameters.
+
+```{python}
+@patch(cls_method=True)
+def rand_init(cls: EnergyTransformer, key, config: ETConfig):
+  key1, key2, key3 = jr.split(key, 3)
+  return cls(config,
+    Wq=jr.normal(key1, (config.H, config.D, config.Y)) / jnp.sqrt(config.Y),
+    Wk=jr.normal(key2, (config.H, config.D, config.Y)) / jnp.sqrt(config.Y),
+    Xi=jr.normal(key3, (config.M, config.D)) / jnp.sqrt(config.D)
+  )
+```
+
+:::{.callout-note}
+
+## Special Layer Normalization
+Note that the `xhat` inputs above are all layer-normalized tokens. However, like other AMs, we restrict ourselves to using non-linearities that are gradients of a convex Lagrangian function. Our "special layernorm"  is the same as the standard layer normalization *except* that we need our learnable `gamma` parameter to be a scalar instead of a vector of shape `D`. We will just show this in code below.
 
 ```{python}
 class EnergyLayerNorm(eqx.Module):
@@ -200,10 +226,11 @@ class EnergyLayerNorm(eqx.Module):
     if self.use_bias: return v + self.delta
     return v
 ```
+:::
 
 That's it! We rely on autograd to do the energy minimization, or the "inference" pass through the entire transformer.
 
-Let's check that the energies of both attention and memory monotonically decreases and is bounded from below.
+Let's check that the energy both monotonically decreases and is bounded from below.
 
 ```{python}
 key = jr.PRNGKey(11)
@@ -256,7 +283,7 @@ To make the Energy Transformer described above work on real data, we need to add
 Energy Transformer was originally trained on [ImageNet](https://image-net.org/). We will load some example images (unseen during training) to demonstrate ET's ability to remember images.
 
 ```{python}
-# %% Load image from real dataset
+# Load and prepare unseen images
 IMAGENET_MEAN = np.array([0.485, 0.456, 0.406]) * 255 # C, H, W
 IMAGENET_STD = np.array([0.229, 0.224, 0.225]) * 255 # C, H, W
 
@@ -266,14 +293,13 @@ def normalize_img(im):
   x = rearrange(x, "h w c-> c h w")
   return x
 
-
 def unnormalize_img(x):
   """Put back into channel last format, denormalize"""
   x = rearrange(x, "c h w -> h w c")
   im = (x * IMAGENET_STD) + IMAGENET_MEAN
   return im.astype(jnp.uint8)
 
-# @ft.lru_cache
+@ft.lru_cache
 def get_normalized_imgs():
   imgs = jnp.stack([imageio.imread(f) for f in sorted(glob("./assets/et-figs/*.png"))])
   imgs = jax.vmap(normalize_img)(imgs)
@@ -392,7 +418,7 @@ plt.show()
 assert jnp.all(patcher.unpatchify(patched_img) == imgs[0])
 ```
 
-We can process an images and batches of imags into tokens and back.
+We can also process an images and batches of imags into tokens and back.
 
 ```{python}
 tokenified_img = patcher.tokenify(imgs[0])
@@ -412,14 +438,18 @@ assert jnp.all(batch_untokenified_imgs == imgs)
 
 Let's create a full ET, complete with embeddings, model that can be used for masked-image inpainting. We say that each image has $N$ total patches/tokens, where each patch as $Z = c \times h \times w$ pixels when rasterized. We will use linear embeddings (with biases) to embed and unembed rasterized image patches to tokens.
 
-For interoperability with the original ViT [@dosovitskiy2020vit], we will add a CLS token and a MASK token as parameters to the model. Again, most of this code is initializing parameters.
+First, let's describe the data and ET we are working with.
 
 ```{python}
 class ImageETConfig(eqx.Module):
   image_shape: Tuple[int, int, int] = (3, 224, 224) # (C, H, W) Image shape
   patch_size: int = 16 # Square patch size
   et_conf: ETConfig = fullETConfig
+```
 
+To work with data, we add a few extra matrices: embedding/unembedding matrices (let's use a bias for each), position embeddings, and CLS/MASK tokens. The position embeddings are used to encode the position of each token in the sequence, and the CLS/MASK tokens are used for interop with the original ViT. [@dosovitskiy2020vit] Additionally, the `layernorm` is external to the computation of the ET so we'll insert those parameters here.
+
+```{python}
 class ImageEnergyTransformer(eqx.Module):
   patcher: Patcher
   W_emb: Float[Array, "Z D"]
@@ -434,95 +464,131 @@ class ImageEnergyTransformer(eqx.Module):
   lnorm: EnergyLayerNorm
 
   config: ImageETConfig
-
-  def encode(self, x):
-    "Embed rasterized patches to tokens"
-    out = x @ self.W_emb + self.b_emb # (..., N, D)
-    return out
-
-  def decode(self, x):
-    "Turn x from tokens to rasterized img patches"
-    x = x @ self.W_unemb + self.b_unemb # (..., N, Z)
-    return x
-
-  def corrupt_tokens(self, x: jax.Array, mask: jax.Array, n_masked: int=100):
-    """Corrupt tokens with MASK tokens wherever `mask` is 1.
-
-    `n_masked` needs to be known in advance for JAX JIT to work properly
-    """
-    maskmask = jnp.nonzero(mask == 1, size=n_masked, fill_value=0)
-    return x.at[maskmask].set(self.mask_token) # (..., N, D)
-
-  def prep_tokens(self, x, mask):
-    "Add CLS+MASK tokens and POS embeddings"
-    x = self.corrupt_tokens(x, mask)
-    x = jnp.concatenate([self.cls_token[None], x]) # (..., N+1, D)
-    return x + self.pos_embed # (..., N+1, D)
-
-  def __call__(self, x: jnp.ndarray, mask: jnp.ndarray, nsteps=12, step_size=0.1):
-    """A complete pipeline for masked image modeling in ET using `energy_recall`
-    
-    Args:
-      return_intermediates: If True, return all intermediate xhat values from gradient descent
-    """
-    x = self.patcher.tokenify(x) # (..., N, Z)
-    x = self.encode(x)
-    x = self.prep_tokens(x, mask)  # (..., N+1, D)
-
-    get_energy_info = jax.value_and_grad(self.et.energy)
-    
-    def gd_step(x, i):
-        xhat = self.lnorm(x)
-        E, dEdg = get_energy_info(xhat)
-        x_next = x - step_size * dEdg
-        return x_next, {"energy": E, "xhat": xhat}
-
-    x, traj_outputs = jax.lax.scan(gd_step, x, jnp.arange(nsteps))
-
-    xhat_final = self.lnorm(x)
-    E_final = self.et.energy(xhat_final)
-    traj_outputs['xhat'] = jnp.concatenate([traj_outputs['xhat'], xhat_final[None]], axis=0)
-    traj_outputs['energy'] = jnp.concatenate([traj_outputs['energy'], E_final[None]], axis=0)
-
-    xhat_final = xhat_final[1:]  # Discard CLS token for masked inpainting
-    x_decoded = self.decode(xhat_final)
-    return self.patcher.untokenify(x_decoded), traj_outputs
-
-  @classmethod
-  def rand_init(cls, key, config=ImageETConfig()):
-    key1, key2, key3, key4, key5, key6, key7, key8 = jr.split(key, 8)
-    patcher = Patcher.from_img_shape(config.image_shape, config.patch_size)
-    W_emb = jr.normal(key1, (patcher.num_patch_elements, config.et_conf.D)) / config.et_conf.D
-    b_emb = jr.normal(key2, (config.et_conf.D,))
-    W_unemb = jr.normal(key3, (config.et_conf.D, patcher.num_patch_elements)) / patcher.num_patch_elements
-    b_unemb = jr.normal(key4, (patcher.num_patch_elements,))
-    pos_embed = jr.normal(key5, (patcher.num_patches, config.et_conf.D)) / config.et_conf.D
-    cls_token = 0.002 * jr.normal(key6, (config.et_conf.D,))
-    mask_token = 0.002 * jr.normal(key7, (config.et_conf.D,))
-    pos_embed = 0.002 * jr.normal(key8, (1 + patcher.num_patches, config.et_conf.D)) / config.et_conf.D
-
-    return cls(
-      patcher=patcher,
-      W_emb=W_emb,
-      b_emb=b_emb,
-      W_unemb=W_unemb,
-      b_unemb=b_unemb,
-      pos_embed=pos_embed,
-      cls_token=cls_token,
-      mask_token=mask_token,
-      et=EnergyTransformer.rand_init(key7, config.et_conf),
-      lnorm=EnergyLayerNorm(gamma=1., delta=jnp.zeros(config.et_conf.D)),
-      config=config
-    )
 ```
+
+Let's define some functions for converting image patches to/from tokens. These are a.k.a. "embedding" and "unembedding" operations.
 
 ```{python}
+@patch
+def encode(
+  self: ImageEnergyTransformer, 
+  x: Float[Array, "N Z"]
+):
+  "Embed rasterized patches to tokens"
+  out = x @ self.W_emb + self.b_emb # (..., N, D)
+  return out
+
+@patch
+def decode(
+  self: ImageEnergyTransformer, 
+  x: Float[Array, "N D"]):
+  "Turn x from tokens to rasterized img patches"
+  return x @ self.W_unemb + self.b_unemb # (..., N, Z)
+```
+
+Masking tokens is also a part of this data connection. Let's corrupt and add the CLS register:
+
+```{python}
+@patch
+def corrupt_tokens(
+  self: ImageEnergyTransformer, 
+  x: Float[Array, "N D"],
+  mask: Float[Array, "N"], 
+  max_n_masked: int=100):
+  """Corrupt tokens with MASK tokens wherever `mask` is 1.
+
+  `max_n_masked` needs to be known in advance for JAX JIT to work properly
+  """
+  maskmask = jnp.nonzero(mask == 1, size=max_n_masked, fill_value=0)
+  return x.at[maskmask].set(self.mask_token) # (..., N, D)
+
+@patch
+def prep_tokens(
+  self: ImageEnergyTransformer, 
+  x: Float[Array, "N D"], 
+  mask: Float[Array, "N"]):
+  "Add CLS+MASK tokens and POS embeddings"
+  x = self.corrupt_tokens(x, mask)
+  x = jnp.concatenate([self.cls_token[None], x]) # (..., N+1, D)
+  return x + self.pos_embed # (..., N+1, D)
+```
+
+The inference process is *gradient descent* down the energy, and turns a full image whose patches are masked according to `mask` and returns predictions for the whole image.
+
+```{python}
+@patch
+def __call__(
+  self: ImageEnergyTransformer, 
+  img: Float[Array, "C H W"], 
+  mask: Float[Array, "N"], 
+  nsteps=12, 
+  step_size=0.1):
+  "A complete pipeline for masked image modeling in ET using gradient descent"
+  x = self.patcher.tokenify(img) # (..., N, Z)
+  x = self.encode(x)
+  x = self.prep_tokens(x, mask)  # (..., N+1, D)
+
+  get_energy_info = jax.value_and_grad(self.et.energy)
+  
+  def gd_step(x, i):
+      xhat = self.lnorm(x)
+      E, dEdg = get_energy_info(xhat)
+      x_next = x - step_size * dEdg
+      return x_next, {"energy": E, "xhat": xhat}
+
+  x, traj_outputs = jax.lax.scan(gd_step, x, jnp.arange(nsteps))
+
+  xhat_final = self.lnorm(x)
+  E_final = self.et.energy(xhat_final)
+  traj_outputs['xhat'] = jnp.concatenate([traj_outputs['xhat'], xhat_final[None]], axis=0)
+  traj_outputs['energy'] = jnp.concatenate([traj_outputs['energy'], E_final[None]], axis=0)
+
+  xhat_final = xhat_final[1:]  # Discard CLS token for masked inpainting
+  x_decoded = self.decode(xhat_final)
+  return self.patcher.untokenify(x_decoded), traj_outputs
+```
+
+:::{.callout-note collapse="true"}
+
+## Random initialization helper
+
+For completeness, let's add a helper function to initialize the model with random parameters. We won't use it in this tutorial, however.
+
+```{python}
+@patch(cls_method=True)
+def rand_init(cls: ImageEnergyTransformer, key, config=ImageETConfig()):
+  key1, key2, key3, key4, key5, key6, key7, key8 = jr.split(key, 8)
+  patcher = Patcher.from_img_shape(config.image_shape, config.patch_size)
+  W_emb = jr.normal(key1, (patcher.num_patch_elements, config.et_conf.D)) / config.et_conf.D
+  b_emb = jr.normal(key2, (config.et_conf.D,))
+  W_unemb = jr.normal(key3, (config.et_conf.D, patcher.num_patch_elements)) / patcher.num_patch_elements
+  b_unemb = jr.normal(key4, (patcher.num_patch_elements,))
+  pos_embed = jr.normal(key5, (patcher.num_patches, config.et_conf.D)) / config.et_conf.D
+  cls_token = 0.002 * jr.normal(key6, (config.et_conf.D,))
+  mask_token = 0.002 * jr.normal(key7, (config.et_conf.D,))
+  pos_embed = 0.002 * jr.normal(key8, (1 + patcher.num_patches, config.et_conf.D)) / config.et_conf.D
+
+  return cls(
+    patcher=patcher,
+    W_emb=W_emb,
+    b_emb=b_emb,
+    W_unemb=W_unemb,
+    b_unemb=b_unemb,
+    pos_embed=pos_embed,
+    cls_token=cls_token,
+    mask_token=mask_token,
+    et=EnergyTransformer.rand_init(key7, config.et_conf),
+    lnorm=EnergyLayerNorm(gamma=1., delta=jnp.zeros(config.et_conf.D)),
+    config=config
+  )
+
 imageET = ImageEnergyTransformer.rand_init(key, ImageETConfig())
 ```
+:::
 
 ### Loading pretrained weights
 
-ET has publicly available pretrained weights that can be used for masked-image inpainting. The model itself is pretty small ~20MB. We load the state dict from a saved .npz file as follows:
+ET has publicly available pretrained weights that can be used for masked-image inpainting. The model itself is pretty small ~20MB, with no compression tricks on the weights (everything is `np.float32`). We load the state dict from a saved `.npz` file as follows:
 
 ```{python}
 @ft.lru_cache
@@ -563,7 +629,13 @@ def get_pretrained_et():
 We can inpaint images with ET.
 
 ```{python}
-def inpaint_image(iet, img, n_mask, key, nsteps=12, step_size=0.1):
+def inpaint_image(
+  iet: ImageEnergyTransformer, 
+  img: Float[Array, "C H W"], 
+  n_mask: int, 
+  key: jax.random.PRNGKey, 
+  nsteps: int=12, 
+  step_size: float=0.1):
     " Perform masked image inpainting with Energy Transformer"
     # Create random mask
     mask_idxs = jr.choice(
@@ -626,10 +698,6 @@ plt.show()
 We can also animate the retrieval.
 
 ```{python}
-
-```
-
-```{python}
 #| code-fold: true
 #| code-summary: "Animation dependencies"
 from pathlib import Path
@@ -637,19 +705,15 @@ import matplotlib.animation as animation
 from IPython.display import Video, Markdown
 from moviepy.editor import ipython_display
 import os
-```
 
-```{python}
-#| code-fold: true
-#| Caching videos
 CACHE_DIR = Path("./cache") / "01_energy_transformer"
 CACHE_DIR.mkdir(exist_ok=True)
 CACHE_VIDEOS = True
 ```
 
-
 ```{python}
 #| echo: false
+#| fig-label: Minimizing the energy of ET inpaints the masked tokens. All tokens are allowed to evolve during inference, and energy monotonically decreases each iteration.
 
 def show_et_recall_animation(iet, traj_outputs, cache_name, steps_per_sample=1, force_remake=False, fps=2):
     "Create animated video showing both image reconstruction evolution and energy descent"
@@ -757,7 +821,8 @@ video, video_fname = show_et_recall_animation(iet, traj_outputs, "et_reconstruct
 ```
 
 ```{python}
-#|echo: false
+#| echo: false
+#| fig-label: Because of training limitations, running for longer doesn't improve the reconstruction quality
 Markdown(f"![]({video_fname})")
 ```
 
@@ -786,7 +851,7 @@ Xi_show = jax.vmap(ft.partial(decode_stored_pattern, iet))(iet.et.Xi)
 
 ```{python}
 #| echo: false
-#| fig-label: Sampling the stored patterns in the Hopfield Network, sorted by frequency content
+#| fig-cap: Sampling the stored patterns in the Hopfield Network, sorted by frequency content
 
 def compute_frequency_score(patch):
     "Compute a score based on frequency content"
