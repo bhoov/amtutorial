@@ -6,7 +6,6 @@ website:
       - section: lib
         contents:
           - lib/01_pokemon_sprites.ipynb
-          - lib/02_eqx_utils.ipynb
         href: lib/00_index.ipynb
       - section: tutorial
         contents:
