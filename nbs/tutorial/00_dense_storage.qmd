@@ -47,14 +47,14 @@ Path(CACHE_DIR).mkdir(parents=True, exist_ok=True)
 
 ### General Associative Memory
 
-Our goal in this section is to build the smallest abstraction for Associative Memory, which at its core is just an *energy function* $E_\Xi(x) \in \mathbb{R}$. where *query pattern* $x \in \{-1, 1\}^D$ is a possibly noisy $D$-dimensional, binary pattern and *memory matrix* $\Xi \in \{-1, 1\}^{K \times D}$ is our matrix of $K$ stored patterns. $E_\Xi(x)$ stores patterns at low energies. To retrieve our stored patterns,we want to minimize $E_\Xi(x)$.
+Our goal in this section is to build the smallest abstraction for Associative Memory, which at its core is just an *energy function* $E_\Xi(x) \in \mathbb{R}$. where *query pattern* $\sigma \in \{-1, 1\}^D$ is a possibly noisy $D$-dimensional, binary pattern and *memory matrix* $\Xi \in \{-1, 1\}^{K \times D}$ is our matrix of $K$ stored patterns. $E_\Xi(\sigma)$ stores patterns at low energies. To retrieve our stored patterns,we want to minimize $E_\Xi(\sigma)$.
 
-Let's assume an unimplemented, arbitrary energy function and setup a basic object for a binary AM. All we need to provide is an `energy` method, parameterized by $\Xi$, that is a function of query $x$.
+Let's assume an unimplemented, arbitrary energy function and setup a basic object for a binary AM. All we need to provide is an `energy` method, parameterized by $\Xi$, that is a function of query $\sigma$.
 
 Historically, the Hopfield Network [@hopfield1982neural] minimizes energy using *asynchronous* update rules (where we minimize the query's energy one randomly selected bit at a time). We'll follow that precedent in this notebook since it makes for nicer visualizations, though fully *synchronous* update rules (where we minimize the energy by scanning through all bits sequentially) are also possible. The default `async_update` is simple: for a randomly sampled bit in the query pattern, compare the energy of that bit when it is flipped and not flipped. Keep the pattern whose energy is lower.
 
 $$
-x_i^{(t+1)} = \underset{b \in \{-1, 1\}}{\mathrm{argmin}}\left[E\left(x_i = b, x_{j \neq i} = x_j^{(t)}\right)\right]
+\sigma_i^{(t+1)} = \underset{b \in \{-1, 1\}}{\mathrm{argmin}}\left[E\left(\sigma_i = b, \sigma_{j \neq i} = \sigma_j^{(t)}\right)\right]
 $${#eq-async-update}
 
 Converting a noisy query pattern into a stored pattern is a matter of repeatedly applying the `async_update` rule to minimize energy. Because this process, if run long enough, will "recall" a memory, we call this the `async_recall` method.
@@ -68,46 +68,46 @@ class BinaryAM(eqx.Module):
     Xi: Float[Array, "K D"] # matrix of stored patterns 
     def energy(
         self, 
-        x: Float[Array, "D"] # Possibly noisy query pattern
+        sigma: Float[Array, "D"] # Possibly noisy query pattern
         ): 
         ... # Left to implement later
 
     def async_update(
         self,
-        x: Float[Array, "D"], # Possibly noisy query pattern
+        sigma: Float[Array, "D"], # Possibly noisy query pattern
         idx:int,              # Index of bit to flip
         ):                    # Return next state and its energy
         "Minimize the energy of `x[idx]`"
-        xflipped = jnp.array(x).at[idx].multiply(-1)
-        energy_og = self.energy(x)
-        energy_flipped = self.energy(xflipped)
+        sigma_flipped = jnp.array(sigma).at[idx].multiply(-1)
+        energy_og = self.energy(sigma)
+        energy_flipped = self.energy(sigma_flipped)
         keep_flip = (energy_flipped - energy_og) < 0
         return lax.cond(
             keep_flip, 
             # Keep flipped bit if it has lower energy
-            lambda: (xflipped, energy_flipped), 
+            lambda: (sigma_flipped, energy_flipped), 
             # Otherwise keep original bit
-            lambda: (x, energy_og)
+            lambda: (sigma, energy_og)
         )
 
     @eqx.filter_jit
     def async_recall(
         self, 
-        x0: Float[Array, "D"], # Initial query pattern
+        sigma0: Float[Array, "D"], # Initial query pattern
         nsteps:int=20000, # Number of bits to flip & check
         key=jr.PRNGKey(0) # Random key for bit-flip choices
         ):
-        "Minimize energy of `x0` by repeatedly applying `async_update`"
-        def update_step(x, idx):
-            x_new, energy_new = self.async_update(x, idx)
-            return x_new, (x_new, energy_new)
-        D = x0.shape[-1]
+        "Minimize energy of `sigma0` by repeatedly applying `async_update`"
+        def update_step(sigma, idx):
+            sigma_new, energy_new = self.async_update(sigma, idx)
+            return sigma_new, (sigma_new, energy_new)
+        D = sigma0.shape[-1]
 
         # Randomly sample `nsteps` bits to flip
         bitflip_sequence = jr.choice(key, np.arange(D), shape=(nsteps,))
 
         # Apply `async_update` to each bitflip in seq
-        final_x, (frames, energies) = lax.scan(update_step, x0, bitflip_sequence)
+        final_x, (frames, energies) = lax.scan(update_step, sigma0, bitflip_sequence)
 
         # Return final pattern and the trajectory
         return final_x, (frames, energies)
@@ -120,7 +120,7 @@ class BinaryAM(eqx.Module):
 Feel free to skip this section. It's just loading data and setting up some fancy visualization functions.
 :::
 
-Let's build some helper functions to load and view our data: binarized pokemon sprites. While other fields like to work with $\{0,1\}$ binary data, Hopfield Networks like to work with bipolar data where each datapoint $x \in \{-1, 1\}^D$.
+Let's build some helper functions to load and view our data: binarized pokemon sprites. While other fields like to work with $\{0,1\}$ binary data, Hopfield Networks like to work with bipolar data where each datapoint $\sigma \in \{-1, 1\}^D$.
 
 ```{python}
 #| output: false
@@ -148,14 +148,14 @@ def gridify(images, grid_h=None):
     grid = rearrange(images[:n_needed], '(gh gw) h w -> (gh h) (gw w)', gh=grid_h, gw=grid_w)
     return grid
 
-def show_im(x, ax=None, do_gridify=True, grid_h=None, figsize=None):
+def show_im(sigma, ax=None, do_gridify=True, grid_h=None, figsize=None):
     """Vector to figure"""
-    x = rearrange(x, "... (h w) -> ... h w", h=pxh, w=pxw)
-    if do_gridify and len(x.shape) == 3: x = gridify(x, grid_h)
+    sigma = rearrange(sigma, "... (h w) -> ... h w", h=pxh, w=pxw)
+    if do_gridify and len(sigma.shape) == 3: sigma = gridify(sigma, grid_h)
     empty_ax = ax is None
     figsize = figsize or (8, 2.67) # Quarto aspect ratio
     if empty_ax: fig, ax = plt.subplots(figsize=figsize)
-    ax.imshow(x, cmap="gray", vmin=-1, vmax=1)
+    ax.imshow(sigma, cmap="gray", vmin=-1, vmax=1)
     ax.axis("off")
     return None if not empty_ax else fig, ax
 ```
@@ -188,13 +188,13 @@ plt.show()
 print(f"K={Xi.shape[0]}, D={Xi.shape[1]}")
 ```
 
-The Classical Hopfield Network (CHN) [@hopfield1982neural] defines an energy function for this collection of patterns, putting the $\mu$-th stored pattern $\xi_\mu$ at a *low* value of energy. The CHN energy is a quadratic function described by dot-product correlations:
+The Classical Hopfield Network (CHN) [@hopfield1982neural] defines an energy function for this collection of patterns, putting the $\mu$-th stored pattern $\xi^\mu$ at a *low* value of energy. The CHN energy is a quadratic function described by dot-product correlations:
 
 $$
-E_\text{CHN}(x) = -\frac{1}{2} \left(\sum_{\mu} \xi_{\mu i} x_i\right)^2 = -\frac{1}{2} \sum_{i,j} T_{ij} x_i x_j.
+E_\text{CHN}(\sigma) = -\frac{1}{2} \sum_\mu \left(\sum_{i} \xi^\mu_i x_i\right)^2 = -\frac{1}{2} \sum_{i,j} T_{ij} \sigma_i \sigma_j.
 $${#eq-chn-energy}
 
-We see the familiar equation for CHN energy on the RHS if we expand the quadratic function, where $T_{ij} := \sum_{\mu=1}^K \xi_{\mu i} \xi_{\mu_j}$ is the matrix of symmetric synapses. Learned patterns $\xi_\mu$ are stored in $T$ via a simple, Hebbian learning rule. 
+We see the familiar equation for CHN energy on the RHS if we expand the quadratic function, where $T_{ij} := \sum_{\mu=1}^K \xi^\mu_i \xi^\mu_j$ is the matrix of symmetric synapses. Learned patterns $\xi^\mu$ are stored in $T$ via a simple, Hebbian learning rule. 
 
 The CHN can be easily implemented in code via
 
@@ -202,19 +202,19 @@ The CHN can be easily implemented in code via
 class CHN(BinaryAM):
     def energy(
         self, 
-        x: Float[Array, "D"] # Possibly noisy query pattern
+        sigma: Float[Array, "D"] # Possibly noisy query pattern
         ): 
         "Quadratic energy function for the CHN"
-        return -0.5 * jnp.sum((self.Xi @ x)**2, axis=0)
+        return -0.5 * jnp.sum((self.Xi @ sigma)**2, axis=0)
 
 chn = CHN(Xi)
 ```
 
-The asynchronous update rule of @eq-async-update uses the energy difference of a flipped bit to determine whether to keep the flip or not. That update rule is equivalent to the following, arguably more familiar update rule, which describes the next state based on the sign of the *total input current* to the neuron $x_i$. 
+The asynchronous update rule of @eq-async-update uses the energy difference of a flipped bit to determine whether to keep the flip or not. That update rule is equivalent to the following, arguably more familiar update rule, which describes the next state based on the sign of the *total input current* to the neuron $\sigma_i$. 
 
 $$
 \begin{align*}
-x_i^{(t+1)} &\leftarrow \text{sgn}\left(\sum_{\mu} \xi_{\mu i} \sum_{j \neq i} \left(\xi_{\mu j} x_j^{(t)}\right) \right)\\
+\sigma_i^{(t+1)} &\leftarrow \text{sgn}\left(\sum_{\mu} \xi^\mu_i \sum_{j \neq i} \left(\xi^\mu_j \sigma_j^{(t)}\right) \right)\\
 \text{sgn}(x) &:= \begin{cases}
 1 & \text{if } x \geq 0 \\
 -1 & \text{if } x < 0
@@ -224,15 +224,6 @@ $$
 
 This update rule also ensures the network always moves toward lower energy states. Because the $E_\text{CHN}$ is bounded from below, the network will eventually converge to a local minimum that (ideally) corresponds to one of the stored patterns.
 
-<!-- ```{python}
-@patch
-def async_update(self:BinaryCHN, x, idx):
-    new_xidx = ((self.Xi.T @ self.Xi @ x.at[idx].set(0))[idx] >= 0) * 2 - 1
-    xnew = x.at[idx].set(new_xidx)
-    energy = self.energy(xnew)
-    return xnew, energy
-.``` -->
-
 Let's observe the recall process! We'll start with a noisy version of the first pattern and see if we can recover it.
 
 ```{python}
@@ -241,43 +232,43 @@ def flip_some_bits(key, x, p=0.1):
     prange = np.array([p, 1-p])
     return x * jr.choice(key, np.array([-1, 1]), p=prange, shape=x.shape)
 
-x_og = Xi[0] 
-x_noisy = flip_some_bits(jr.PRNGKey(0), x_og, 0.2)
+sigma_og = Xi[0] 
+sigma_noisy = flip_some_bits(jr.PRNGKey(0), sigma_og, 0.2)
 
-show_im(jnp.stack([x_og, x_noisy]), figsize=(6, 3));
+show_im(jnp.stack([sigma_og, sigma_noisy]), figsize=(6, 3));
 ```
 
 For the pedagogical purpose of this notebook, we'll cache the recall process and results so we don't have to run it every time.
 
 ```{python}
 @delegates(BinaryAM.async_recall)
-def cached_recall(am, cache_name, x_noisy, key=jr.PRNGKey(0), save=True, **kwargs):
+def cached_recall(am, cache_name, sigma_noisy, key=jr.PRNGKey(0), save=True, **kwargs):
     "Cache the recall process using key `cache_name`"
     npz_fname = Path(CACHE_DIR) / (cache_name + '.npz')
     if npz_fname.exists() and CACHE_RECALL: 
         npz_data = np.load(npz_fname)
-        x_final, frames, energies = npz_data['x_final'], npz_data['frames'], npz_data['energies']
+        sigma_final, frames, energies = npz_data['sigma_final'], npz_data['frames'], npz_data['energies']
         print("Loading cached recall data")
     else: 
-        x_final, (frames, energies) = am.async_recall(x_noisy, key=key, **kwargs)
-        if save: jnp.savez(npz_fname, x_final=x_final, frames=frames, energies=energies)
-    return x_final, frames, energies
+        sigma_final, (frames, energies) = am.async_recall(sigma_noisy, key=key, **kwargs)
+        if save: jnp.savez(npz_fname, sigma_final=sigma_final, frames=frames, energies=energies)
+    return sigma_final, frames, energies
 
 cache_name = 'basic_hopfield_recovery'
-x_final, frames, energies = cached_recall(chn, cache_name, x_noisy, nsteps=12000, key=jr.PRNGKey(5))
+sigma_final, frames, energies = cached_recall(chn, cache_name, sigma_noisy, nsteps=12000, key=jr.PRNGKey(5))
 ```
 
 ```{python}
 #| echo: false
-def show_recall_output(x_og, x_noisy, x_final, energies, show_original=True):
+def show_recall_output(sigma_og, sigma_noisy, sigma_final, energies, show_original=True):
     nimgs = 4 if show_original else 3
     figsize = (8, 2.2) if nimgs == 4 else (8, 2.67)
     fig = plt.figure(figsize=figsize)
     gs = gridspec.GridSpec(1, nimgs, figure=fig, wspace=0.25) 
     axes = [fig.add_subplot(gs[0, i]) for i in range(nimgs)]
 
-    show_im(x_noisy, axes[0]); axes[0].set_title("Noisy Query")
-    show_im(x_final, axes[1]); axes[1].set_title("Retrieved pattern")
+    show_im(sigma_noisy, axes[0]); axes[0].set_title("Noisy Query")
+    show_im(sigma_final, axes[1]); axes[1].set_title("Retrieved pattern")
     
     # Add energy plot
     axes[2].plot(energies)
@@ -287,11 +278,11 @@ def show_recall_output(x_og, x_noisy, x_final, energies, show_original=True):
     axes[2].grid(True, alpha=0.3)
 
     if show_original:
-        show_im(x_og, axes[3])
+        show_im(sigma_og, axes[3])
         axes[3].set_title("Original pattern")
     return fig, axes
 
-fig, axes = show_recall_output(x_og, x_noisy, x_final, energies, show_original=False)
+fig, axes = show_recall_output(sigma_og, sigma_noisy, sigma_final, energies, show_original=False)
 plt.show()
 ```
 
@@ -390,20 +381,20 @@ ipython_display(str(video_fname))
 
 ### Retrieving "inverted" images {#sec-inverted-retrievals}
 
-If we initialize a query with *too much* noise, it's possible to retrieve the negative of a stored pattern or an "inverted image". Because the energy is quadratic, both $x$ and $-x$ produce the same small value of energy. Whether we retrieve the original $x$ or the inverted $-x$ is dependent on whether we initialize our query closer to the original or inverted pattern.
+If we initialize a query with *too much* noise, it's possible to retrieve the negative of a stored pattern or an "inverted image". Because the energy is quadratic, both $\sigma$ and $-\sigma$ produce the same small value of energy. Whether we retrieve the original $\sigma$ or the inverted $-\sigma$ is dependent on whether we initialize our query closer to the original or inverted pattern.
 
 $$
-E_\text{CHN}(-x) = -\frac{1}{2} \left(\sum_{\mu} \xi_{\mu i} (-x_i)\right)^2 = E_\text{CHN}(x)
+E_\text{CHN}(-\sigma) = -\frac{1}{2} \left(\sum_{\mu} \xi^\mu_i (-\sigma_i)\right)^2 = E_\text{CHN}(\sigma)
 $$
 
 ```{python}
 #| echo: false
-x_og = Xi[0] 
-x_noisy = flip_some_bits(jr.PRNGKey(1), x_og, 0.6)
+sigma_og = Xi[0] 
+sigma_noisy = flip_some_bits(jr.PRNGKey(1), sigma_og, 0.6)
 
 cache_name = 'hopfield_recovery_inverted'
-x_final, frames, energies = cached_recall(chn, cache_name, x_noisy, nsteps=15000, key=jr.PRNGKey(5))
-fig, axes = show_recall_output(x_og, x_noisy, x_final, energies, show_original=False)
+sigma_final, frames, energies = cached_recall(chn, cache_name, sigma_noisy, nsteps=15000, key=jr.PRNGKey(5))
+fig, axes = show_recall_output(sigma_og, sigma_noisy, sigma_final, energies, show_original=False)
 plt.show()
 
 print("Accidentally retrieved the inverted pattern!")
@@ -432,14 +423,14 @@ plt.show()
 
 ```{python}
 #| echo: false
-x_og = Xi[0]
-x_noisy = flip_some_bits(jr.PRNGKey(0), x_og, 0.2)
+sigma_og = Xi[0]
+sigma_noisy = flip_some_bits(jr.PRNGKey(0), sigma_og, 0.2)
 
 chn = CHN(Xi)
 
 fname = 'hopfield_recovery_fail'
-x_final, frames, energies = cached_recall(chn, fname, x_noisy, nsteps=15000, key=jr.PRNGKey(5))
-fig2, axes2 = show_recall_output(x_og, x_noisy, x_final, energies, show_original=False)
+sigma_final, frames, energies = cached_recall(chn, fname, sigma_noisy, nsteps=15000, key=jr.PRNGKey(5))
+fig2, axes2 = show_recall_output(sigma_og, sigma_noisy, sigma_final, energies, show_original=False)
 plt.show()
 
 print("CHN failed to retrieve the correct pattern!")
@@ -458,11 +449,11 @@ ipython_display(str(video_fname))
 
 The CHN has a *quadratic* energy, which is a special case of a more general class of models called **Dense Associative Memory** (DenseAM) [@krotov2016dense]. If we increase the degree of the polynomial used in the energy function, we strengthen the coupling between neurons and can store more patterns into the same synaptic matrix.
 
-The new energy function, written in terms of polynomials of degree $n$ and using the same notation for stored patterns $\xi_{\mu i}$, is
+The new energy function, written in terms of polynomials of degree $n$ and using the same notation for stored patterns $\xi^\mu_i$, is
 
 $$
 \begin{align*}
-E_\text{DAM}(x) &= -\sum_{\mu=1}^K F_n\left(\sum_{i=1}^D \xi_{\mu i} x_i\right),\\
+E_\text{DAM}(\sigma) &= -\sum_{\mu=1}^K F_n\left(\sum_{i=1}^D \xi^\mu_i \sigma_i\right),\\
 \text{where}\;F_n(x) &= \begin{cases} \frac{x^n}{n} & \text{if } x \geq 0 \\ 0 & \text{if } x < 0 \end{cases}.
 \end{align*}
 $${#eq-dam-energy}
@@ -477,7 +468,7 @@ Fun fact, rectified polynomials remove the "inverted" retrieval phenomenon seen 
 
 $$
 \begin{align*}
-x_i^{(t+1)} &\leftarrow \text{sgn}\left( \sum_{\mu} \xi_{\mu i} f_n\left( \sum_{j \neq i} \xi_{\mu j} x_j^{(t)}\right)\right)\\
+\sigma_i^{(t+1)} &\leftarrow \text{sgn}\left( \sum_{\mu} \xi^\mu_i f_n\left( \sum_{j \neq i} \xi^\mu_j \sigma_j^{(t)}\right)\right)\\
 \end{align*}.
 $${#eq-dam-update}
 
@@ -497,8 +488,8 @@ class PolynomialDenseAM(BinaryAM):
         sims = sims.clip(0) if self.rectified else sims
         return 1 / self.n * sims ** self.n
 
-    def energy(self, x): 
-        return -jnp.sum(self.F_n(self.Xi @ x))
+    def energy(self, sigma): 
+        return -jnp.sum(self.F_n(self.Xi @ sigma))
 ```
 
 A simple change to using a polynomial of degree $6$ instead of the CHN's quadratic energy function allows us to store and retrieve our desired eevee even with up to $K=100$ patterns.
@@ -513,11 +504,11 @@ dam = PolynomialDenseAM(Xi, n=6, rectified=True)
 
 fname = f'dam_recovery_n_{dam.n}_K_{Xi.shape[0]}'
 
-x_og = Xi[0]
-x_noisy = flip_some_bits(jr.PRNGKey(0), x_og, 0.2)
-x_final, frames, energies = cached_recall(dam, fname, x_noisy, nsteps=20000, key=jr.PRNGKey(5))
+sigma_og = Xi[0]
+sigma_noisy = flip_some_bits(jr.PRNGKey(0), sigma_og, 0.2)
+sigma_final, frames, energies = cached_recall(dam, fname, sigma_noisy, nsteps=20000, key=jr.PRNGKey(5))
 
-fig2, axes2 = show_recall_output(x_og, x_noisy, x_final, energies, show_original=False)
+fig2, axes2 = show_recall_output(sigma_og, sigma_noisy, sigma_final, energies, show_original=False)
 fig2.suptitle(f"DenseAM(n={dam.n}, K={Xi.shape[0]})")
 plt.subplots_adjust(top=0.75)
 plt.show()
@@ -543,7 +534,7 @@ We'll implement an exponential version of the DenseAM [@demicirgil2017model]. Sp
 
 $$
 \begin{align*}
-E_\text{eDAM}(x) &= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi_{\mu i} x_i\right)
+E_\text{eDAM}(\sigma) &= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi^\mu_i \sigma_i\right)
 \end{align*}
 $${#eq-dam-energy-logsumexp}
 
@@ -554,8 +545,8 @@ class ExponentialDenseAM(BinaryAM):
     Xi: jax.Array # (K, D) Memory patterns 
     beta: float = 1.0 # Temperature parameter
 
-    def energy(self, x):
-        return -jax.nn.logsumexp(self.beta * self.Xi @ x, axis=-1)
+    def energy(self, sigma):
+        return -jax.nn.logsumexp(self.beta * self.Xi @ sigma, axis=-1)
 ```
 
 ```{python}
@@ -582,22 +573,22 @@ print(f"Storing {Xi.shape[0]} patterns")
 key1, key2 = jr.split(jr.PRNGKey(3))
 nh = nw = 10
 N = nh * nw # Sample N patterns to show in grid
-x_og = jnp.concatenate([
+sigma_og = jnp.concatenate([
     data[eevee_pichu_idxs], 
     jr.choice(jr.PRNGKey(10), data, shape=(N - len(eevee_pichu_idxs),), replace=False)])
-x_noisy = flip_some_bits(key2, x_og, 0.25)
+sigma_noisy = flip_some_bits(key2, sigma_og, 0.25)
 
 edam = ExponentialDenseAM(Xi, beta=50.)
 
 cache_name = "logsumexp_batched"
-keys = jr.split(key2, x_noisy.shape[0])
+keys = jr.split(key2, sigma_noisy.shape[0])
 npz_fname = Path(CACHE_DIR) / (cache_name + ".npz")
 if os.path.exists(npz_fname) and CACHE_RECALL:
     npz_data = np.load(npz_fname)
-    x_final, frames, energies = npz_data['x_final'], npz_data['frames'], npz_data['energies']
+    sigma_final, frames, energies = npz_data['sigma_final'], npz_data['frames'], npz_data['energies']
 else:
-    x_final, frames, energies = jax.vmap(ft.partial(cached_recall, nsteps=16000, save=False), in_axes=(None, None, 0,0))(edam, cache_name, x_noisy, keys)
-    np.savez(npz_fname, x_final=x_final, frames=frames, energies=energies)
+    sigma_final, frames, energies = jax.vmap(ft.partial(cached_recall, nsteps=16000, save=False), in_axes=(None, None, 0,0))(edam, cache_name, sigma_noisy, keys)
+    np.savez(npz_fname, sigma_final=sigma_final, frames=frames, energies=energies)
 ```
 
 And of course, what's the fun if we can't animate the retrieval process?
@@ -605,12 +596,12 @@ And of course, what's the fun if we can't animate the retrieval process?
 ```{python}
 #| echo: false
 #| output: asis
-def show_batched_recall_output(x_og, x_noisy, x_final, energies):
+def show_batched_recall_output(sigma_og, sigma_noisy, sigma_final, energies):
     fig, axes = plt.subplots(1, 2, figsize=(8, 4))
     
     # Show grids of images
-    show_im(x_noisy, axes[0]); axes[0].set_title("Noisy queries") 
-    show_im(x_final, axes[1]); axes[1].set_title("Retrieved patterns")
+    show_im(sigma_noisy, axes[0]); axes[0].set_title("Noisy queries") 
+    show_im(sigma_final, axes[1]); axes[1].set_title("Retrieved patterns")
     
     # Plot all energy curves
     for i in range(energies.shape[0]):
@@ -624,7 +615,7 @@ def show_batched_recall_output(x_og, x_noisy, x_final, energies):
     return fig, axes
 
 # Redundant
-# show_batched_recall_output(x_og, x_noisy, x_final, energies);
+# show_batched_recall_output(sigma_og, sigma_noisy, sigma_final, energies);
 # plt.show()
 
 def show_batched_recall_animation(frames, energies, cache_name, steps_per_sample=64):
