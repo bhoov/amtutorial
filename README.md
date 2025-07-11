@@ -67,18 +67,21 @@ cluttering the notebooks. An added benefit of this is that all
 dependencies needed to run these notebooks can be installed using
 `pip install amtutorial`.
 
-#### How this website is built
-
-[This website](tutorial.amemory.net) is built using an in-house fork of
-[`nbdev`](https://github.com/bhoov/nbdev/tree/qmd_support) that develops
-everything in this tutorial from source `.ipynb` or `.qmd` files saved
-in `nbs/`. The website, pypi package, and package documentation all come
-for free with `nbdev`. The in-house fork enables working with plain text
-`.qmd` files instead of `.ipynb` files. With the [right
-extensions](https://quarto.org/docs/tools/vscode/index.html) and
-[hotkeys](https://github.com/bhoov/nbdev/blob/qmd_support/nbs/tutorials/develop_in_plain_text.qmd),
-`.qmd` files are pleasant to develop inside VSCode and interop
-seamlessly with both git and AI tooling.
+> [!NOTE]
+>
+> ### How this website is built
+>
+> The [website](https://tutorial.amemory.net) is built using an in-house
+> fork of [`nbdev`](https://github.com/bhoov/nbdev/tree/qmd_support)
+> that develops everything in this tutorial from source `.ipynb` or
+> `.qmd` files saved in `nbs/`. The website, pypi package, and package
+> documentation all come for free with `nbdev`. The in-house fork
+> enables working with plain text `.qmd` files instead of `.ipynb`
+> files. With the [right
+> extensions](https://quarto.org/docs/tools/vscode/index.html) and
+> [hotkeys](https://github.com/bhoov/nbdev/blob/qmd_support/nbs/tutorials/develop_in_plain_text.qmd),
+> `.qmd` files are pleasant to develop inside VSCode and interop
+> seamlessly with both git and AI tooling.
 
 ## Installation
 
@@ -95,9 +98,9 @@ pip install amtutorial
 ```
 
 Then open up the .ipynb notebooks in `tutorial_ipynbs/` in your favorite
-notebook editor.
+notebook editor, using the same env where you installed `amtutorial`.
 
-### I want to develop examples on the website
+### I want to develop the website
 
 **Pre-requisites**
 

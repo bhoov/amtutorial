@@ -17,82 +17,7 @@ the trigonometric random features to develop an approximate energy
 the memories **Ξ** = {**ξ**<sup>*μ*</sup>, *μ* ∈ \[ \[*K*\] \]}, thus
 giving us a model *f*<sub>**T**</sub> of size *O*(*Y*).
 
-For further details on this work, please see the following publication:
-\> Hoover, B., Chau, D.H., Strobelt, H., Ram, P. and Krotov, D., 2023.
-**Dense Associative Memory Through the Lens of Random Features**.
-*Advances in Neural Information Processing Systems*.
-[\[paper\]](https://proceedings.neurips.cc/paper_files/paper/2024/file/29ff36c8fbed10819b2e50267862a52a-Paper-Conference.pdf)
-[\[GitHub\]](https://github.com/bhoov/distributed_DAM)
-
-``` python
-rng = jr.PRNGKey(779)
-ngenerators = 10
-rnglist = jr.split(rng, ngenerators)
-```
-
-    WARNING:2025-07-10 13:33:45,672:jax._src.xla_bridge:794: An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.
-
-``` python
-HMA = 0.8
-CMAP = 'coolwarm'
-CMAP = 'PiYG_r'
-TQDMCOLOR = 'MAGENTA'
-MCOLOR = 'xkcd:black'
-QCOLOR = 'xkcd:bright blue'
-AQCOLOR = 'xkcd:burnt orange'
-```
-
-``` python
-def plot_energy_landscape(
-    energies,
-    plt_ax,
-    bounds,
-    colormap=CMAP,
-    heatmap_alpha=HMA,
-):
-    assert energies.shape[0] == energies.shape[1]
-    plt_ax.imshow(
-        energies, extent=bounds,
-        origin='lower', cmap=colormap,
-        alpha=heatmap_alpha,
-    )
-    plt_ax.tick_params(
-        axis='both', which='both', 
-        top=False, bottom=False, 
-        labelbottom=False, 
-        labelleft=False, 
-        left=False, right=False
-    )
-```
-
-``` python
-def plot_states(
-    states,
-    plt_ax,
-    marker,
-    color,
-):
-    assert states.shape[1] == 2
-    plt_ax.scatter(
-        states[:, 0], states[:, 1],
-        marker=marker, color=color,
-    )
-```
-
-``` python
-def plot_energy_descent(
-    energies,
-    plt_ax,
-    color='xkcd:slate'
-):
-    plt_ax.plot(
-        np.arange(energies.shape[0]),
-        energies,
-        color=color
-    )
-    plt_ax.set_xlabel(r"$T$")
-    plt_ax.set_ylabel('Energy')
-```
+For further details on this work, please see Hoover et al. (2024).
 
 ## Exact Energy Function
 
@@ -101,9 +26,12 @@ Consider a set of memories
 **ξ**<sup>*μ*</sup> ∈ ℝ<sup>*D*</sup> is a vector in a *D*-dimensional
 Euclidean space. For a state vector **v** ∈ ℝ<sup>*D*</sup>, the
 commonly used *log-sum-exp* energy is given by
+<span id="eq-l2-lse-energy">
 $$
 E\_\beta( \mathbf{v}; \boldsymbol{\Xi} ) = - \frac{1}{\beta} \log \sum\_{\mu = 1}^K \exp \left(- \frac{\beta}{2} \left\Vert \mathbf{v} - \boldsymbol{\xi}^\mu \right \Vert^2 \right),
-$$
+ \qquad(1)$$
+</span>
+
 where *β* \> 0 is the *inverse-temperature* controlling the sharpness of
 the energy near the memories, with larger values of *β* implying sharper
 energy landscapes, while smaller values induce smoother ones.
@@ -129,13 +57,10 @@ def lse_energy(
 
 ### Visualizing the Energy in 2D
 
-``` python
-maxabs = 5
-xmin, xmax = ymin, ymax = -maxabs, maxabs
-nsteps = 50
-gpts = jnp.linspace(xmin, xmax, nsteps)
-V = jnp.array(jnp.meshgrid(gpts, gpts))
+First we randomly generate *K* = 8 memories
+**Ξ** = {**ξ**<sup>*μ*</sup>, *μ* = 1, …, 8} in *D* = 2 dimensions.
 
+``` python
 # Randomly generate memories in 
 # the selected domain
 rngidx = 0
@@ -145,6 +70,17 @@ Xi = jr.uniform(
     rnglist[rngidx], (K, D)
 ) * 2 * maxabs - maxabs
 ```
+
+Given this set **Ξ** of memories, we compute and visualize the 2D energy
+landscape defined by
+<a href="#eq-l2-lse-energy" class="quarto-xref">Equation 1</a> for
+varying values of the inverse-temperature
+*β* ∈ {10<sup>−2</sup>, 10<sup>−1</sup>, 1, 10}. We also highlight the
+*K* = 8 memories on these landscapes with the **⋆** symbol. We will also
+cache the energy landscapes for future visualizations.
+
+<details class="code-fold">
+<summary>Computing and visualizing the 2D energy landscape.</summary>
 
 ``` python
 betas = [0.01, 0.1, 1, 10]
@@ -156,7 +92,7 @@ fig, axs = plt.subplots(
     ),
     sharex=True, sharey=True
 )
-beta_en_map = {}
+beta_en_cache = {}
 for b, ax in tqdm(
     zip(betas, axs), total=len(betas),
     colour=TQDMCOLOR, ncols=50
@@ -169,7 +105,7 @@ for b, ax in tqdm(
         en[i,j] = lse_energy(
             V[:, i, j], Xi, b
         )
-    beta_en_map[b] = en
+    beta_en_cache[b] = en
     plot_energy_landscape(
         en, ax, np.array([
             xmin, xmax, ymin, ymax
@@ -184,9 +120,11 @@ for b, ax in tqdm(
 plt.show()
 ```
 
-    100%|███████████████| 4/4 [00:04<00:00,  1.05s/it]
+</details>
 
-![](03_distributed_memory_files/figure-commonmark/cell-9-output-2.png)
+    100%|███████████████| 4/4 [00:04<00:00,  1.10s/it]
+
+![](03_distributed_memory_files/figure-commonmark/cell-4-output-2.png)
 
 ### Minimizing the Energy via Gradient Descent
 
@@ -250,7 +188,17 @@ the energy gradient descent).
 In the following example, the number of DenseAM layers (equivalently,
 the number of energy descent steps) is set at *T* = 1000, and we use a
 step-size *α* = 0.01. We will plot the intermediate states at every
-`NUPDATES=25` layers.
+`NUPDATES=25` layers. We show results for three randomly generated
+queries, where the first row of the plot visualizes their intermediate
+states of these three queries during the energy descent with the
+$\textcolor{blue}{\bullet}$ symbol, while the next three rows visualize
+their respective energy descent through the *T* DenseAM layers. We will
+cache the intermediate states and energies of the exact energy descent
+for future visualizations.
+
+<details class="code-fold">
+<summary>Performing and visualizing the energy-descent for three
+randomly generated queries (initial states).</summary>
 
 ``` python
 NSTATES = 20
@@ -265,13 +213,13 @@ fig, axs = plt.subplots(
     ),
     sharex="row",
 )
-beta_true_states_en_map = {}
+beta_true_states_en_cache = {}
 for bidx, b in tqdm(
     enumerate(betas), total=len(betas),
     colour=TQDMCOLOR, ncols=50
 ):
     plot_energy_landscape(
-        beta_en_map[b], axs[0, bidx],
+        beta_en_cache[b], axs[0, bidx],
         np.array([xmin, xmax, ymin, ymax])
     )
     plot_states(
@@ -307,20 +255,26 @@ for bidx, b in tqdm(
             qens, axs[qidx+1, bidx],
             color=QCOLOR
         )
+        axs[qidx+1, bidx].set_title(
+            f"Query {qidx+1}"
+        )
         beta_cache += [(qstates, qens)]
-    beta_true_states_en_map[b] = beta_cache
+    beta_true_states_en_cache[b] = beta_cache
 fig.tight_layout()
 plt.show()
 ```
 
-    100%|███████████████| 4/4 [00:10<00:00,  2.73s/it]
+</details>
 
-![](03_distributed_memory_files/figure-commonmark/cell-11-output-2.png)
+    100%|███████████████| 4/4 [00:12<00:00,  3.08s/it]
+
+![](03_distributed_memory_files/figure-commonmark/cell-6-output-2.png)
 
 ## Viewing Energy as a Kernel Sum
 
-It is easy to see that the aforemention energy function can be viewed as
-a *kernel sum*. Specifying a kernel function
+It is easy to see that the aforemention energy function
+<a href="#eq-l2-lse-energy" class="quarto-xref">Equation 1</a> can be
+viewed as a *kernel sum*. Specifying a kernel function
 *κ* : ℝ<sup>*D*</sup> × ℝ<sup>*D*</sup> → ℝ such that
 $\kappa(\mathbf{x}, \mathbf{x}') = \exp(-\frac{1}{2} \Vert \mathbf{x} - \mathbf{x}' \Vert^2 )$,
 the *radial basis function* or RBF kernel, we can reduce the energy
@@ -335,19 +289,26 @@ compute this kernel sum, and thus the energy function.
 However, if there exists a feature map
 *Φ* : ℝ<sup>*D*</sup> → ℝ<sup>*Y*</sup>, such that, the dot-product in
 this feature space approximates the kernel function as follows:
+
 *κ*(**x**, **x**′) ≈ ⟨*Φ*(**x**), *Φ*(**x**′)⟩,
-then the kernel sum can be simplified as (dropping the *β* for now) In
-this case, we need to compute the vector **T** ∈ ℝ<sup>*Y*</sup> using
-all the *K* memories {**ξ**<sup>*μ*</sup>, *μ* ∈ \[ \[*K*\] \]} **just
-once**, and then use **T** for all subsequent kernel sum approximation
-without needing access to the original memories.
+
+then the kernel sum can be simplified as (dropping the *β* for now)
+
+In this case, we need to compute the vector – *the distributed memories*
+– **T** ∈ ℝ<sup>*Y*</sup> using all the *K* memories
+{**ξ**<sup>*μ*</sup>, *μ* ∈ \[ \[*K*\] \]} **just once**, and then use
+**T** for all subsequent kernel sum approximation without needing access
+to the original memories. Bringing the inverse-temperature *β* into
+this, we would instead need to utilize $\Phi(\sqrt{\beta}\mathbf{v})$,
+and compute the distributed memories as
+$\mathbf{T} = \sum\_\mu \Phi(\sqrt{\beta} \boldsymbol{\xi}^\mu)$.
 
 ### Examples of Random Features
 
 Various approximate feature maps have been developed for the RBF kernel.
-The first feature map proposed by Rahimi & Recht (2007) utilizes random
-features and trigonometric function. More recently, Choromanski et
-al. (2021) have proposed positive random features utilizing the
+The first feature map proposed by Rahimi and Recht (2007) utilizes
+random features and trigonometric function. More recently, Choromanski
+et al. (2020) have proposed positive random features utilizing the
 exponential function. Both these random features are presented below,
 where 𝒩(0, **I**<sub>*D*</sub>) is the *D*-dimensional multivariate
 isotropic standard normal distribution:
@@ -363,7 +324,7 @@ $$
   \sin \langle \boldsymbol{\omega}^Y, \mathbf{x} \rangle \\
 \end{array}\right\], 
 \qquad 
-\Phi(\mathbf{x}) = \frac{1}{\sqrt{Y}} \left\[ \begin{array}{c}
+\Phi(\mathbf{x}) = \frac{\exp(- \left\Vert \mathbf{x} \right\Vert^2)}{\sqrt{2Y}} \left\[ \begin{array}{c}
   \exp (+\langle \boldsymbol{\omega}^1, \mathbf{x} \rangle) \\
   \exp (-\langle \boldsymbol{\omega}^1, \mathbf{x} \rangle) \\
   \exp (+\langle \boldsymbol{\omega}^2, \mathbf{x} \rangle) \\
@@ -375,16 +336,6 @@ $$
 \quad
 \boldsymbol{\omega}^i \sim \mathcal{N}(0, \mathbf{I}\_D), i \in \[\\\[ Y \]\\\].
 $$
-
-> Rahimi A. and Recht B. 2007. **Random Features for Large-scale Kernel
-> Machines**. *Advances in Neural Information Processing Systems*.
-> [\[paper\]](https://proceedings.neurips.cc/paper/2007/file/013a006f03dbc5392effeb8f18fda755-Paper.pdf)
-> Choromanski K., Likhosherstov V., Dohan D., Song X., Gane A., Sarlos
-> T., Hawkins P., Davis J., Mohiuddin A., Kaiser L., Belanger D.,
-> Colwell, L. and Weller, A. 2021. **Rethinking Attention with
-> Performers**. *Proceedings of the International Conference on Learning
-> Representations*.
-> [\[paper\]](https://openreview.net/pdf?id=Ua6zuk0WRH)
 
 Note that both these random features generate 2*Y*-dimensional feature
 map *Φ*(**x**) ∈ ℝ<sup>2*Y*</sup> with *Y* random features
@@ -448,8 +399,12 @@ RF = jr.normal(rnglist[rngidx], (Y, D))
 phi_Xi = sin_cos_phi(Xi, RF, 1.0)
 ```
 
-Now we generate `NRANDS` random **x** ∈ ℝ<sup>*D*</sup> and compare
+Now we generate `NRANDS=100` random **x** ∈ ℝ<sup>*D*</sup> and compare
 their exact and approximate kernel values with the memories.
+
+<details class="code-fold">
+<summary>Computing and comparing exact and approximate
+random-feature-based kernel function values.</summary>
 
 ``` python
 rngidx = 9
@@ -493,22 +448,29 @@ fig.tight_layout()
 plt.show()
 ```
 
-    100%|███████████████| 4/4 [00:01<00:00,  3.78it/s]
+</details>
 
-![](03_distributed_memory_files/figure-commonmark/cell-15-output-2.png)
+    100%|███████████████| 4/4 [00:01<00:00,  3.82it/s]
+
+![](03_distributed_memory_files/figure-commonmark/cell-10-output-2.png)
 
 In the above figure, a good approximation would put all the points in
 the scatter plots on the diagonal. Based on these figures, we make the
 following observations with a fixed value of *D*, *Y*: - Small values of
 *β* push the RBF kernel values close to 1, and the random features do
-not approximate these values well. - As *β* grows, the approximation
+not approximate these values well, generally significantly
+underestimating the kernel values as all the points in the scatter plots
+concentrate in the lower corner. - As *β* grows, the approximation
 quality improves, with *β* = 1 producing really good approximation of
-the exact kernel values. - When *β* increases beyond a point, most
-pairwise RBF kernel values go close to zero, and approximation quality
-again falls.
+the exact kernel values. The true kernel values better span the range of
+\[0, 1\] and the random features produce high quality approximations. -
+When *β* increases beyond a point, most pairwise RBF kernel values go
+close to zero, and approximation quality again falls.
 
 Note that overall performance will continue to improve as the ratio
-*D*/*Y* decreases for any given value of *β*.
+*D*/*Y* decreases for any given value of *β*. But it is a known issue
+that the trigonometric random features do not approximate kernel values
+close to zero or close to one very well.
 
 #### Visualizing the Random Features
 
@@ -516,6 +478,10 @@ Here we visualize the first `NRFS=6` of the random features across the
 data domain for varying values of *β*. The use of the trigonometric
 function is visible through the periodic nature of these random
 features, where larger values of *β* lead to shorter periods.
+
+<details class="code-fold">
+<summary>Visualizing a subset of the random features over the input
+domain.</summary>
 
 ``` python
 NRFS = 6
@@ -556,17 +522,19 @@ for bidx, b in tqdm(
 plt.show()
 ```
 
-    100%|███████████████| 4/4 [00:00<00:00,  9.01it/s]
+</details>
 
-![](03_distributed_memory_files/figure-commonmark/cell-16-output-2.png)
+    100%|███████████████| 4/4 [00:00<00:00,  9.79it/s]
+
+![](03_distributed_memory_files/figure-commonmark/cell-11-output-2.png)
 
 ## Approximating the Energy with Random Features
 
 Given the random features *Φ* : ℝ<sup>*D*</sup> → ℝ<sup>2*Y*</sup>, we
-can approximate the energy as
+can approximate the energy as {#eq-l2-lse-rf-energy}
 
 We implement this approximate energy below using random features below
-given the {**ω**<sup>*i*</sup>, *i* ∈ \[ \[*Y*\] \]} and the aggregated
+given the {**ω**<sup>*i*</sup>, *i* ∈ \[ \[*Y*\] \]} and the distributed
 memories **T** ∈ ℝ<sup>2*Y*</sup>.
 
 ``` python
@@ -591,6 +559,16 @@ approximated with random features for varying values of *β* given the
 set of memories **Ξ**. For a given value of *β*, we first compute
 $\mathbf{T} = \sum\_{\mu=1}^K \Phi(\sqrt{\beta} \boldsymbol{\xi}^\mu )$,
 and the use it to compute the approximate energy landscape.
+
+The first row of the plots show the (cached) true energy landscape, and
+the second row shows the energy landscape induced by the approximate
+energy computed using the distributed memories. Note that we highlight
+the original memories in the first row of the plots with the true energy
+landscape.
+
+<details class="code-fold">
+<summary>Computing and visualizing the approximate energy landscape, and
+comparing it to the exact energy landscape.</summary>
 
 ``` python
 fig, axs = plt.subplots(
@@ -617,7 +595,7 @@ for bidx, b in tqdm(
         )
     # Plotting the exact and approx energy
     plot_energy_landscape(
-        beta_en_map[b], axs[0, bidx],
+        beta_en_cache[b], axs[0, bidx],
         np.array([xmin, xmax, ymin, ymax])
     )
     plot_states(
@@ -634,9 +612,11 @@ for bidx, b in tqdm(
 plt.show()
 ```
 
-    100%|███████████████| 4/4 [00:02<00:00,  1.95it/s]
+</details>
 
-![](03_distributed_memory_files/figure-commonmark/cell-18-output-2.png)
+    100%|███████████████| 4/4 [00:02<00:00,  1.65it/s]
+
+![](03_distributed_memory_files/figure-commonmark/cell-13-output-2.png)
 
 For small values of *β*, the exact and approximate energy landscapes
 appear visually similar. However, for larger values of *β*, the energy
@@ -644,7 +624,8 @@ landscapes start differing significantly, especially farther away from
 the memories. However, note how the approximate energy still forms a
 local minima around each of the original memories even though the actual
 basins of attraction of this approximate energy are significantly
-smaller.
+smaller. For *β* = 10, there are 8 local minima, matching the total
+number of *K* = 8 original memories.
 
 ### Approximate Energy Descent
 
@@ -664,10 +645,11 @@ output of this model. This output will be different than the output
 **v**<sup>(*T*)</sup> obtained using the exact energy gradient
 ∇<sub>**v**</sub>*E*<sub>*β*</sub>(**v**; **Ξ**).
 
-The gradient of the approximate energy does not require access to the
-original memories **Ξ**, and can be computed solely using the random
-features {**ω**<sup>*i*</sup>, *i* ∈ \[ \[*Y*\] \]} and the consolidated
-memories **T** ∈ ℝ<sup>2*Y*</sup>:
+The gradient of the approximate energy in **?@eq-l2-lse-rf-energy** does
+not require access to the original memories **Ξ**, and can be computed
+solely using the random features
+{**ω**<sup>*i*</sup>, *i* ∈ \[ \[*Y*\] \]} and the consolidated memories
+**T** ∈ ℝ<sup>2*Y*</sup>:
 $$
 \nabla\_{\mathbf{v}} \tilde{E}\_\beta ( \mathbf{v}; \mathbf{T} ) 
 = - \frac{1}{\beta} \nabla\_{\mathbf{v}} \log \left\langle \Phi(\mathbf{v}), \mathbf{T} \right\rangle
@@ -724,7 +706,19 @@ from earlier. We keep the step-size *α* and the number of DenseAM layers
 *T* the same as the exact energy descent with *α* = 0.01 and *T* = 1000.
 For each of the intermediate states obtained with this approximate
 energy descent, we compute the exact energy to check how it decreases
-through the DenseAM layers.
+through the distributed-memory DenseAM layers.
+
+We will use the cached energy landscapes and the cached intermediate
+states and energies for the exact energy descent to highlight the
+similarities and differences. The intermediate states for the three
+queries with exact energy descent will be shown with the
+$\textcolor{blue}{\bullet}$ symbol, while the intermediate states with
+the approximate random-features-based energy will be show with the
+$\textcolor{orange}{\bullet}$ symbol.
+
+<details class="code-fold">
+<summary>Performing and visualizing the exact & approximate
+energy-descent for three randomly generated queries.</summary>
 
 ``` python
 rngidx = 8
@@ -741,7 +735,7 @@ for bidx, b in tqdm(
 ):
     # using cached energy landscape
     plot_energy_landscape(
-        beta_en_map[b], axs[0, bidx],
+        beta_en_cache[b], axs[0, bidx],
         np.array([xmin, xmax, ymin, ymax])
     )
     plot_states(
@@ -773,7 +767,7 @@ for bidx, b in tqdm(
             qstates += [query]
             qens += [logs['energies']]
         # using cached exact descent stats
-        ex_qstates, ex_qens = beta_true_states_en_map[b][qidx]
+        ex_qstates, ex_qens = beta_true_states_en_cache[b][qidx]
         plot_states(
             ex_qstates, axs[0, bidx],
             marker='o', color=QCOLOR
@@ -781,6 +775,9 @@ for bidx, b in tqdm(
         plot_energy_descent(
             ex_qens, axs[qidx+1, bidx],
             color=QCOLOR
+        )
+        axs[qidx+1, bidx].set_title(
+            f"Query {qidx+1}"
         )
         qstates = np.array(qstates)
         plot_states(
@@ -799,18 +796,24 @@ fig.tight_layout()
 plt.show()
 ```
 
-    100%|███████████████| 4/4 [00:11<00:00,  2.82s/it]
+</details>
 
-![](03_distributed_memory_files/figure-commonmark/cell-20-output-2.png)
+    100%|███████████████| 4/4 [00:12<00:00,  3.07s/it]
+
+![](03_distributed_memory_files/figure-commonmark/cell-15-output-2.png)
 
 The above results show that, for small to moderately large *β*, with
 sufficiently large number of random features *Y*, the gradient of the
 random-feature based approximate energy matches the dynamics of the
-exact energy gradient. However, for large *β*, the gradient of the
-approximate energy is no longer able to reduce the energy of the initial
-state if the initial state happens to be quite far from all the
-memories, implying a large initial energy
-*E*<sub>*β*</sub>(**v**<sup>(0)</sup>; **Ξ**).
+exact energy gradient. See how the $\textcolor{orange}{\bullet}$ symbols
+for the approximate energy gradient are completely overlapping with
+$\textcolor{blue}{\bullet}$ symbol for the exact energy descent.
+However, for large *β*, the gradient of the approximate energy is no
+longer able to reduce the energy of the initial state if the initial
+state happens to be quite far from all the memories, implying a large
+initial energy *E*<sub>*β*</sub>(**v**<sup>(0)</sup>; **Ξ**). Note that
+one or the three queries is able to reduce its energy and match the
+exact energy descent.
 
 Our previous results showed that the random-feature based kernel
 approximation does not perform well if *β* is too small, or too large.
@@ -831,16 +834,20 @@ $$\left| \kappa(\mathbf{x}, \mathbf{x}') - \left\langle \Phi(\mathbf{x}) , \Phi(
 *C*<sub>2</sub> ∈ (0, 1)
 $$ \alpha \leq \frac{C_2}{T (1 + 2K \beta \exp(\beta/2))}.$$
 
-Then the divergence is bounded as:
+Then the divergence is bounded as (see Hoover et al. 2024, Corollary 1):
 $$
 \left\Vert f\_{\boldsymbol{\Xi}}(\mathbf{q}) - f\_{\mathbf{T}}(\mathbf{q}) \right\Vert
 = \left\Vert \mathbf{v}^{(T)} - \tilde{\mathbf{v}}^{(T)} \right\Vert 
 \leq \frac{C_1 C_2 \exp(E\_\beta(\mathbf{q}; \boldsymbol{\Xi}) - 1/2)}{\beta (1 - C_2)}
 $$
 
+We can also show a more general result without the restriction on the
+step-size *α* (see Hoover et al. 2024, Theorem 1).
+
 ### DrDAM class
 
-Finally, we can put this all together into a single class as follows.
+We can put together **D**istributed **r**epresentation **D**ense**AM**
+or **DrDAM** into a single class for convenience.
 
 ``` python
 class DrDAM:
@@ -930,7 +937,8 @@ class DrDAM:
 
 We will demonstrate the use of this class with *K* = 20 memories in
 *D* = 10 dimensions and *Y* = 10<sup>4</sup> random features. We will
-use the LSE energy with an inverse-temperature *β* = 10.
+use the LSE energy with an inverse-temperature *β* = 25 and create an
+instance of the `DrDAM` class.
 
 ``` python
 rngidx = 9
@@ -1044,7 +1052,11 @@ plt.tight_layout()
 plt.show()
 ```
 
-![](03_distributed_memory_files/figure-commonmark/cell-26-output-1.png)
+![](03_distributed_memory_files/figure-commonmark/cell-21-output-1.png)
+
+For 10 queries, we will perform the inference through a *T* = 10 layer
+DenseAM and compute and report the divergence between the exact energy
+descent model and the distributed memory DenseAM.
 
 ``` python
 for qidx in range(10):
@@ -1073,3 +1085,35 @@ for qidx in range(10):
     Initial state 8:  Initial energy: 0.1278, Divergence in the output: 0.0383
     Initial state 9:  Initial energy: 0.1082, Divergence in the output: 0.0325
     Initial state 10:  Initial energy: 0.1035, Divergence in the output: 0.0356
+
+<div id="refs" class="references csl-bib-body hanging-indent"
+entry-spacing="0">
+
+<div id="ref-choromanski2020rethinking" class="csl-entry">
+
+Choromanski, Krzysztof, Valerii Likhosherstov, David Dohan, Xingyou
+Song, Andreea Gane, Tamas Sarlos, Peter Hawkins, et al. 2020.
+“Rethinking Attention with Performers.” *Proceedings of ICLR*.
+<https://arxiv.org/pdf/2009.14794.pdf>.
+
+</div>
+
+<div id="ref-hoover2024dense" class="csl-entry">
+
+Hoover, Benjamin, Duen Horng Chau, Hendrik Strobelt, Parikshit Ram, and
+Dmitry Krotov. 2024. “Dense Associative Memory Through the Lens of
+Random Features.” In *The Thirty-Eighth Annual Conference on Neural
+Information Processing Systems*.
+<https://proceedings.neurips.cc/paper_files/paper/2024/file/29ff36c8fbed10819b2e50267862a52a-Paper-Conference.pdf>.
+
+</div>
+
+<div id="ref-rahimi2007random" class="csl-entry">
+
+Rahimi, Ali, and Benjamin Recht. 2007. “Random Features for Large-Scale
+Kernel Machines.” *Advances in Neural Information Processing Systems*.
+<https://proceedings.neurips.cc/paper/2007/file/013a006f03dbc5392effeb8f18fda755-Paper.pdf>.
+
+</div>
+
+</div>
