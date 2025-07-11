@@ -10,6 +10,10 @@
     .yellow { color:rgb(252, 211, 28); }
 </style>
 
+<a target="_blank" href="https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/01_energy_transformer.ipynb">
+<img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
+
 > Squint, and the Transformer looks like a dynamical system.
 
 At its core, the transformer is a stack of *L* transformer blocks that
@@ -527,11 +531,8 @@ print(patched_img.shape)
 
     (196, 3, 16, 16)
 
-    RuntimeWarning: invalid value encountered in cast
-      return im.astype(jnp.uint8)
-
 <img
-src="01_energy_transformer_files/figure-commonmark/cell-16-output-2.png"
+src="01_energy_transformer_files/figure-commonmark/cell-16-output-1.png"
 width="389" height="410" />
 
 `Patcher.unpatchify` gets us back to the original image.

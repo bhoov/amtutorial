@@ -56,11 +56,11 @@ To push a complete update to the website:
 ``` sh
 git checkout main
 
-# Update the website
+# Update the website. Takes a bit even with cached training runs
 make deploy && git add . && git commit -m "Update site" && git push
 
-# Push package to pypi
-# uv run python scripts/prep_pypi.py && nbdev_pypi # ONLY if `amtutorial/src` was updated
+# Push patch version to pypi (preferably, only if `amtutorials/src` was updated)
+make pypi && uv run nbdev_pypi
 ```
 
 The site will be live after a few minutes on github.

@@ -11,7 +11,6 @@ website:
         contents:
           - tutorial/00_dense_storage.ipynb
           - tutorial/01_energy_transformer.ipynb
-          - tutorial/02_diffusion_as_memory copy.ipynb
           - tutorial/02_diffusion_as_memory.ipynb
           - tutorial/03_distributed_memory.ipynb
         href: tutorial/index.ipynb
