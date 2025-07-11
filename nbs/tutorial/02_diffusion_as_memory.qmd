@@ -1,17 +1,16 @@
 # Memory and Diffusion
 > From Memorization to Generalization with Diffusion Models
 
-:::{.callout-warning}
-## 🚧 Under construction
-
-This notebook is under construction. It will be completed by July 14, 2025.
-:::
+<a target="_blank" href="https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/02_diffusion_as_memory.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
 
 This notebook is a simplified, step-by-step walkthrough of the 2D toy example from the paper: ["Memorization to Generalization: Emergence of Diffusion Models from Associative Memory"]((https://arxiv.org/abs/2505.21777)).
 
 We will train a score-based diffusion model on a small dataset of points lying on a circle. Our goal is to understand how the model learns the data distribution and to visualize its learned "energy landscape," which reveals how it behaves like an Associative Memory system initially to later transition into a generative model.
 
 For more details, please read the [paper](https://arxiv.org/abs/2505.21777) and the [code repository](https://github.com/Lemon-cmd/Diffusion-Models-and-Associative-Memory/tree/main).
+
 
 ```{python}
 #| code-fold: true
@@ -25,10 +24,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from tqdm.notebook import tqdm
 from itertools import cycle
-import os
-from IPython.display import display
-import PIL
-from pathlib import Path
+from PIL import Image
 
 from copy import deepcopy
 
@@ -38,6 +34,7 @@ import scipy.integrate as integrate # For ODE solving (likelihood calculation)
 
 # --- Scikit-learn for Clustering ---
 from sklearn.cluster import AgglomerativeClustering
+from mpl_toolkits.mplot3d import Axes3D
 
 # Set a nice plot style
 sns.set_theme(style="whitegrid")
@@ -45,23 +42,28 @@ sns.set_theme(style="whitegrid")
 # turn off warnings
 import warnings
 warnings.filterwarnings('ignore')
-from collections import OrderedDict
+from collections import OrderedDict#| 
+```
 
+
+```{python}
+#| code-fold: true
+#| code-summary: "Caching models"
 # For caching trained models
+from pathlib import Path
 CACHE_DIR = Path("./cache/02_diffusion_as_memory")
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 CACHE_MODELS = True
 ```
 
-## Synthetic Data
+## Data Generation and Visualization
 
 The paper uses a simple dataset: points sampled from the circumference of a unit circle. This helps us easily visualize how the model learns.
 
 We'll define a function to generate these points and a PyTorch `Dataset` class to handle them.
 
-
 ```{python}
-def generate_circle_data(num_samples=50000, radius=1, seed=59):
+def generate_circle_data(num_samples=60_000, radius=1, seed=59):
     """Generates data points that lie on a unit circle."""
     np.random.seed(seed)
     # Sample angles uniformly from 0 to 2*pi
@@ -74,7 +76,7 @@ def generate_circle_data(num_samples=50000, radius=1, seed=59):
 
 class CircleDataset(Dataset):
     """A PyTorch Dataset to wrap our circle data."""
-    def __init__(self, num_samples=50000, radius=1, seed=9):
+    def __init__(self, num_samples=60_000, radius=1, seed=9):
         # Generate and store the data as a torch tensor
         self.data = torch.from_numpy(generate_circle_data(num_samples, radius, seed)).float()
 
@@ -94,17 +96,11 @@ def create_subset(dataset, sample_size, seed=42):
         dataset, [sample_size, max_size - sample_size], generator=generator
     )
     return subset
-
-def prepare_datasets(sample_size, train_size=60000, test_size=10000, seed=9):
-    dataset = CircleDataset(num_samples=train_size, seed=seed)
-    test_dataset = CircleDataset(num_samples=test_size, seed=seed)
-    train_subset = create_subset(dataset, sample_size)
-    test_subset = create_subset(test_dataset, sample_size)
-    return train_subset, test_subset
 ```
 
-Diffusion models can learn from very few samples. In the paper, this is referred to as memorizing "patterns". Let's create a tiny dataset with just 9 data points (patterns) to train on.
+### Creating a Small Training Set
 
+Diffusion models can learn from very few samples. In the paper, this is referred to as memorizing "patterns". Let's create a tiny dataset with just 9 data points (patterns) to train on.
 
 ```{python}
 # --- Configuration ---
@@ -112,8 +108,11 @@ SAMPLE_SIZE = 9 # The number of data points (patterns) to memorize
 BATCH_SIZE = min(500, SAMPLE_SIZE)  # Use all data points in each batch
 SEED = 9       # For reproducibility
 
-# Create the full dataset
-train_subset, _ = prepare_datasets(SAMPLE_SIZE, seed=SEED)
+# Create Dataset
+dataset = CircleDataset(60_000, seed=SEED)
+
+# Split Dataset
+train_subset = create_subset(dataset, SAMPLE_SIZE, SEED)
 
 # Create a DataLoader
 train_loader = DataLoader(train_subset, batch_size=BATCH_SIZE, shuffle=True)
@@ -123,7 +122,6 @@ patterns = train_subset.dataset[train_subset.indices]
 ```
 
 Let's plot our small dataset. These are the specific points we want our model to learn and remember.
-
 
 ```{python}
 #| echo: false
@@ -152,7 +150,8 @@ def plot_circle_data(data, radius=1, figsize=(6, 6)):
 plot_circle_data(patterns.numpy())
 ```
 
-## The Diffusion Architecture
+## The Diffusion Model
+
 
 The diffusion model is simply a model $s_\theta(\mathbf{x}_t, t)$ which approximates the `score` function:
 $$
@@ -170,7 +169,6 @@ $$
 $$
 where $g(t) = \sigma$ is the `diffusion coefficient` and $\mathbf{w}_t$ is `brownian motion`.
 
-
 ```{python}
 class VESDETerms:
     """Defines the terms for the Variance Exploding SDE."""
@@ -187,10 +185,14 @@ class VESDETerms:
         return self.sigma * torch.ones_like(t)
 ```
 
+### ScoreNet Architecture
+
 Our score network is a simple Multi-Layer Perceptron (`MLP`). It takes a noisy data point `x` and a time step `t` as inputs, and returns the `estimated score`. The conditioning on time step `t` is performed via the `Fourier embedding`, a standard method of time conditioning in diffusion models.
 
-
 ```{python}
+#| code-fold: true
+#| code-summary: "PyTorch ScoreNet"
+#| 
 @torch.no_grad()
 def update_ema(ema_model, model, decay=0.9999):
     """
@@ -282,12 +284,14 @@ where $\mathbf{x}_0$ denotes the clean data point and $\mathbf{x}_t$ is the pert
 
 For example, assume $\tilde{\mathbf{x}} \sim \mathcal{N} (\tilde{\mathbf{x}} | \mathbf{x}, \sigma^2 \mathbf{I})$ for the simple case of `DSM`. We have the following:
 $$
-\nabla_{\tilde{\mathbf{x}}} \log p(\tilde{\mathbf{x}} | \mathbf{x}) = \nabla_\tilde{\mathbf{x}} \bigg ( -\frac{1}{2\sigma^2} (\tilde{\mathbf{x}} - \mathbf{x})^2 \bigg ) = -\frac{\tilde{\mathbf{x}} - \mathbf{x}}{\sigma^2} = -\frac{\epsilon}{\sigma}
+\nabla_{\tilde{\mathbf{x}}} \log p(\tilde{\mathbf{x}} | \mathbf{x}) = \nabla_\tilde{\mathbf{x}} \bigg ( -\frac{1}{2\sigma^2} (\tilde{\mathbf{x}} - \mathbf{x})^2 \bigg ) = -\frac{\tilde{\mathbf{x}} - \mathbf{x}}{\sigma^2} = -\frac{\mathbf{z}}{\sigma}
 $$
-as the score function, which we have to learn for a single timestep of denoising. In the case of diffusion, our mean $\mu_\theta (\mathbf{x}_t, t)$ is conditioned by time, where $\mu_\theta (\mathbf{x}_0, 0) = \mathbf{x}$ at `t = 0` when we are back at the data distribution.
-
+as the score function, which we have to learn for a single timestep of denoising. $\mathbf{z} \sim \mathcal{N}(0, \mathbf{I})$.
 
 ```{python}
+#| code-fold: true
+#| code-summary: "Training Loop and Loss Function"
+
 def loss_fn(model, x, marginal_prob_std, eps=1e-5):
     """The denoising score matching loss function."""
     # Sample a random time t
@@ -300,27 +304,22 @@ def loss_fn(model, x, marginal_prob_std, eps=1e-5):
     # Create the noisy data point
     perturbed_x = x + z * std
 
-    # Get the model's score prediction
+    # Get the model's score prediction: -z / 𝜎
     score = model(perturbed_x, random_t)
 
     # Calculate the loss
-    #loss = torch.mean(torch.sum((score * std + z)**2, dim=1))
     loss = torch.mean(torch.square(score * std + z))
     return loss
-```
 
-
-```{python}
 def train_loop(train_loader, vesde, iterations=100_000, lr=1e-4, device='cuda', log_freq=10_000):
     # create our score model
-    score_model = ScoreNet(
-        marginal_prob_std=vesde.marginal_prob_std
-    )
+    score_model = ScoreNet(marginal_prob_std=vesde.marginal_prob_std)
 
     # create an exponential moving average version of the model
     ema = deepcopy(score_model).to(device)
     score_model = score_model.to(device)
 
+    # create optimizer
     optimizer = torch.optim.Adam(score_model.parameters(), lr=lr)
 
     # Use an infinite data loader to cycle through our small dataset
@@ -338,12 +337,12 @@ def train_loop(train_loader, vesde, iterations=100_000, lr=1e-4, device='cuda', 
         loss = loss_fn(score_model, x, vesde.marginal_prob_std)
         running_loss += loss.item()
 
-        # Optimize
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
 
-        update_ema(ema, score_model) # udpate ema
+        # udpate ema
+        update_ema(ema, score_model)
 
         # Log progress
         if iteration % log_freq == 0 and iteration > 0:
@@ -389,21 +388,19 @@ ema_set, pattern_set = [], [] # store our ema models and training patterns into 
 for sample_size in data_sizes:
     ema = None        
     cache_name = make_cache_name(sample_size, SEED, LR, SIGMA_MAX, ITERATIONS)
+    # Extract the training data points for visualization
+    batch_size = min(500, sample_size)  # Use all data points in each batch
+    train_subset = create_subset(dataset, sample_size, SEED)
+    train_loader = DataLoader(train_subset, batch_size=batch_size, shuffle=True)
+
     if CACHE_MODELS:
         ema = get_ema_model(cache_name)
     if ema is None or not CACHE_MODELS: 
         # Train the model if no cache exists
-        batch_size = min(500, sample_size)  # Use all data points in each batch
-        train_subset, _ = prepare_datasets(sample_size, seed=SEED)
-        train_loader = DataLoader(train_subset, batch_size=batch_size, shuffle=True)
-
-        # ensure the initialization of our model remains the same
         torch.manual_seed(SEED)
         ema = train_loop(train_loader, vesde, ITERATIONS, LR, device=device)
         torch.save(ema.state_dict(), CACHE_DIR / f"{cache_name}")
         
-        
-    # Extract the training data points for visualization
     patterns = train_subset.dataset[train_subset.indices]
     pattern_set.append(patterns)
     ema_set.append(ema)
@@ -411,10 +408,13 @@ for sample_size in data_sizes:
 
 ## Sampling from the Trained Model
 
-To generate new samples, we run the diffusion process in reverse. We start with pure random noise (sampled at `t=1`) and use our trained score model to guide it back towards the data distribution (towards `t=0`). This is done using a numerical SDE solver, like the Euler-Maruyama method.
+To generate new samples, we run the diffusion process in reverse. We start with pure random noise (sampled at `t=1`) and use our trained score model to guide it back towards the data distribution (towards `t=0`). This is done using a numerical SDE solver, like the [Euler-Maruyama method](https://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method).
 
 
 ```{python}
+#| code-fold: true
+#| code-summary: "Euler-Maruyama Sampler"
+
 def Euler_Maruyama_sampler(score_model,
                            sde,
                            batch_size=64,
@@ -451,15 +451,17 @@ def Euler_Maruyama_sampler(score_model,
 We can now sample from the trained models.
 
 ```{python}
+#| code-fold: true
+#| code-summary: "Sampling from the Trained Models"
 generated_set = []
 
 for ema in ema_set:
-    generated_samples = Euler_Maruyama_sampler(ema, vesde, batch_size=1_000, device=device)
+    generated_samples = Euler_Maruyama_sampler(ema, vesde, batch_size=1_500, device=device)
     generated_samples = generated_samples.detach().cpu().numpy()
     generated_set.append(generated_samples)
 ```
 
-### Compute the Potential Energy of Generated vs. Data Samples
+## Potential Energy of Generated and Data Samples
 
 Recall the relationship between energy and probability denoted by the `Boltzmann distribution`:
 $$
@@ -496,18 +498,32 @@ $$
 
 
 ```{python}
-# Compute Laplacian and Log-Likelihood
+#| code-fold: true
+#| code-summary: "Computing the Laplacian and Log-Likelihood"
+# @title Code to Compute Laplacian and Log-Likelihood
 def compute_laplacian(score_fn, x, t):
-    """Compute the Laplacian of the score function."""
-    laplacian = torch.zeros(x.size(0), device=x.device)
-    with torch.enable_grad():
-        x.requires_grad_(True)
-        score = score_fn(x, t)
-        for i in range(x.shape[1]):
-            grad_score_i = torch.autograd.grad(score[:, i].sum(), x, create_graph=True)[0][:, i]
-            laplacian += grad_score_i
-    x.requires_grad_(False)
-    return laplacian.detach()
+    """
+    Compute the Laplacian of the score function using torch.func utilities.
+    This is a more efficient, vectorized alternative to the loop-based approach.
+    """
+
+    def get_laplacian_for_single_sample(x_sample, t_sample):
+        """
+        A helper function that computes the Laplacian for one sample.
+        This is the function we will vectorize using vmap (like Jax).
+        """
+        # We have to unsqueeze since torch module requires a batch dim.
+        f = lambda x_inp: score_fn(x_inp[None], t_sample[None]).squeeze(0)
+
+        # Compute the Jacobian of the score function w.r.t. x.
+        # This gives a D x D matrix where D is the dimension of x.
+        J = torch.func.jacrev(f)(x_sample)
+
+        # The Laplacian is the trace of the Jacobian matrix (sum of its diagonal).
+        return torch.trace(J)
+
+    # Apply vmap over the first dimension for both inputs
+    return torch.func.vmap(get_laplacian_for_single_sample, in_dims=(0, 0))(x, t)
 
 
 def ode_likelihood_with_laplacian(x, score_model, sde, device='cuda', eps=1e-5):
@@ -558,6 +574,7 @@ def ode_likelihood_with_laplacian(x, score_model, sde, device='cuda', eps=1e-5):
 
 ### Visualizing the Energy
 
+
 Since we are generating quite a lot of synthetic data points, we use `hierarchical clustering` to get a sense of where the concentrations of these new points are at. To be more informative, we are also displaying the energy profile of these concentrations alongside that of the training data points.
 
 At `K = 2`, we can see that the concentrations of generated points are pretty much surrounding the data points and their energy profile are similar to that of the training data points.
@@ -566,8 +583,11 @@ Meanwhile, at `K = 9`, we now see local minima of the energy that devitate drast
 
 Finally, when `K = 1000`, the energy now very closely matches that of the DenseAM's derived `exact energy`, see below.
 
-
 ```{python}
+#| code-fold: true
+#| code-summary: "Plot Functions for Energy Landscape in 2D and 3D"
+# @title Plot Functions for Energy Landscape in 2D and 3D
+
 def to_energy(loglikelihood, normalize=True):
     # nll = E + C
     energy = -loglikelihood
@@ -577,7 +597,7 @@ def to_energy(loglikelihood, normalize=True):
     return energy
 
 
-def plot_combined_landscape(fig, ax, score_model, sde, patterns, samples, labels, centers, t_eval=1e-5, device='cpu', annotate=True):
+def plot_combined_landscape(fig, ax, score_model, sde, patterns, samples, labels, centers, t_eval=1e-5, device='cpu', annotate=True, quiver_stride=10):
     """Visualize the energy landscape with annotated points."""
     score_model.eval()
 
@@ -608,8 +628,7 @@ def plot_combined_landscape(fig, ax, score_model, sde, patterns, samples, labels
         scores = score_model(grid_tensor, vec_t).cpu().numpy()
 
     # 4. Create the comprehensive plot
-    #fig, ax = plt.subplots(1, 1, figsize=(12, 8))
-    ax.set_title(f'K = {len(patterns)}', fontsize=16)
+    ax.set_title(f'K = {len(patterns)}', fontsize=7.5, pad=-0.025)
     ax.set_aspect('equal'); ax.grid(False)
 
     # Plot energy contour
@@ -620,37 +639,38 @@ def plot_combined_landscape(fig, ax, score_model, sde, patterns, samples, labels
     ax.plot(np.cos(theta), np.sin(theta), color='white', linestyle='--', alpha=0.6, zorder=1, label='Unit Circle')
 
     # Plot score field
-    ax.quiver(grid_tensor[:, 0].cpu(), grid_tensor[:, 1].cpu(),
-              scores[:, 0], scores[:, 1], color='white', alpha=0.5,
-              width=0.003, headwidth=3, zorder=2)
+    ax.quiver(grid_tensor[:, 0].cpu()[::quiver_stride], grid_tensor[:, 1].cpu()[::quiver_stride],
+              scores[:, 0][::quiver_stride], scores[:, 1][::quiver_stride], color='white', alpha=0.5,
+              width=0.005, headwidth=3, zorder=2)
 
     # Plot original patterns
     ax.scatter(patterns[:, 0].cpu(), patterns[:, 1].cpu(), marker="*", alpha=0.75,
-               s=400, color="deeppink", label="Original Patterns", edgecolor='black', zorder=5)
+               s=100, color="deeppink", label="Original Patterns", edgecolor='black', zorder=5)
 
     if annotate: # turn off annotation and plotting center since there are too many patterns at this point
         # Plot generated samples
         ax.scatter(samples[:, 0], samples[:, 1], c=labels, cmap='viridis',
-                   s=15, alpha=0.2, zorder=3, label='Generated Samples')
+                   s=7.5, alpha=0.2, zorder=3, label='Generated Samples')
 
         # Plot found cluster centers
-        ax.scatter(centers[:, 0], centers[:, 1], marker='X', s=250,
+        ax.scatter(centers[:, 0], centers[:, 1], marker='X', s=40,
                     color='aqua', edgecolor='black', zorder=4, label='Cluster Centers')
 
         # Add energy annotations for patterns
         for i, p in enumerate(patterns.cpu().numpy()):
             ax.annotate(f'{energy_patterns[i]:.2f}', (p[0], p[1]),
-                        xytext=(15, -15), textcoords='offset points', color='deeppink', fontsize=10,
+                        xytext=(10, 0), textcoords='offset points', color='deeppink', fontsize=4,
                         weight='bold', bbox=dict(boxstyle="round,pad=0.2", fc="black", ec="lime", lw=1, alpha=0.6))
 
         # Add energy annotations for cluster centers
         for i, c in enumerate(centers):
             ax.annotate(f'{energy_centers[i]:.2f}', (c[0], c[1]),
-                        xytext=(-20, 15), textcoords='offset points', color='aqua', fontsize=10,
+                        xytext=(-15, 0), textcoords='offset points', color='aqua', fontsize=4,
                         weight='bold', bbox=dict(boxstyle="round,pad=0.2", fc="black", ec="yellow", lw=1, alpha=0.6))
 
-    ax.set_xlabel('x'); ax.set_ylabel('y')
-    ax.set_xlim(bounds); ax.set_ylim(bounds)
+    #ax.set_xlabel('x', fontsize=5.5); ax.set_ylabel('y', fontsize=5.5);
+    ax.set_xticks([]); ax.set_yticks([]);
+    ax.set_xlim(bounds); ax.set_ylim(bounds);
     return contour
 
 
@@ -669,9 +689,10 @@ def plot_energy_surface_3d(fig, ax, X, Y, energy, view_angle=(60, -60), title=No
                               linewidth=0, antialiased=True, alpha=0.9)
 
     # Set labels and title
-    ax.set_xlabel('x', fontsize=12)
-    ax.set_ylabel('y', fontsize=12)
-    ax.set_title(title, fontsize=18)
+    ax.set_xlabel('x', fontsize=5, labelpad=-18)
+    ax.set_ylabel('y', fontsize=5, labelpad=-18)
+    ax.set_zlabel('Energy', fontsize=5, labelpad=-18, rotation=-90)
+    ax.set_title(title, fontsize=7.5, y=-0.08)
 
     ax.set_xticks([])
     ax.set_yticks([])
@@ -682,16 +703,16 @@ def plot_energy_surface_3d(fig, ax, X, Y, energy, view_angle=(60, -60), title=No
     return surface
 ```
 
-
 ```{python}
+#| echo: false
 # @title Visualization of the Energy Landscape Across K training Sizes in 2D
 # This threshold determines how close points need to be to be considered in the same cluster.
 # You may need to tune this value based on your results.
 dist_thresholds = [3, 2, 0.45]
 annotates = [True, True, False]
-t_evals = [0.15] * len(dist_thresholds)
+t_evals = [0.15] * len(dist_thresholds) # evaluate potentials at eps = 0.15
 
-fig, axs = plt.subplots(1, 3, figsize=(18, 8), constrained_layout=True)
+fig, axs = plt.subplots(1, 3, figsize=(8, 8), constrained_layout=True)
 for i, (patterns, generated_samples, ema, threshold, t_eval, annotate) in enumerate(zip(pattern_set, generated_set, ema_set, dist_thresholds, t_evals, annotates)):
     # Perform Agglomerative (Hierarchical) Clustering
     clustering = AgglomerativeClustering(
@@ -702,7 +723,6 @@ for i, (patterns, generated_samples, ema, threshold, t_eval, annotate) in enumer
     # Find the center of each identified cluster
     cluster_labels = clustering.labels_
     n_clusters_found = len(np.unique(cluster_labels))
-    #print(f"Found {n_clusters_found} clusters!")
 
     cluster_centers = np.array([
         generated_samples[cluster_labels == i].mean(axis=0)
@@ -722,19 +742,72 @@ for i, (patterns, generated_samples, ema, threshold, t_eval, annotate) in enumer
         annotate=annotate,
     )
 
-axs[0].legend(loc='lower left', fontsize=12)
+axs[0].legend(loc='lower left', fontsize=4)
+
 # Set the ticks to only be at the min and max
-cbar = fig.colorbar(contour, ax=axs[-1], label='Energy (Lower is Better)', shrink=0.8)
+cbar = fig.colorbar(contour, ax=axs[-1], shrink=0.3)
+cbar.set_label('Energy (Lower is Better)', fontsize=8, labelpad=-10)
 vmin, vmax = contour.get_clim()
 cbar.set_ticks([vmin, vmax])
-cbar.set_ticklabels(['Low', 'High'], fontsize=14)
-plt.show()
+cbar.set_ticklabels(['Low', 'High'], fontsize=7.5)
 plt.show()
 ```
 
 
 ```{python}
-# @title Visualization of the Energy Landscape Across K training Sizes in 3D
+#| code-fold: true
+#| code-summary: "Visualization of the Energy Landscape Across K training Sizes in 2D"
+# This threshold determines how close points need to be to be considered in the same cluster.
+# You may need to tune this value based on your results.
+dist_thresholds = [3, 2, 0.45]
+annotates = [True, True, False]
+t_evals = [0.15] * len(dist_thresholds) # evaluate potentials at eps = 0.15
+
+fig, axs = plt.subplots(1, 3, figsize=(8, 8), constrained_layout=True)
+for i, (patterns, generated_samples, ema, threshold, t_eval, annotate) in enumerate(zip(pattern_set, generated_set, ema_set, dist_thresholds, t_evals, annotates)):
+    # Perform Agglomerative (Hierarchical) Clustering
+    clustering = AgglomerativeClustering(
+        n_clusters=None,                                      # We let the algorithm find the clusters based on the threshold
+        distance_threshold=threshold
+    ).fit(generated_samples)
+
+    # Find the center of each identified cluster
+    cluster_labels = clustering.labels_
+    n_clusters_found = len(np.unique(cluster_labels))
+
+    cluster_centers = np.array([
+        generated_samples[cluster_labels == i].mean(axis=0)
+        for i in range(n_clusters_found)
+    ])
+
+    contour = plot_combined_landscape(
+        fig, axs[i],
+        ema,
+        vesde,
+        patterns,
+        generated_samples,
+        cluster_labels,
+        cluster_centers,
+        device=device,
+        t_eval=t_eval,
+        annotate=annotate,
+    )
+
+axs[0].legend(loc='lower left', fontsize=4)
+
+# Set the ticks to only be at the min and max
+cbar = fig.colorbar(contour, ax=axs[-1], shrink=0.3)
+cbar.set_label('Energy (Lower is Better)', fontsize=8, labelpad=-10)
+vmin, vmax = contour.get_clim()
+cbar.set_ticks([vmin, vmax])
+cbar.set_ticklabels(['Low', 'High'], fontsize=7.5)
+plt.show()
+```
+
+
+```{python}
+#| code-fold: true
+#| code-summary: "Visualization of the Energy Landscape Across K training Sizes in 3D"
 # This code is slow to run, so we cache the figure
 CACHE_FIG = True
 
@@ -749,29 +822,37 @@ grid_tensor = torch.stack([X_grid.ravel(), Y_grid.ravel()], dim=1).to(device)
 
 fig_fname = CACHE_DIR / "slow_fig.png"
 if CACHE_FIG and fig_fname.exists():
-    img = PIL.Image.open(str(fig_fname))
+    img = Image.open(str(fig_fname))
     display(img)
 else:
-    # 1. Create a grid of points (same as before)
+    fig, axs = plt.subplots(1, 3, figsize=(8, 8), constrained_layout=True, subplot_kw={"projection": "3d"})
 
-    # Make Figure
-    fig, axs = plt.subplots(1, 3, figsize=(20, 8), constrained_layout=True, subplot_kw={"projection": "3d"})
-
-    for i, (patterns, score_model) in enumerate(zip(pattern_set, ema_set)):
-        # 2. Calculate the energy for the grid (this is the slow step)
-        logp_grid = ode_likelihood_with_laplacian(grid_tensor, score_model, vesde, device=device, eps=0.05)
+    for i, (patterns, score_model, annotate, eps) in enumerate(zip(pattern_set, ema_set, annotates, t_evals)):
+        # Calculate the energy for the grid (this is the slow step)
+        logp_grid = ode_likelihood_with_laplacian(grid_tensor, score_model, vesde, device=device, eps=eps)
         energy_grid = to_energy(logp_grid).cpu().numpy()
         energy_grid = energy_grid.reshape(resolution, resolution)
 
-        # 3. Create the plot
+        # Create the plot
         contour = plot_energy_surface_3d(fig, axs[i], X_grid.cpu().numpy(), Y_grid.cpu().numpy(), energy_grid, title=f'K = {len(patterns)}')
 
+        # show the data points again...
+        if annotate:
+            axs[i].scatter(
+                patterns[:, 0].cpu(), patterns[:, 1].cpu(), marker="*", alpha=0.75,
+                s=35, color="deeppink", label="Original Patterns", edgecolor='black', zorder=5
+            )
+
     # Set the ticks to only be at the min and max
-    cbar = fig.colorbar(contour, ax=axs[-1], label='Energy (Lower is Better)', shrink=0.75, pad=0.25)
+    cbar = fig.colorbar(contour, ax=axs[-1], shrink=0.25)
+    cbar.set_label('Energy (Lower is Better)', fontsize=8, labelpad=-15)
+
     vmin, vmax = contour.get_clim()
     cbar.set_ticks([vmin, vmax])
-    cbar.set_ticklabels(['Low', 'High'], fontsize=14)
+
+    cbar.set_ticklabels(['Low', 'High'], fontsize=7)
     plt.savefig(fig_fname)
+
 plt.show()
 ```
 
@@ -781,7 +862,7 @@ Consider the typical `DenseAM`'s energy function which involves the `logsumexp` 
 $$
 E^\text{AM}(\mathbf{x}) = -\beta^{-1} \log \bigg[\sum\limits_{\mu=1}^K \exp\Big(- \beta \lVert \mathbf{x} - \boldsymbol{\xi}^\mu \rVert^2_2\Big) \bigg]
 $$
-which is related to the energy of the diffusion model, derived in [our work](https://arxiv.org/abs/2505.21777):
+which is related to the energy of the diffusion model, derived in our [work](https://arxiv.org/abs/2505.21777):
 $$
 E^\text{DM}(\mathbf{x}_t, t) = -2 \sigma^2 t \log\bigg[\sum\limits_{\mu=1}^K \exp \Big(- \frac{\lVert \mathbf{x}_t - \boldsymbol{\xi}^\mu \rVert^2_2}{2 \sigma^2 t}\Big) \bigg]
 $$
@@ -816,8 +897,9 @@ $$
 given the polar angle $\phi$.
 
 
+## The Empirical Energy and Score Function for the Toy Model
+
 ```{python}
-# @title The Empirical Energy and Score Function for the Toy Model
 def cartesian_to_polar(samples):
     x, y = samples[:, 0], samples[:, 1]
     r = np.sqrt(x ** 2 + y ** 2)
@@ -870,10 +952,10 @@ scores = score_am(grid_square, beta)
 energy = energy_am(grid_square, beta)
 energy_grid = energy.reshape(resolution, resolution)
 
-fig = plt.figure(figsize=(15, 8), constrained_layout=True)
+fig = plt.figure(figsize=(8, 8), constrained_layout=True)
 
 ax = fig.add_subplot(121)
-ax.set_title('Exact', fontsize=16)
+ax.set_title('Exact', fontsize=8, y=-0.1)
 ax.set_aspect('equal'); ax.grid(False)
 
 # Plot energy contour
@@ -883,20 +965,25 @@ contour = ax.contourf(X_grid.cpu(), Y_grid.cpu(), energy_grid, levels=100, cmap=
 theta = np.linspace(0, 2 * np.pi, 200)
 ax.plot(np.cos(theta), np.sin(theta), color='white', linestyle='--', alpha=0.6, zorder=1, label='Unit Circle')
 
-# Plot score field
-ax.quiver(grid_square[:, 0].cpu(), grid_square[:, 1].cpu(),
-          scores[:, 0], scores[:, 1], color='white', alpha=0.5,
-          width=0.003, headwidth=3, zorder=2)
 
-ax.set_xlabel('x', fontsize=12)
-ax.set_ylabel('y', fontsize=12)
+stride = 5
+# Plot score field
+ax.quiver(grid_square[:, 0].cpu()[::stride], grid_square[:, 1].cpu()[::stride],
+          scores[:, 0][::stride], scores[:, 1][::stride], color='white', alpha=0.5,
+          width=0.002, headwidth=3, zorder=2)
+
+ax.set_xlabel('x', fontsize=5)
+ax.set_ylabel('y', fontsize=5)
+ax.set_xticks([]); ax.set_yticks([]);
 
 ax = fig.add_subplot(122, projection="3d")
-plot_energy_surface_3d(fig, ax, X_grid, Y_grid, energy_grid, view_angle=(60, -60), title='Exact')
+contour = plot_energy_surface_3d(fig, ax, X_grid, Y_grid, energy_grid, view_angle=(60, -60), title='Exact')
 
-cbar = fig.colorbar(contour, ax=ax, label='Energy (Lower is Better)', shrink=0.8, pad=0.08)
+cbar = fig.colorbar(contour, ax=ax, shrink=0.5)
+cbar.set_label('Energy (Lower is Better)', fontsize=10, labelpad=-18)
+
 vmin, vmax = contour.get_clim()
 cbar.set_ticks([vmin, vmax])
-cbar.set_ticklabels(['Low', 'High'], fontsize=14)
+cbar.set_ticklabels(['Low', 'High'], fontsize=10)
 plt.show()
 ```

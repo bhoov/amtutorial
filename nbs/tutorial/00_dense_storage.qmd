@@ -1,6 +1,10 @@
 # Binary Dense Storage
 > Improving the storage capacity of the Hopfield Network
 
+<a target="_blank" href="https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/00_dense_storage.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
+
 ```{python}
 #| hide
 # Uncomment to download dependencies to colab
