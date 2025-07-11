@@ -167,8 +167,6 @@ def show_im(sigma, ax=None, do_gridify=True, grid_h=None, figsize=None):
 <img src="00_dense_storage_files/figure-commonmark/cell-5-output-1.png"
 width="481" height="503" />
 
-    array([-1.,  1.], dtype=float32)
-
 ## The Classical Hopfield Network
 
 Let’s revisit our task to store *K* binary patterns each of dimension
