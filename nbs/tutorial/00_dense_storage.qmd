@@ -166,9 +166,6 @@ sample_data = jr.choice(jr.PRNGKey(10), data, shape=(100,), replace=False)
 fig1, ax1 = show_im(sample_data, figsize=(6, 6));
 ax1.set_title("Example patterns (black=-1, white=1)")
 plt.show()
-
-np.unique(sample_data)
-
 ```
 
 
