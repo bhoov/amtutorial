@@ -28,7 +28,6 @@ format:
 website:
   twitter-card: true
   open-graph: true
-  title: "Modern Methods in Associative Memories"
   reader-mode: false
   page-navigation: true
   bread-crumbs: false
