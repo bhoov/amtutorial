@@ -122,7 +122,7 @@ plt.show()
 
 </details>
 
-    100%|███████████████| 4/4 [00:04<00:00,  1.10s/it]
+    100%|███████████████| 4/4 [00:04<00:00,  1.09s/it]
 
 ![](03_distributed_memory_files/figure-commonmark/cell-4-output-2.png)
 
@@ -266,7 +266,7 @@ plt.show()
 
 </details>
 
-    100%|███████████████| 4/4 [00:12<00:00,  3.08s/it]
+    100%|███████████████| 4/4 [00:11<00:00,  2.80s/it]
 
 ![](03_distributed_memory_files/figure-commonmark/cell-6-output-2.png)
 
@@ -310,8 +310,10 @@ The first feature map proposed by Rahimi and Recht (2007) utilizes
 random features and trigonometric function. More recently, Choromanski
 et al. (2020) have proposed positive random features utilizing the
 exponential function. Both these random features are presented below,
-where 𝒩(0, **I**<sub>*D*</sub>) is the *D*-dimensional multivariate
-isotropic standard normal distribution:
+where
+**ω**<sup>*i*</sup> ∼ 𝒩(0, **I**<sub>*D*</sub>), *i* ∈ \[ \[*Y*\] \] and
+𝒩(0, **I**<sub>*D*</sub>) is the *D*-dimensional multivariate isotropic
+standard normal distribution:
 
 $$
 \Phi(\mathbf{x}) = \frac{1}{\sqrt{Y}} \left\[ \begin{array}{c}
@@ -333,8 +335,6 @@ $$
   \exp (+\langle \boldsymbol{\omega}^Y, \mathbf{x} \rangle) \\
   \exp (-\langle \boldsymbol{\omega}^Y, \mathbf{x} \rangle) \\
 \end{array}\right\], 
-\quad
-\boldsymbol{\omega}^i \sim \mathcal{N}(0, \mathbf{I}\_D), i \in \[\\\[ Y \]\\\].
 $$
 
 Note that both these random features generate 2*Y*-dimensional feature
@@ -450,7 +450,7 @@ plt.show()
 
 </details>
 
-    100%|███████████████| 4/4 [00:01<00:00,  3.82it/s]
+    100%|███████████████| 4/4 [00:00<00:00,  4.12it/s]
 
 ![](03_distributed_memory_files/figure-commonmark/cell-10-output-2.png)
 
@@ -524,14 +524,26 @@ plt.show()
 
 </details>
 
-    100%|███████████████| 4/4 [00:00<00:00,  9.79it/s]
+    100%|███████████████| 4/4 [00:00<00:00, 10.49it/s]
 
 ![](03_distributed_memory_files/figure-commonmark/cell-11-output-2.png)
 
 ## Approximating the Energy with Random Features
 
 Given the random features *Φ* : ℝ<sup>*D*</sup> → ℝ<sup>2*Y*</sup>, we
-can approximate the energy as {#eq-l2-lse-rf-energy}
+can approximate the energy as
+
+Now we can define an approximate random-feature-based energy function
+*Ẽ*<sub>*β*</sub>(**v**; **T**) ≈ *E*<sub>*β*</sub>(**v**; **Ξ**) as
+follows:
+
+<span id="eq-l2-lse-rf-energy">
+$$
+\tilde{E}\_\beta (\mathbf{v}; \mathbf{T}) = - \frac{1}{\beta} \log \left\langle \Phi(\mathbf{v}), \mathbf{T} \right\rangle,
+\qquad \text{with} \quad 
+\mathbf{T} = \sum\_{\mu = 1}^K \Phi(\boldsymbol{\xi}^\mu)
+ \qquad(2)$$
+</span>
 
 We implement this approximate energy below using random features below
 given the {**ω**<sup>*i*</sup>, *i* ∈ \[ \[*Y*\] \]} and the distributed
@@ -614,7 +626,7 @@ plt.show()
 
 </details>
 
-    100%|███████████████| 4/4 [00:02<00:00,  1.65it/s]
+    100%|███████████████| 4/4 [00:02<00:00,  1.79it/s]
 
 ![](03_distributed_memory_files/figure-commonmark/cell-13-output-2.png)
 
@@ -645,7 +657,8 @@ output of this model. This output will be different than the output
 **v**<sup>(*T*)</sup> obtained using the exact energy gradient
 ∇<sub>**v**</sub>*E*<sub>*β*</sub>(**v**; **Ξ**).
 
-The gradient of the approximate energy in **?@eq-l2-lse-rf-energy** does
+The gradient of the approximate energy in
+<a href="#eq-l2-lse-rf-energy" class="quarto-xref">Equation 2</a> does
 not require access to the original memories **Ξ**, and can be computed
 solely using the random features
 {**ω**<sup>*i*</sup>, *i* ∈ \[ \[*Y*\] \]} and the consolidated memories

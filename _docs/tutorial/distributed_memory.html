@@ -578,7 +578,7 @@ E_\beta( \mathbf{v}; \boldsymbol{\Xi} ) = - \frac{1}{\beta} \log \sum_{\mu = 1}^
 </details>
 <div class="cell-output cell-output-stderr">
 <div class="ansi-escaped-output">
-<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:04&lt;00:00,  1.10s/it]
+<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:04&lt;00:00,  1.09s/it]
 </pre>
 </div>
 </div>
@@ -701,7 +701,7 @@ E_\beta( \mathbf{v}; \boldsymbol{\Xi} ) = - \frac{1}{\beta} \log \sum_{\mu = 1}^
 </details>
 <div class="cell-output cell-output-stderr">
 <div class="ansi-escaped-output">
-<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:12&lt;00:00,  3.08s/it]
+<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:11&lt;00:00,  2.80s/it]
 </pre>
 </div>
 </div>
@@ -748,7 +748,7 @@ E_\beta( \mathbf{v}; \boldsymbol{\Xi} )
 </section>
 <section id="examples-of-random-features" class="level3">
 <h3 class="anchored" data-anchor-id="examples-of-random-features">Examples of Random Features</h3>
-<p>Various approximate feature maps have been developed for the RBF kernel. The first feature map proposed by <span class="citation" data-cites="rahimi2007random">Rahimi and Recht (<a href="#ref-rahimi2007random" role="doc-biblioref">2007</a>)</span> utilizes random features and trigonometric function. More recently, <span class="citation" data-cites="choromanski2020rethinking">Choromanski et al. (<a href="#ref-choromanski2020rethinking" role="doc-biblioref">2020</a>)</span> have proposed positive random features utilizing the exponential function. Both these random features are presented below, where <span class="math inline">\(\mathcal{N}(0, \mathbf{I}_D)\)</span> is the <span class="math inline">\(D\)</span>-dimensional multivariate isotropic standard normal distribution:</p>
+<p>Various approximate feature maps have been developed for the RBF kernel. The first feature map proposed by <span class="citation" data-cites="rahimi2007random">Rahimi and Recht (<a href="#ref-rahimi2007random" role="doc-biblioref">2007</a>)</span> utilizes random features and trigonometric function. More recently, <span class="citation" data-cites="choromanski2020rethinking">Choromanski et al. (<a href="#ref-choromanski2020rethinking" role="doc-biblioref">2020</a>)</span> have proposed positive random features utilizing the exponential function. Both these random features are presented below, where <span class="math inline">\(\boldsymbol{\omega}^i \sim \mathcal{N}(0, \mathbf{I}_D), i \in [\![ Y ]\!]\)</span> and <span class="math inline">\(\mathcal{N}(0, \mathbf{I}_D)\)</span> is the <span class="math inline">\(D\)</span>-dimensional multivariate isotropic standard normal distribution:</p>
 <p><span class="math display">\[
 \Phi(\mathbf{x}) = \frac{1}{\sqrt{Y}} \left[ \begin{array}{c}
   \cos \langle \boldsymbol{\omega}^1, \mathbf{x} \rangle \\
@@ -769,8 +769,6 @@ E_\beta( \mathbf{v}; \boldsymbol{\Xi} )
   \exp (+\langle \boldsymbol{\omega}^Y, \mathbf{x} \rangle) \\
   \exp (-\langle \boldsymbol{\omega}^Y, \mathbf{x} \rangle) \\
 \end{array}\right],
-\quad
-\boldsymbol{\omega}^i \sim \mathcal{N}(0, \mathbf{I}_D), i \in [\![ Y ]\!].
 \]</span></p>
 <p>Note that both these random features generate <span class="math inline">\(2Y\)</span>-dimensional feature map <span class="math inline">\(\Phi(\mathbf{x}) \in \mathbb{R}^{2Y}\)</span> with <span class="math inline">\(Y\)</span> random features <span class="math inline">\(\boldsymbol{\omega}^i, i \in [\![ Y ]\!]\)</span>. We implement the random features with trigonometric functions below.</p>
 <div id="02575f75-104f-45e9-84aa-a9dea5c7d076" class="cell" data-execution_count="14">
@@ -859,7 +857,7 @@ E_\beta( \mathbf{v}; \boldsymbol{\Xi} )
 </details>
 <div class="cell-output cell-output-stderr">
 <div class="ansi-escaped-output">
-<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:01&lt;00:00,  3.82it/s]
+<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:00&lt;00:00,  4.12it/s]
 </pre>
 </div>
 </div>
@@ -919,7 +917,7 @@ E_\beta( \mathbf{v}; \boldsymbol{\Xi} )
 </details>
 <div class="cell-output cell-output-stderr">
 <div class="ansi-escaped-output">
-<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:00&lt;00:00,  9.79it/s]
+<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:00&lt;00:00, 10.49it/s]
 </pre>
 </div>
 </div>
@@ -936,7 +934,8 @@ E_\beta( \mathbf{v}; \boldsymbol{\Xi} )
 </section>
 <section id="approximating-the-energy-with-random-features" class="level2">
 <h2 class="anchored" data-anchor-id="approximating-the-energy-with-random-features">Approximating the Energy with Random Features</h2>
-<p>Given the random features <span class="math inline">\(\Phi: \mathbb{R}^D \to \mathbb{R}^{2Y}\)</span>, we can approximate the energy as <span class="math display">\[\begin{align}
+<p>Given the random features <span class="math inline">\(\Phi: \mathbb{R}^D \to \mathbb{R}^{2Y}\)</span>, we can approximate the energy as</p>
+<p><span class="math display">\[\begin{align}
 E_\beta( \mathbf{v}; \boldsymbol{\Xi} )
 &amp; = - \frac{1}{\beta} \log \sum_{\mu = 1}^K
   \exp \left(- \frac{\beta}{2} \left\Vert \mathbf{v} - \boldsymbol{\xi}^\mu \right \Vert^2 \right)
@@ -944,10 +943,16 @@ E_\beta( \mathbf{v}; \boldsymbol{\Xi} )
 &amp; \approx - \frac{1}{\beta} \log \sum_{\mu = 1}^K \left\langle \Phi(\mathbf{v}), \Phi(\boldsymbol{\xi}^\mu) \right\rangle
 = - \frac{1}{\beta} \log \left\langle \Phi(\mathbf{v}), \sum_{\mu = 1}^K \Phi(\boldsymbol{\xi}^\mu) \right\rangle
 \\
-&amp; = - \frac{1}{\beta} \log \left\langle \Phi(\mathbf{v}), \mathbf{T} \right\rangle
-= \tilde{E}_\beta(\mathbf{v}, \mathbf{T}), \qquad \text{with} \quad
+&amp; = - \frac{1}{\beta} \log \left\langle \Phi(\mathbf{v}), \mathbf{T} \right\rangle,
+\qquad \text{with} \quad
 \mathbf{T} = \sum_{\mu = 1}^K \Phi(\boldsymbol{\xi}^\mu).
-\end{align}\]</span>{#eq-l2-lse-rf-energy}</p>
+\end{align}\]</span></p>
+<p>Now we can define an approximate random-feature-based energy function <span class="math inline">\(\tilde{E}_\beta (\mathbf{v}; \mathbf{T}) \approx E_\beta (\mathbf{v}; \boldsymbol{\Xi})\)</span> as follows:</p>
+<p><span id="eq-l2-lse-rf-energy"><span class="math display">\[
+\tilde{E}_\beta (\mathbf{v}; \mathbf{T}) = - \frac{1}{\beta} \log \left\langle \Phi(\mathbf{v}), \mathbf{T} \right\rangle,
+\qquad \text{with} \quad
+\mathbf{T} = \sum_{\mu = 1}^K \Phi(\boldsymbol{\xi}^\mu)
+\tag{2}\]</span></span></p>
 <p>We implement this approximate energy below using random features below given the <span class="math inline">\(\{ \boldsymbol{\omega}^i, i \in [\![ Y ]\!] \}\)</span> and the distributed memories <span class="math inline">\(\mathbf{T} \in \mathbb{R}^{2Y}\)</span>.</p>
 <div id="11d730c1-a8e3-4e6e-83a7-1de6cb93a45e" class="cell" data-execution_count="19">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> approx_lse_energy(</span>
@@ -1012,7 +1017,7 @@ E_\beta( \mathbf{v}; \boldsymbol{\Xi} )
 </details>
 <div class="cell-output cell-output-stderr">
 <div class="ansi-escaped-output">
-<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:02&lt;00:00,  1.65it/s]
+<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:02&lt;00:00,  1.79it/s]
 </pre>
 </div>
 </div>
@@ -1030,7 +1035,7 @@ E_\beta( \mathbf{v}; \boldsymbol{\Xi} )
 <p>For a state vector <span class="math inline">\(\mathbf{v} \in \mathbb{R}^D\)</span>, we can approximately reduce its energy <span class="math inline">\(E_\beta(\mathbf{v}; \boldsymbol{\Xi})\)</span> by utilizing the gradient <span class="math inline">\(\nabla_{\mathbf{v}} \tilde{E}_\beta(\mathbf{v}; \mathbf{T})\)</span> of the random-feature based approximate energy <span class="math inline">\(\tilde{E}_\beta(\mathbf{v}; \mathbf{T})\)</span>. Initializing the energy descent at the input <span class="math inline">\(\mathbf{q}\)</span>, that is <span class="math inline">\(\tilde{\mathbf{v}}^{(0)} \gets \mathbf{q}\)</span>, we perform the following gradient descent steps for <span class="math inline">\(T\)</span> iterations: <span class="math display">\[
 \tilde{\mathbf{v}}^{(t)} \gets \tilde{\mathbf{v}}^{(t-1)} - \alpha \nabla_{\mathbf{v}} \tilde{E}_\beta( \tilde{\mathbf{v}}^{(t-1)}; \mathbf{T} ),
 \]</span> for <span class="math inline">\(t = 1, \ldots, T\)</span> with <span class="math inline">\(\alpha &gt; 0\)</span> as the step-size (or learning rate) for the energy descent. The final <span class="math inline">\(\tilde{\mathbf{v}}^{(T)}\)</span> is the output of this model. This output will be different than the output <span class="math inline">\(\mathbf{v}^{(T)}\)</span> obtained using the exact energy gradient <span class="math inline">\(\nabla_{\mathbf{v}} E_\beta( \mathbf{v}; \boldsymbol{\Xi} )\)</span>.</p>
-<p>The gradient of the approximate energy in <strong>?@eq-l2-lse-rf-energy</strong> does not require access to the original memories <span class="math inline">\(\boldsymbol{\Xi}\)</span>, and can be computed solely using the random features <span class="math inline">\(\{ \boldsymbol{\omega}^i, i \in [\![ Y ]\!] \}\)</span> and the consolidated memories <span class="math inline">\(\mathbf{T} \in \mathbb{R}^{2Y}\)</span>: <span class="math display">\[
+<p>The gradient of the approximate energy in <a href="#eq-l2-lse-rf-energy" class="quarto-xref">Equation&nbsp;2</a> does not require access to the original memories <span class="math inline">\(\boldsymbol{\Xi}\)</span>, and can be computed solely using the random features <span class="math inline">\(\{ \boldsymbol{\omega}^i, i \in [\![ Y ]\!] \}\)</span> and the consolidated memories <span class="math inline">\(\mathbf{T} \in \mathbb{R}^{2Y}\)</span>: <span class="math display">\[
 \nabla_{\mathbf{v}} \tilde{E}_\beta ( \mathbf{v}; \mathbf{T} )
 = - \frac{1}{\beta} \nabla_{\mathbf{v}} \log \left\langle \Phi(\mathbf{v}), \mathbf{T} \right\rangle
 = - \frac{1}{\beta \left\langle \Phi(\mathbf{v}), \mathbf{T} \right\rangle} \left[ \nabla_{\mathbf{v}} \Phi(\mathbf{v}) \right]^\top \mathbf{T}.
