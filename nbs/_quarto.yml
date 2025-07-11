@@ -7,7 +7,8 @@ project:
 
 bibliography:
   - "references.bib"
-suppress-bibliography: true
+csl: ieee.csl  # Or use a built-in style
+cite-method: citeproc
 
 format:
   html:
