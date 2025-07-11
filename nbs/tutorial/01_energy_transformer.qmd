@@ -12,6 +12,7 @@
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 </a>
 
+## Flow perspective of Transformers
 > Squint, and the Transformer looks like a dynamical system. 
 
 At its core, the transformer is a stack of $L$ transformer blocks that takes a length $N$ sequence of input tokens $\{\mathbf{x}^{(0)}_1, \ldots, \mathbf{x}^{(0)}_N\}$ and outputs a length $N$ sequence of output tokens $\{\mathbf{x}^{(L)}_1, \ldots, \mathbf{x}^{(L)}_N\}$. Each token $\mathbf{x}^{(l)}_i \in \mathbb{R}^D$ is a vector of dimension $D$. 
