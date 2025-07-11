@@ -827,7 +827,7 @@ from moviepy.editor import ipython_display
 import os
 
 CACHE_DIR = Path("./cache") / "01_energy_transformer"
-CACHE_DIR.mkdir(exist_ok=True)
+CACHE_DIR.mkdir(exist_ok=True, parents=True)
 CACHE_VIDEOS = True
 ```
 

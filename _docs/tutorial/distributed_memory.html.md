@@ -32,7 +32,7 @@ ngenerators = 10
 rnglist = jr.split(rng, ngenerators)
 ```
 
-    WARNING:2025-07-10 10:59:22,813:jax._src.xla_bridge:794: An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.
+    WARNING:2025-07-10 13:33:45,672:jax._src.xla_bridge:794: An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.
 
 ``` python
 HMA = 0.8
@@ -61,7 +61,8 @@ def plot_energy_landscape(
     plt_ax.tick_params(
         axis='both', which='both', 
         top=False, bottom=False, 
-        labelbottom=False, labelleft=False, 
+        labelbottom=False, 
+        labelleft=False, 
         left=False, right=False
     )
 ```
@@ -86,7 +87,11 @@ def plot_energy_descent(
     plt_ax,
     color='xkcd:slate'
 ):
-    plt_ax.plot(np.arange(energies.shape[0]), energies, color=color)
+    plt_ax.plot(
+        np.arange(energies.shape[0]),
+        energies,
+        color=color
+    )
     plt_ax.set_xlabel(r"$T$")
     plt_ax.set_ylabel('Energy')
 ```
@@ -113,10 +118,14 @@ def lse_energy(
     memories: Float[Array, "K D"],
     beta: float
 ) -> Float[Array, ""]:
-    """Compute the standard log-sum-exp energy"""
-    """using the negative square Euclidean distance"""
+    """
+    Compute the standard log-sum-exp energy
+    using the negative square Euclidean distance
+    as the similarity
+    """
     return -(1 / beta) * jax.nn.logsumexp(
-        -beta / 2 * ((state - memories) ** 2).sum(-1), axis=0
+        -beta / 2 * ((state - memories) ** 2).sum(-1),
+        axis=0
     )
 ```
 
@@ -129,7 +138,8 @@ nsteps = 50
 gpts = jnp.linspace(xmin, xmax, nsteps)
 V = jnp.array(jnp.meshgrid(gpts, gpts))
 
-# Randomly generate memories in the selected domain
+# Randomly generate memories in 
+# the selected domain
 rngidx = 0
 D = 2
 K = 8
@@ -154,18 +164,29 @@ for b, ax in tqdm(
     colour=TQDMCOLOR, ncols=50
 ):
     en = np.zeros_like(V[0])
-    for i, j in product(range(nsteps), range(nsteps)):
-        en[i,j] = lse_energy(V[:, i, j], Xi, b)
+    for i, j in product(
+        range(nsteps),
+        range(nsteps)
+    ):
+        en[i,j] = lse_energy(
+            V[:, i, j], Xi, b
+        )
     beta_en_map[b] = en
     plot_energy_landscape(
-        en, ax, np.array([xmin, xmax, ymin, ymax])
+        en, ax, np.array([
+            xmin, xmax, ymin, ymax
+        ])
     )
-    plot_states(Xi, ax, marker='*', color=MCOLOR)
-    ax.set_title(r"$\beta$" + f":{b:0.2f}")
+    plot_states(
+        Xi, ax, marker='*', color=MCOLOR
+    )
+    ax.set_title(
+        r"$\beta$" + f":{b:0.2f}"
+    )
 plt.show()
 ```
 
-    100%|███████████████| 4/4 [00:04<00:00,  1.08s/it]
+    100%|███████████████| 4/4 [00:04<00:00,  1.05s/it]
 
 ![](03_distributed_memory_files/figure-commonmark/cell-9-output-2.png)
 
@@ -194,9 +215,12 @@ def lse_energy_descent(
     return_grads=False,
     clamp_idxs: Optional[Bool[Array, "D"]]=None
 ) -> Float[Array, "D"]: 
-    """Energy descent with the LSE energy"""
-    # en = lambda state: energy_fn(state, memories, beta) 
-    dEdxf = jax.jit(jax.value_and_grad(energy_fn))
+    """
+    Energy descent with the LSE energy
+    """
+    dEdxf = jax.jit(
+        jax.value_and_grad(energy_fn)
+    )
     logs = {}
     def step(x, i):
         E, dEdx = dEdxf(x, memories, beta)
@@ -205,7 +229,9 @@ def lse_energy_descent(
         x = x - alpha * dEdx
         aux = (E, dEdx) if return_grads else (E,)
         return x, aux
-    x, aux = jax.lax.scan(step, q, jnp.arange(depth))
+    x, aux = jax.lax.scan(
+        step, q, jnp.arange(depth)
+    )
     logs['energies'] = aux[0]
     if return_grads:
         logs['grads'] = aux[1]
@@ -254,8 +280,10 @@ for bidx, b in tqdm(
         Xi, axs[0, bidx],
         marker='*', color=MCOLOR
     )
-    axs[0, bidx].set_title(r"$\beta$" + f":{b:0.2f}")
-    # Randomly generating a query
+    axs[0, bidx].set_title(
+        r"$\beta$" + f":{b:0.2f}"
+    )
+    # Randomly generating queries
     queries = jr.uniform(
         rnglist[rngidx], (NQUERIES, D)
     ) * 2 * maxabs - maxabs
@@ -278,15 +306,16 @@ for bidx, b in tqdm(
         )
         qens = np.array(qens).reshape(-1)
         plot_energy_descent(
-            qens, axs[qidx+1, bidx], color=QCOLOR
+            qens, axs[qidx+1, bidx],
+            color=QCOLOR
         )
         beta_cache += [(qstates, qens)]
-    beta_true_states_en_map[b] = beta_cache #(qstates, qens)
+    beta_true_states_en_map[b] = beta_cache
 fig.tight_layout()
 plt.show()
 ```
 
-    100%|███████████████| 4/4 [00:10<00:00,  2.69s/it]
+    100%|███████████████| 4/4 [00:10<00:00,  2.73s/it]
 
 ![](03_distributed_memory_files/figure-commonmark/cell-11-output-2.png)
 
@@ -370,8 +399,9 @@ def sin_cos_phi(
     RF: Float[Array, "Y D"],
     beta: float
 ) -> Float[Array, "... 2Y"]:
-    # print(x.shape, RF.shape)
-    """Random features with trigonometric function"""
+    """
+    Random features with trigonometric function
+    """
     Y = RF.shape[0]
     h = jnp.sqrt(beta) * (x @ RF.T)
     return 1 / jnp.sqrt(Y) * jnp.concatenate(
@@ -401,8 +431,13 @@ def rbfkernel(
     y: Float[Array, "D"],
     beta: float,
 ) -> Float[Array, ""]:
-    """Compute the standard RBF kernel between two vectors."""
-    return jnp.exp(-0.5 * beta * ((x - y) ** 2).sum())
+    """
+    Compute the standard RBF kernel
+    between two vectors.
+    """
+    return jnp.exp(
+        -0.5 * beta * ((x - y) ** 2).sum()
+    )
 ```
 
 We generate *Y* = 2<sup>15</sup> random features for the memories **Ξ**
@@ -437,18 +472,30 @@ for b, ax in tqdm(
     colour=TQDMCOLOR, ncols=50
 ):
     phi_rxs = sin_cos_phi(rxs, RF, b)
-    true_kvals = np.array([rbfkernel(x, y, b) for x in rxs for y in Xi])
-    approx_kvals = np.array([x.dot(y) for x in phi_rxs for y in phi_Xi])
+    true_kvals = np.array([
+        rbfkernel(x, y, b)
+        for x in rxs for y in Xi
+    ])
+    approx_kvals = np.array([
+        x.dot(y) 
+        for x in phi_rxs for y in phi_Xi
+    ])
     ax.scatter(true_kvals, approx_kvals)
-    ax.set_xlabel(r"$\kappa(\mathbf{x}, \boldsymbol{\xi}^\mu)$")
+    ax.set_xlabel(
+        r"$\kappa(\mathbf{x},$" 
+        + r"$\boldsymbol{\xi}^\mu)$"
+    )
     ax.set_title(r"$\beta$" + f":{b:0.2f}")
     ax.axis('square')
-axs[0].set_ylabel(r"$\langle \Phi(\mathbf{x}), \Phi(\boldsymbol{\xi}^\mu) \rangle$")
+axs[0].set_ylabel(
+    r"$\langle \Phi(\mathbf{x}),$" 
+    + r"$\Phi(\boldsymbol{\xi}^\mu) \rangle$"
+)
 fig.tight_layout()
 plt.show()
 ```
 
-    100%|███████████████| 4/4 [00:00<00:00,  4.22it/s]
+    100%|███████████████| 4/4 [00:01<00:00,  3.78it/s]
 
 ![](03_distributed_memory_files/figure-commonmark/cell-15-output-2.png)
 
@@ -482,25 +529,36 @@ fig, axs = plt.subplots(
     sharex=True, sharey=True
 )
 for bidx, b in tqdm(
-    enumerate(betas), total=len(betas),
-    colour=TQDMCOLOR, ncols=50
+    enumerate(betas),
+    total=len(betas),
+    colour=TQDMCOLOR,
+    ncols=50
 ):
-    rfs = np.zeros([2*NRFS, V.shape[1], V.shape[2]])
+    rfs = np.zeros(
+        [2*NRFS, V.shape[1], V.shape[2]]
+    )
     for i in range(nsteps):
-        rfs[:, i, :] = sin_cos_phi(V[:, i, :].T, RF[:NRFS, :], b).T
+        rfs[:, i, :] = sin_cos_phi(
+            V[:, i, :].T, RF[:NRFS, :], b
+        ).T
     for i in range(NRFS):
         plot_energy_landscape(
             rfs[i, :, :], axs[i, bidx], 
-            np.array([xmin, xmax, ymin, ymax]),
+            np.array([
+                xmin, xmax, ymin, ymax
+            ]),
             colormap='YlGn'
         )
-        plot_states(Xi, axs[i, bidx], marker='*', color=MCOLOR)
-    axs[0, bidx].set_title(r"$\beta$" + f":{b:0.2f}")
-    # break
+        plot_states(
+            Xi, axs[i, bidx],
+            marker='*', color=MCOLOR)
+    axs[0, bidx].set_title(
+        r"$\beta$" + f":{b:0.2f}"
+    )
 plt.show()
 ```
 
-    100%|███████████████| 4/4 [00:00<00:00, 10.35it/s]
+    100%|███████████████| 4/4 [00:00<00:00,  9.01it/s]
 
 ![](03_distributed_memory_files/figure-commonmark/cell-16-output-2.png)
 
@@ -521,7 +579,10 @@ def approx_lse_energy(
     T: Float[Array, "2Y"],
     eps=1e-10
 ) -> Float[Array, "..."]:
-    """Compute the approx energy with random features"""
+    """
+    Compute the approx energy with
+    random features
+    """
     h = sin_cos_phi(state, RF, beta) @ T 
     h = jnp.clip(h,  a_min=eps)
     return -(1 / beta) * jnp.log(h)
@@ -553,9 +614,9 @@ for bidx, b in tqdm(
     # over the domain
     app_en = np.zeros_like(V[0])
     for i in range(nsteps):
-            app_en[i, :] = approx_lse_energy(
-                V[:, i, :].T, RF, b, T_Xi
-            )
+        app_en[i, :] = approx_lse_energy(
+            V[:, i, :].T, RF, b, T_Xi
+        )
     # Plotting the exact and approx energy
     plot_energy_landscape(
         beta_en_map[b], axs[0, bidx],
@@ -569,11 +630,13 @@ for bidx, b in tqdm(
         app_en, axs[1, bidx],
         np.array([xmin, xmax, ymin, ymax])
     )
-    axs[0, bidx].set_title(r"$\beta$" + f":{b:0.2f}")
+    axs[0, bidx].set_title(
+        r"$\beta$" + f":{b:0.2f}"
+    )
 plt.show()
 ```
 
-    100%|███████████████| 4/4 [00:02<00:00,  1.89it/s]
+    100%|███████████████| 4/4 [00:02<00:00,  1.95it/s]
 
 ![](03_distributed_memory_files/figure-commonmark/cell-18-output-2.png)
 
@@ -632,9 +695,13 @@ def approx_lse_energy_descent(
     return_grads=False,
     clamp_idxs: Optional[Bool[Array, "D"]]=None
 ) -> Float[Array, "D"]: 
-    """Using the approx random feature energy"""
-    """ run energy descent"""
-    dEdxf = jax.jit(jax.value_and_grad(energy_fn))
+    """
+    Using the approx random feature energy.
+    run energy descent
+    """
+    dEdxf = jax.jit(
+        jax.value_and_grad(energy_fn)
+    )
     logs = {}
     @jax.jit
     def step(x, i):
@@ -644,7 +711,9 @@ def approx_lse_energy_descent(
         x = x - alpha * dEdx
         aux = (E, dEdx) if return_grads else (E,)
         return x, aux
-    x, aux = jax.lax.scan(step, q, jnp.arange(depth))
+    x, aux = jax.lax.scan(
+        step, q, jnp.arange(depth)
+    )
     logs['energies'] = aux[0]
     if return_grads:
         logs['grads'] = aux[1]
@@ -681,12 +750,14 @@ for bidx, b in tqdm(
         Xi, axs[0, bidx],
         marker='*', color=MCOLOR
     )
-    axs[0, bidx].set_title(r"$\beta$" + f":{b:0.2f}")
+    axs[0, bidx].set_title(
+        r"$\beta$" + f":{b:0.2f}"
+    )
     # Computing the T tensor, 
     # summing the random features
     # over all memories
     T_Xi = sin_cos_phi(Xi, RF, b).sum(0)
-    # Randomly generating a query
+    # Randomly generating queries
     queries = jr.uniform(
         rnglist[rngidx], (NQUERIES, D)
     ) * 2 * maxabs - maxabs
@@ -694,7 +765,8 @@ for bidx, b in tqdm(
     for qidx, query in enumerate(queries):    
         qstates = [query]
         qens = []
-        # Perform energy descent using approx gradient
+        # Perform energy descent using 
+        # the approx gradient
         for i in range(NSTATES):
             query, logs = approx_lse_energy_descent(
                 query, RF, b, T_Xi, approx_lse_energy,
@@ -709,7 +781,8 @@ for bidx, b in tqdm(
             marker='o', color=QCOLOR
         )
         plot_energy_descent(
-            ex_qens, axs[qidx+1, bidx], color=QCOLOR
+            ex_qens, axs[qidx+1, bidx],
+            color=QCOLOR
         )
         qstates = np.array(qstates)
         plot_states(
@@ -721,13 +794,14 @@ for bidx, b in tqdm(
             for qs in qstates
         ]).reshape(-1)
         plot_energy_descent(
-            qens, axs[qidx+1, bidx], color=AQCOLOR
+            qens, axs[qidx+1, bidx], 
+            color=AQCOLOR
         )
 fig.tight_layout()
 plt.show()
 ```
 
-    100%|███████████████| 4/4 [00:11<00:00,  2.88s/it]
+    100%|███████████████| 4/4 [00:11<00:00,  2.82s/it]
 
 ![](03_distributed_memory_files/figure-commonmark/cell-20-output-2.png)
 
@@ -747,21 +821,34 @@ low *β* regime, highlighting that energy descent is possible even if the
 kernel approximation is poor. This is because the energy of the initial
 state at low *β* is already quite low.
 
-``` python
-assert False
-```
+More precisely, we can bound the divergence between the output of the
+exact model with memory representation
+*f*<sub>**Ξ**</sub>(**q**) = **v**<sup>(*T*)</sup> and the output of the
+approximate model with distributed representations
+$f\_{\mathbf{T}}( \mathbf{q} ) = \tilde{\mathbf{v}}^{(T)}$ under the
+following conditions: - For any **x**, **x**′ ∈ ℝ<sup>*D*</sup>, there
+is a universal constant *C*<sub>1</sub> \> 0 such that
+$$\left| \kappa(\mathbf{x}, \mathbf{x}') - \left\langle \Phi(\mathbf{x}) , \Phi(\mathbf{x}') \right\rangle \right| \leq C_1 \sqrt{\frac{D}{Y}}.$$
+ - The step-size *α* is selected, such that, for a universal constant
+*C*<sub>2</sub> ∈ (0, 1)
+$$ \alpha \leq \frac{C_2}{T (1 + 2K \beta \exp(\beta/2))}.$$
 
-    AssertionError: 
-    [0;31m---------------------------------------------------------------------------[0m
-    [0;31mAssertionError[0m                            Traceback (most recent call last)
-    Cell [0;32mIn[21], line 1[0m
-    [0;32m----> 1[0m [38;5;28;01massert[39;00m [38;5;28;01mFalse[39;00m
+Then the divergence is bounded as:
+$$
+\left\Vert f\_{\boldsymbol{\Xi}}(\mathbf{q}) - f\_{\mathbf{T}}(\mathbf{q}) \right\Vert
+= \left\Vert \mathbf{v}^{(T)} - \tilde{\mathbf{v}}^{(T)} \right\Vert 
+\leq \frac{C_1 C_2 \exp(E\_\beta(\mathbf{q}; \boldsymbol{\Xi}) - 1/2)}{\beta (1 - C_2)}
+$$
 
-    [0;31mAssertionError[0m: 
+### DrDAM class
+
+Finally, we can put this all together into a single class as follows.
 
 ``` python
 class DrDAM:
-    """Defines the interface and basic methods for all KernelizableDAMs"""
+    """
+    DenseAM through the Lens of Random Features
+    """
     def __init__(self, key, D, Y, beta):
         self.RF = jr.normal(key, (Y, D))
         self.beta = beta
@@ -769,136 +856,222 @@ class DrDAM:
         self.Tdim = 2*Y
         self.D = D
 
-    def phi(self, x: Float[Array, "... D"]) -> Float[Array, "... 2Y"]:
-        """Compute the basis function """
+    def phi(
+        self, x: Float[Array, "... D"]
+    ) -> Float[Array, "... 2Y"]:
+        """Compute the random features """
         return sin_cos_phi(x, self.RF, self.beta)
 
-    def sim(self, x: Float[Array, "D"], y: Float[Array, "D"]) -> Float[Array, ""]:
-        """Compute the standard L2 similarity between two vectors."""
-        return jnp.exp(-self.beta / 2 * ((x - y) ** 2).sum())
+    def sim(
+        self, x: Float[Array, "D"],
+        y: Float[Array, "D"]
+    ) -> Float[Array, ""]:
+        """
+        Compute the exact RBF kernel for two vectors
+        """
+        return rbfkernel(x, y, self.beta)
 
     def energy(
-        self, x: Float[Array, "D"], memories: Float[Array, "M D"]
+        self, x: Float[Array, "D"],
+        memories: Float[Array, "M D"]
     ) -> Float[Array, ""]:
-        """Compute the standard L2 energy"""
-        return -(1 / self.beta) * jax.nn.logsumexp(
-            -self.beta / 2 * ((x - memories) ** 2).sum(-1), axis=0
-        )
+        """Compute the standard LSE energy"""
+        return lse_energy(x, memories, self.beta)
 
-    def kernel_energy(
-        self, x: Float[Array, "D"], T: Float[Array, "2Y"], eps=1e-10
+    def rf_approx_energy(
+        self, x: Float[Array, "D"],
+        T: Float[Array, "2Y"], eps=1e-10
     ) -> Float[Array, ""]:
-        """Compute the approximate kernelized energy"""
-        h = self.phi(x) @ T 
-        h = jnp.clip(h,  a_min=eps)
-        return -(1 / self.beta) * jnp.log(h)
+        """
+        Compute the approx LSE energy with random features
+        """
+        return approx_lse_energy(x, self.RF, self.beta, T)
     
-    def kernel_sim(
-        self, x: Float[Array, "D"], y: Float[Array, "D"]
+    def rf_approx_sim(
+        self, x: Float[Array, "D"],
+        y: Float[Array, "D"]
     ) -> Float[Array, ""]:
-        """Compute the approximate kernel similarity of `x` and `y`"""
+        """Compute the approx RBF kernel for two vector"""
         return self.phi(x) @ self.phi(y)
 
-    def kernelize_memories(self, memories: Float[Array, "M D"], **kwargs) -> Float[Array, "2Y"]:
+    def dist_memories(
+        self, memories: Float[Array, "M D"]
+    ) -> Float[Array, "2Y"]:
         """
-        Naive implementation that BLOWS UP with many memories `n`,
-        since it creates the entire memory matrix from scratch
+        Compute the random-feature based distributed
+        representation of the memories
         """
         return self.phi(memories).sum(0)
 
-    def recall( 
-        self, q: Float[Array, "D"], memories: Float[Array, "M D"], 
-        depth: int=1000, alpha: float = 0.1, return_grads=False, 
+    def energy_descent( 
+        self, q: Float[Array, "D"], 
+        memories: Float[Array, "M D"], 
+        depth: int=1000, alpha: float = 0.1,
+        return_grads=False, 
         clamp_idxs: Optional[Bool[Array, "D"]]=None
     ) -> Float[Array, "D"]: 
-        """Using the normal similarity function, run energy dynamics"""
-        dEdxf = jax.jit(jax.value_and_grad(self.energy))
-        logs = {}
-        def step(x, i):
-            E, dEdx = dEdxf(x, memories)
-            if clamp_idxs is not None:
-                dEdx = jnp.where(clamp_idxs, 0, dEdx)
-            x = x - alpha * dEdx
-            aux = (E, dEdx) if return_grads else (E,)
-            return x, aux
-        x, aux = jax.lax.scan(step, q, jnp.arange(depth))
-        logs['energies'] = aux[0]
-        if return_grads:
-            logs['grads'] = aux[1]
-        return x, logs
+        """Run exact energy descent"""
+        return lse_energy_descent( 
+            q, memories, self.beta, lse_energy,
+            depth, alpha, return_grads, clamp_idxs
+        )
 
-    def kernel_recall(
-        self, q: Float[Array, "D"], T: Float[Array, "2Y"], 
-        depth: int=1000, alpha: float = 0.1, return_grads=False,
+    def rf_approx_energy_descent(
+        self, q: Float[Array, "D"],
+        T: Float[Array, "2Y"], 
+        depth: int=1000, alpha: float = 0.1,
+        return_grads=False,
         clamp_idxs: Optional[Bool[Array, "D"]]=None
     ) -> Float[Array, "D"]: 
-        """Using the kernelized similarity function, run energy dynamics"""
-        dEdxf = jax.jit(jax.value_and_grad(self.kernel_energy))
-        logs = {}
-        @jax.jit
-        def step(x, i):
-            E, dEdx = dEdxf(x, T)
-            if clamp_idxs is not None:
-                dEdx = jnp.where(clamp_idxs, 0, dEdx)
-            x = x - alpha * dEdx
-            aux = (E, dEdx) if return_grads else (E,)
-            return x, aux
-        x, aux = jax.lax.scan(step, q, jnp.arange(depth))
-        logs['energies'] = aux[0]
-        if return_grads:
-            logs['grads'] = aux[1]
-        return x, logs
+        """Run approx energy descent"""
+        return approx_lse_energy_descent(
+            q, self.RF, self.beta, T, approx_lse_energy,
+            depth, alpha, return_grads, clamp_idxs
+        )
 ```
 
+We will demonstrate the use of this class with *K* = 20 memories in
+*D* = 10 dimensions and *Y* = 10<sup>4</sup> random features. We will
+use the LSE energy with an inverse-temperature *β* = 10.
+
 ``` python
-rng = jr.PRNGKey(0)
-k1, k2, k3, k4, k5, rng = jr.split(rng, 6)
-D = 10
-Y = 1000
+rngidx = 9
+D = 30
+Y = 100_000
 n_memories = 20
 n_queries = 100
-beta = 10
-kdam = DrDAM(k1, D=D, Y=Y, beta=beta)
+beta = 25
+kdam = DrDAM(
+    rnglist[rngidx], D=D, Y=Y, beta=beta
+)
 ```
 
-``` python
-x = (jr.uniform(k2, (D,)) > 0.5) / jnp.sqrt(D)
-y = (jr.uniform(k3, (D,)) > 0.5) / jnp.sqrt(D)
-print(x.shape)
-print(y.shape)
-```
+Comparing the exact and approximate RBF kernel values for a pair of
+points.
 
 ``` python
-print(kdam.sim(x, y))
-print(kdam.kernel_sim(x, y))
+rngidx = 0
+xpair = (
+    jr.uniform(rnglist[rngidx], (D,2 )) > 0.5
+) / jnp.sqrt(D)
+print(
+    f"Exact RBF kernel value: "
+    f"{kdam.sim(xpair[:, 0], xpair[:, 1]):0.4f}"
+)
+print(
+    f"Approx RBF kernel value: "
+    f"{kdam.rf_approx_sim(xpair[:, 0], xpair[:, 1]):.04f}"
+)
 ```
 
-``` python
-memories = (jr.uniform(k4, (n_memories, D)) > 0.5) / jnp.sqrt(D)
-queries = (jr.uniform(k5, (n_queries, D)) > 0.5) / jnp.sqrt(D)
-print(queries.shape, memories.shape)
-T = kdam.kernelize_memories(memories)
-print(T.shape)
-```
+    Exact RBF kernel value: 0.0013
+    Approx RBF kernel value: 0.0030
+
+Generating some memories, and their distribution representation along
+with some random initial states.
 
 ``` python
-print(kdam.energy(x, memories))
-print(kdam.kernel_energy(x, T))
+rngidx = 2
+memories = (
+    jr.uniform(rnglist[rngidx], (n_memories, D)) > 0.5
+) / jnp.sqrt(D)
+rngidx = 6
+queries = (
+    jr.uniform(rnglist[rngidx], (n_queries, D)) > 0.5
+) / jnp.sqrt(D)
+print(
+    f"Generated {memories.shape[0]} memories"
+    f" in {memories.shape[1]} dimensions"
+)
+T = kdam.dist_memories(memories)
+print(
+    f"Distributed representation of "
+    f"these memories in {T.shape[0]} dimensions"
+)
+print(
+    f"Generated {queries.shape[0]} initial "
+    f"states in {queries.shape[1]} dimensions"
+)
 ```
 
+    Generated 20 memories in 30 dimensions
+    Distributed representation of these memories in 200000 dimensions
+    Generated 100 initial states in 30 dimensions
+
+We will compare the exact and the approximate energy using the
+distributed memory
+
 ``` python
-exact_energies = jnp.array([kdam.energy(q, memories).item() for q in queries])
-kernelized_energies = kdam.kernel_energy(queries, T)
-plt.scatter(exact_energies, kernelized_energies)
-plt.xlabel("Exact")
-plt.ylabel("Kernel")
+print(
+    f"Exact energy for a point: "
+    f"{kdam.energy(xpair[:, 0], memories):0.4f}"
+)
+print(
+    f"Approx energy for the same point: "
+    f"{kdam.rf_approx_energy(xpair[:, 0], T):0.4f}"
+)
+```
+
+    Exact energy for a point: 0.0847
+    Approx energy for the same point: 0.0886
+
+This is a comparison of the exact and approximate energies of all
+initial states. Better approximation is denoted by the points on the
+scatter plot lying on the diagonal.
+
+``` python
+exact_energies = jnp.array([
+    kdam.energy(q, memories).item() 
+    for q in queries
+])
+rf_approx_energies = kdam.rf_approx_energy(
+    queries, T
+)
+plt.figure(figsize=(4,4))
+plt.scatter(
+    exact_energies,
+    rf_approx_energies
+)
+plt.xlabel(
+    "Exact Energy " + 
+    r"$E_\beta(\mathbf{q}; \boldsymbol{\Xi})$"
+)
+plt.ylabel(
+    "Approx Energy " + 
+    r"$\tilde{E}_\beta(\mathbf{q}; \mathbf{T})$"
+)
 plt.axis('square')
-# plt.gca().set_aspect('equal', 'box')
+plt.title("Exact energy vs Approx energy")
+plt.tight_layout()
 plt.show()
 ```
 
+![](03_distributed_memory_files/figure-commonmark/cell-26-output-1.png)
+
 ``` python
-exact_out, _ = kdam.recall(queries[0], memories, depth=100, alpha=1)
-kernel_out, _ = kdam.kernel_recall(queries[0], T, depth=100, alpha=1)
-print(jnp.abs(exact_out - kernel_out).sum())
+for qidx in range(10):
+    exact_out, _ = kdam.energy_descent(
+        queries[qidx], memories, depth=10, alpha=0.1
+    )
+    approx_out, _ = kdam.rf_approx_energy_descent(
+        queries[qidx], T, depth=10, alpha=0.1
+    )
+    print(
+        f"Initial state {qidx+1}: "
+        f" Initial energy: "
+        f"{kdam.energy(queries[qidx], memories):0.4f}, "
+        f"Divergence in the output: "
+        f"{jnp.sqrt(((exact_out - approx_out)**2).sum()):0.4f}"
+    )
 ```
+
+    Initial state 1:  Initial energy: 0.0950, Divergence in the output: 0.0238
+    Initial state 2:  Initial energy: 0.1262, Divergence in the output: 0.0269
+    Initial state 3:  Initial energy: 0.1140, Divergence in the output: 0.0436
+    Initial state 4:  Initial energy: 0.0997, Divergence in the output: 0.0285
+    Initial state 5:  Initial energy: 0.1023, Divergence in the output: 0.0306
+    Initial state 6:  Initial energy: 0.1107, Divergence in the output: 0.0352
+    Initial state 7:  Initial energy: 0.0991, Divergence in the output: 0.0269
+    Initial state 8:  Initial energy: 0.1278, Divergence in the output: 0.0383
+    Initial state 9:  Initial energy: 0.1082, Divergence in the output: 0.0325
+    Initial state 10:  Initial energy: 0.1035, Divergence in the output: 0.0356
