@@ -50,14 +50,14 @@ describing a dynamical system.</figcaption>
 ## Introducing Energy into the Transformer
 
 We will now build a kind of associative memory called the “Energy
-Transformer” (Hoover et al. 2024) that turns the familiar transformer
-operation into an energy minimization. Energy Transformer (ET) defines a
-single energy on an **x** ∈ ℝ<sup>*N* × *D*</sup> collection of tokens,
-where we can think of each token **x**<sub>*B*</sub> as a “particle”
-that knows some information about itself and needs to figure out what it
-should become. Some particles (unmasked tokens) already know their
-identity, while others (masked tokens) only know their position and must
-discover their identity by interacting with their neighbors.
+Transformer” \[1\] that turns the familiar transformer operation into an
+energy minimization. Energy Transformer (ET) defines a single energy on
+an **x** ∈ ℝ<sup>*N* × *D*</sup> collection of tokens, where we can
+think of each token **x**<sub>*B*</sub> as a “particle” that knows some
+information about itself and needs to figure out what it should become.
+Some particles (unmasked tokens) already know their identity, while
+others (masked tokens) only know their position and must discover their
+identity by interacting with their neighbors.
 
 Minimizing the energy of the Energy Transformer (ET) is a recurrent
 process. The entire transformer consists of a single Transformer block,
@@ -586,9 +586,8 @@ To work with data, we add a few extra matrices: embedding/unembedding
 matrices (let’s use a bias for each), position embeddings, and CLS/MASK
 tokens. The position embeddings are used to encode the position of each
 token in the sequence, and the CLS/MASK tokens are used for interop with
-the original ViT. (Dosovitskiy et al. 2020) Additionally, the
-`layernorm` is external to the computation of the ET so we’ll insert
-those parameters here.
+the original ViT. \[2\] Additionally, the `layernorm` is external to the
+computation of the ET so we’ll insert those parameters here.
 
 ``` python
 class ImageEnergyTransformer(eqx.Module):
@@ -903,25 +902,25 @@ Hopfield Network, sorted by frequency content</figcaption>
 
 </div>
 
-<div id="refs" class="references csl-bib-body hanging-indent"
-entry-spacing="0">
-
-<div id="ref-dosovitskiy2020vit" class="csl-entry">
-
-Dosovitskiy, Alexey, Lucas Beyer, Alexander Kolesnikov, Dirk
-Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, et al.
-2020. “An Image Is Worth 16x16 Words: Transformers for Image Recognition
-at Scale.” *CoRR* abs/2010.11929. <https://arxiv.org/abs/2010.11929>.
-
-</div>
+<div id="refs" class="references csl-bib-body" entry-spacing="0">
 
 <div id="ref-hoover2024energy" class="csl-entry">
 
-Hoover, Benjamin, Yuchen Liang, Bao Pham, Rameswar Panda, Hendrik
-Strobelt, Duen Horng Chau, Mohammed Zaki, and Dmitry Krotov. 2024.
-“Energy Transformer.” *Advances in Neural Information Processing
-Systems* 36.
-<https://proceedings.neurips.cc/paper_files/paper/2023/file/57a9b97477b67936298489e3c1417b0a-Paper-Conference.pdf>.
+<span class="csl-left-margin">\[1\]
+</span><span class="csl-right-inline">B. Hoover *et al.*, “Energy
+transformer,” *Advances in Neural Information Processing Systems*, vol.
+36, 2024, \[Online\]. Available:
+<https://proceedings.neurips.cc/paper_files/paper/2023/file/57a9b97477b67936298489e3c1417b0a-Paper-Conference.pdf>.</span>
+
+</div>
+
+<div id="ref-dosovitskiy2020vit" class="csl-entry">
+
+<span class="csl-left-margin">\[2\]
+</span><span class="csl-right-inline">A. Dosovitskiy *et al.*, “An image
+is worth 16x16 words: Transformers for image recognition at scale,”
+*CoRR*, vol. abs/2010.11929, 2020, \[Online\]. Available:
+<https://arxiv.org/abs/2010.11929>.</span>
 
 </div>
 

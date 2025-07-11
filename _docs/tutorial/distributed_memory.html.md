@@ -17,7 +17,7 @@ the trigonometric random features to develop an approximate energy
 the memories **Ξ** = {**ξ**<sup>*μ*</sup>, *μ* ∈ \[ \[*K*\] \]}, thus
 giving us a model *f*<sub>**T**</sub> of size *O*(*Y*).
 
-For further details on this work, please see Hoover et al. (2024).
+For further details on this work, please see \[1\].
 
 ## Exact Energy Function
 
@@ -306,11 +306,10 @@ $\mathbf{T} = \sum\_\mu \Phi(\sqrt{\beta} \boldsymbol{\xi}^\mu)$.
 ### Examples of Random Features
 
 Various approximate feature maps have been developed for the RBF kernel.
-The first feature map proposed by Rahimi and Recht (2007) utilizes
-random features and trigonometric function. More recently, Choromanski
-et al. (2020) have proposed positive random features utilizing the
-exponential function. Both these random features are presented below,
-where
+The first feature map proposed by \[2\] utilizes random features and
+trigonometric function. More recently, \[3\] have proposed positive
+random features utilizing the exponential function. Both these random
+features are presented below, where
 **ω**<sup>*i*</sup> ∼ 𝒩(0, **I**<sub>*D*</sub>), *i* ∈ \[ \[*Y*\] \] and
 𝒩(0, **I**<sub>*D*</sub>) is the *D*-dimensional multivariate isotropic
 standard normal distribution:
@@ -847,7 +846,7 @@ $$\left| \kappa(\mathbf{x}, \mathbf{x}') - \left\langle \Phi(\mathbf{x}) , \Phi(
 *C*<sub>2</sub> ∈ (0, 1)
 $$ \alpha \leq \frac{C_2}{T (1 + 2K \beta \exp(\beta/2))}.$$
 
-Then the divergence is bounded as (see Hoover et al. 2024, Corollary 1):
+Then the divergence is bounded as see \[1\], Corollary 1:
 $$
 \left\Vert f\_{\boldsymbol{\Xi}}(\mathbf{q}) - f\_{\mathbf{T}}(\mathbf{q}) \right\Vert
 = \left\Vert \mathbf{v}^{(T)} - \tilde{\mathbf{v}}^{(T)} \right\Vert 
@@ -855,7 +854,7 @@ $$
 $$
 
 We can also show a more general result without the restriction on the
-step-size *α* (see Hoover et al. 2024, Theorem 1).
+step-size *α* see \[1\], Theorem 1.
 
 ### DrDAM class
 
@@ -1099,33 +1098,34 @@ for qidx in range(10):
     Initial state 9:  Initial energy: 0.1082, Divergence in the output: 0.0325
     Initial state 10:  Initial energy: 0.1035, Divergence in the output: 0.0356
 
-<div id="refs" class="references csl-bib-body hanging-indent"
-entry-spacing="0">
-
-<div id="ref-choromanski2020rethinking" class="csl-entry">
-
-Choromanski, Krzysztof, Valerii Likhosherstov, David Dohan, Xingyou
-Song, Andreea Gane, Tamas Sarlos, Peter Hawkins, et al. 2020.
-“Rethinking Attention with Performers.” *Proceedings of ICLR*.
-<https://arxiv.org/pdf/2009.14794.pdf>.
-
-</div>
+<div id="refs" class="references csl-bib-body" entry-spacing="0">
 
 <div id="ref-hoover2024dense" class="csl-entry">
 
-Hoover, Benjamin, Duen Horng Chau, Hendrik Strobelt, Parikshit Ram, and
-Dmitry Krotov. 2024. “Dense Associative Memory Through the Lens of
-Random Features.” In *The Thirty-Eighth Annual Conference on Neural
-Information Processing Systems*.
-<https://proceedings.neurips.cc/paper_files/paper/2024/file/29ff36c8fbed10819b2e50267862a52a-Paper-Conference.pdf>.
+<span class="csl-left-margin">\[1\]
+</span><span class="csl-right-inline">B. Hoover, D. H. Chau, H.
+Strobelt, P. Ram, and D. Krotov, “Dense associative memory through the
+lens of random features,” 2024, \[Online\]. Available:
+<https://proceedings.neurips.cc/paper_files/paper/2024/file/29ff36c8fbed10819b2e50267862a52a-Paper-Conference.pdf>.</span>
 
 </div>
 
 <div id="ref-rahimi2007random" class="csl-entry">
 
-Rahimi, Ali, and Benjamin Recht. 2007. “Random Features for Large-Scale
-Kernel Machines.” *Advances in Neural Information Processing Systems*.
-<https://proceedings.neurips.cc/paper/2007/file/013a006f03dbc5392effeb8f18fda755-Paper.pdf>.
+<span class="csl-left-margin">\[2\]
+</span><span class="csl-right-inline">A. Rahimi and B. Recht, “Random
+features for large-scale kernel machines,” *Advances in neural
+information processing systems*, 2007, \[Online\]. Available:
+<https://proceedings.neurips.cc/paper/2007/file/013a006f03dbc5392effeb8f18fda755-Paper.pdf>.</span>
+
+</div>
+
+<div id="ref-choromanski2020rethinking" class="csl-entry">
+
+<span class="csl-left-margin">\[3\]
+</span><span class="csl-right-inline">K. Choromanski *et al.*,
+“Rethinking attention with performers,” *Proceedings of ICLR*, 2020,
+\[Online\]. Available: <https://arxiv.org/pdf/2009.14794.pdf>.</span>
 
 </div>
 

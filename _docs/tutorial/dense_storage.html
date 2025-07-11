@@ -503,11 +503,11 @@ window.Quarto = {
 </div>
 <section id="general-associative-memory" class="level3">
 <h3 class="anchored" data-anchor-id="general-associative-memory">General Associative Memory</h3>
-<p>Our goal in this section is to build the smallest abstraction for Associative Memory, which at its core is just an <em>energy function</em> <span class="math inline">\(E_\Xi(x) \in \mathbb{R}\)</span>. where <em>query pattern</em> <span class="math inline">\(x \in \{-1, 1\}^D\)</span> is a possibly noisy <span class="math inline">\(D\)</span>-dimensional, binary pattern and <em>memory matrix</em> <span class="math inline">\(\Xi \in \{-1, 1\}^{K \times D}\)</span> is our matrix of <span class="math inline">\(K\)</span> stored patterns. <span class="math inline">\(E_\Xi(x)\)</span> stores patterns at low energies. To retrieve our stored patterns,we want to minimize <span class="math inline">\(E_\Xi(x)\)</span>.</p>
-<p>Let’s assume an unimplemented, arbitrary energy function and setup a basic object for a binary AM. All we need to provide is an <code>energy</code> method, parameterized by <span class="math inline">\(\Xi\)</span>, that is a function of query <span class="math inline">\(x\)</span>.</p>
-<p>Historically, the Hopfield Network minimizes energy using <em>asynchronous</em> update rules (where we minimize the query’s energy one randomly selected bit at a time). We’ll follow that precedent in this notebook since it makes for nicer visualizations, though fully <em>synchronous</em> update rules (where we minimize the energy by scanning through all bits sequentially) are also possible. The default <code>async_update</code> is simple: for a randomly sampled bit in the query pattern, compare the energy of that bit when it is flipped and not flipped. Keep the pattern whose energy is lower.</p>
+<p>Our goal in this section is to build the smallest abstraction for Associative Memory, which at its core is just an <em>energy function</em> <span class="math inline">\(E_\Xi(x) \in \mathbb{R}\)</span>. where <em>query pattern</em> <span class="math inline">\(\sigma \in \{-1, 1\}^D\)</span> is a possibly noisy <span class="math inline">\(D\)</span>-dimensional, binary pattern and <em>memory matrix</em> <span class="math inline">\(\Xi \in \{-1, 1\}^{K \times D}\)</span> is our matrix of <span class="math inline">\(K\)</span> stored patterns. <span class="math inline">\(E_\Xi(\sigma)\)</span> stores patterns at low energies. To retrieve our stored patterns,we want to minimize <span class="math inline">\(E_\Xi(\sigma)\)</span>.</p>
+<p>Let’s assume an unimplemented, arbitrary energy function and setup a basic object for a binary AM. All we need to provide is an <code>energy</code> method, parameterized by <span class="math inline">\(\Xi\)</span>, that is a function of query <span class="math inline">\(\sigma\)</span>.</p>
+<p>Historically, the Hopfield Network <span class="citation" data-cites="hopfield1982neural"><a href="#ref-hopfield1982neural" role="doc-biblioref">[1]</a></span> minimizes energy using <em>asynchronous</em> update rules (where we minimize the query’s energy one randomly selected bit at a time). We’ll follow that precedent in this notebook since it makes for nicer visualizations, though fully <em>synchronous</em> update rules (where we minimize the energy by scanning through all bits sequentially) are also possible. The default <code>async_update</code> is simple: for a randomly sampled bit in the query pattern, compare the energy of that bit when it is flipped and not flipped. Keep the pattern whose energy is lower.</p>
 <p><span id="eq-async-update"><span class="math display">\[
-x_i^{(t+1)} = \underset{b \in \{-1, 1\}}{\mathrm{argmin}}\left[E\left(x_i = b, x_{j \neq i} = x_j^{(t)}\right)\right]
+\sigma_i^{(t+1)} = \underset{b \in \{-1, 1\}}{\mathrm{argmin}}\left[E\left(\sigma_i = b, \sigma_{j \neq i} = \sigma_j^{(t)}\right)\right]
 \tag{1}\]</span></span></p>
 <p>Converting a noisy query pattern into a stored pattern is a matter of repeatedly applying the <code>async_update</code> rule to minimize energy. Because this process, if run long enough, will “recall” a memory, we call this the <code>async_recall</code> method.</p>
 <p>We use <code>jax</code> primitives like <code>jax.lax.scan</code> and <code>jax.lax.cond</code> so we can JIT our code run quickly. A <code>scan</code> is just a glorified for loop, and a <code>cond</code> is a glorified if-else statement.</p>
@@ -517,46 +517,46 @@ x_i^{(t+1)} = \underset{b \in \{-1, 1\}}{\mathrm{argmin}}\left[E\left(x_i = b, x
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    Xi: Float[Array, <span class="st">"K D"</span>] <span class="co"># matrix of stored patterns </span></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, </span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        x: Float[Array, <span class="st">"D"</span>] <span class="co"># Possibly noisy query pattern</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        sigma: Float[Array, <span class="st">"D"</span>] <span class="co"># Possibly noisy query pattern</span></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        ): </span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        ... <span class="co"># Left to implement later</span></span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> async_update(</span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>,</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        x: Float[Array, <span class="st">"D"</span>], <span class="co"># Possibly noisy query pattern</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        sigma: Float[Array, <span class="st">"D"</span>], <span class="co"># Possibly noisy query pattern</span></span>
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        idx:<span class="bu">int</span>,              <span class="co"># Index of bit to flip</span></span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        ):                    <span class="co"># Return next state and its energy</span></span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        <span class="co">"Minimize the energy of `x[idx]`"</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        xflipped <span class="op">=</span> jnp.array(x).at[idx].multiply(<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        energy_og <span class="op">=</span> <span class="va">self</span>.energy(x)</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        energy_flipped <span class="op">=</span> <span class="va">self</span>.energy(xflipped)</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        sigma_flipped <span class="op">=</span> jnp.array(sigma).at[idx].multiply(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        energy_og <span class="op">=</span> <span class="va">self</span>.energy(sigma)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        energy_flipped <span class="op">=</span> <span class="va">self</span>.energy(sigma_flipped)</span>
 <span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        keep_flip <span class="op">=</span> (energy_flipped <span class="op">-</span> energy_og) <span class="op">&lt;</span> <span class="dv">0</span></span>
 <span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> lax.cond(</span>
 <span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>            keep_flip, </span>
 <span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Keep flipped bit if it has lower energy</span></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>            <span class="kw">lambda</span>: (xflipped, energy_flipped), </span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>            <span class="kw">lambda</span>: (sigma_flipped, energy_flipped), </span>
 <span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Otherwise keep original bit</span></span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>            <span class="kw">lambda</span>: (x, energy_og)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>            <span class="kw">lambda</span>: (sigma, energy_og)</span>
 <span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>        )</span>
 <span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">@eqx.filter_jit</span></span>
 <span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> async_recall(</span>
 <span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, </span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>        x0: Float[Array, <span class="st">"D"</span>], <span class="co"># Initial query pattern</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>        sigma0: Float[Array, <span class="st">"D"</span>], <span class="co"># Initial query pattern</span></span>
 <span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>        nsteps:<span class="bu">int</span><span class="op">=</span><span class="dv">20000</span>, <span class="co"># Number of bits to flip &amp; check</span></span>
 <span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>        key<span class="op">=</span>jr.PRNGKey(<span class="dv">0</span>) <span class="co"># Random key for bit-flip choices</span></span>
 <span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>        ):</span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        <span class="co">"Minimize energy of `x0` by repeatedly applying `async_update`"</span></span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>        <span class="kw">def</span> update_step(x, idx):</span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>            x_new, energy_new <span class="op">=</span> <span class="va">self</span>.async_update(x, idx)</span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> x_new, (x_new, energy_new)</span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>        D <span class="op">=</span> x0.shape[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        <span class="co">"Minimize energy of `sigma0` by repeatedly applying `async_update`"</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>        <span class="kw">def</span> update_step(sigma, idx):</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>            sigma_new, energy_new <span class="op">=</span> <span class="va">self</span>.async_update(sigma, idx)</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> sigma_new, (sigma_new, energy_new)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>        D <span class="op">=</span> sigma0.shape[<span class="op">-</span><span class="dv">1</span>]</span>
 <span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Randomly sample `nsteps` bits to flip</span></span>
 <span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>        bitflip_sequence <span class="op">=</span> jr.choice(key, np.arange(D), shape<span class="op">=</span>(nsteps,))</span>
 <span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Apply `async_update` to each bitflip in seq</span></span>
-<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>        final_x, (frames, energies) <span class="op">=</span> lax.scan(update_step, x0, bitflip_sequence)</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>        final_x, (frames, energies) <span class="op">=</span> lax.scan(update_step, sigma0, bitflip_sequence)</span>
 <span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Return final pattern and the trajectory</span></span>
 <span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> final_x, (frames, energies)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -577,7 +577,7 @@ Note
 <p>Feel free to skip this section. It’s just loading data and setting up some fancy visualization functions.</p>
 </div>
 </div>
-<p>Let’s build some helper functions to load and view our data: binarized pokemon sprites. While other fields like to work with <span class="math inline">\(\{0,1\}\)</span> binary data, Hopfield Networks like to work with bipolar data where each datapoint <span class="math inline">\(x \in \{-1, 1\}^D\)</span>.</p>
+<p>Let’s build some helper functions to load and view our data: binarized pokemon sprites. While other fields like to work with <span class="math inline">\(\{0,1\}\)</span> binary data, Hopfield Networks like to work with bipolar data where each datapoint <span class="math inline">\(\sigma \in \{-1, 1\}^D\)</span>.</p>
 <div id="cell-7" class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> amtutorial.data_utils <span class="im">import</span> get_pokemon_data</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>poke_pixels, poke_names <span class="op">=</span> get_pokemon_data()</span>
@@ -603,14 +603,14 @@ Note
 <span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    grid <span class="op">=</span> rearrange(images[:n_needed], <span class="st">'(gh gw) h w -&gt; (gh h) (gw w)'</span>, gh<span class="op">=</span>grid_h, gw<span class="op">=</span>grid_w)</span>
 <span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> grid</span>
 <span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> show_im(x, ax<span class="op">=</span><span class="va">None</span>, do_gridify<span class="op">=</span><span class="va">True</span>, grid_h<span class="op">=</span><span class="va">None</span>, figsize<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> show_im(sigma, ax<span class="op">=</span><span class="va">None</span>, do_gridify<span class="op">=</span><span class="va">True</span>, grid_h<span class="op">=</span><span class="va">None</span>, figsize<span class="op">=</span><span class="va">None</span>):</span>
 <span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Vector to figure"""</span></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> rearrange(x, <span class="st">"... (h w) -&gt; ... h w"</span>, h<span class="op">=</span>pxh, w<span class="op">=</span>pxw)</span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> do_gridify <span class="kw">and</span> <span class="bu">len</span>(x.shape) <span class="op">==</span> <span class="dv">3</span>: x <span class="op">=</span> gridify(x, grid_h)</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    sigma <span class="op">=</span> rearrange(sigma, <span class="st">"... (h w) -&gt; ... h w"</span>, h<span class="op">=</span>pxh, w<span class="op">=</span>pxw)</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> do_gridify <span class="kw">and</span> <span class="bu">len</span>(sigma.shape) <span class="op">==</span> <span class="dv">3</span>: sigma <span class="op">=</span> gridify(sigma, grid_h)</span>
 <span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    empty_ax <span class="op">=</span> ax <span class="kw">is</span> <span class="va">None</span></span>
 <span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    figsize <span class="op">=</span> figsize <span class="kw">or</span> (<span class="dv">8</span>, <span class="fl">2.67</span>) <span class="co"># Quarto aspect ratio</span></span>
 <span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> empty_ax: fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>figsize)</span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    ax.imshow(x, cmap<span class="op">=</span><span class="st">"gray"</span>, vmin<span class="op">=-</span><span class="dv">1</span>, vmax<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    ax.imshow(sigma, cmap<span class="op">=</span><span class="st">"gray"</span>, vmin<span class="op">=-</span><span class="dv">1</span>, vmax<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    ax.axis(<span class="st">"off"</span>)</span>
 <span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="va">None</span> <span class="cf">if</span> <span class="kw">not</span> empty_ax <span class="cf">else</span> fig, ax</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -651,27 +651,27 @@ Note
 </div>
 </div>
 </div>
-<p>The Classical Hopfield Network (CHN) defines an energy function for this collection of patterns, putting the <span class="math inline">\(\mu\)</span>-th stored pattern <span class="math inline">\(\xi_\mu\)</span> at a <em>low</em> value of energy. The CHN energy is a quadratic function described by dot-product correlations:</p>
+<p>The Classical Hopfield Network (CHN) <span class="citation" data-cites="hopfield1982neural"><a href="#ref-hopfield1982neural" role="doc-biblioref">[1]</a></span> defines an energy function for this collection of patterns, putting the <span class="math inline">\(\mu\)</span>-th stored pattern <span class="math inline">\(\xi^\mu\)</span> at a <em>low</em> value of energy. The CHN energy is a quadratic function described by dot-product correlations:</p>
 <p><span id="eq-chn-energy"><span class="math display">\[
-E_\text{CHN}(x) = -\frac{1}{2} \left(\sum_{\mu} \xi_{\mu i} x_i\right)^2 = -\frac{1}{2} \sum_{i,j} T_{ij} x_i x_j.
+E_\text{CHN}(\sigma) = -\frac{1}{2} \sum_\mu \left(\sum_{i} \xi^\mu_i x_i\right)^2 = -\frac{1}{2} \sum_{i,j} T_{ij} \sigma_i \sigma_j.
 \tag{2}\]</span></span></p>
-<p>We see the familiar equation for CHN energy on the RHS if we expand the quadratic function, where <span class="math inline">\(T_{ij} := \sum_{\mu=1}^K \xi_{\mu i} \xi_{\mu_j}\)</span> is the matrix of symmetric synapses. Learned patterns <span class="math inline">\(\xi_\mu\)</span> are stored in <span class="math inline">\(T\)</span> via a simple, Hebbian learning rule.</p>
+<p>We see the familiar equation for CHN energy on the RHS if we expand the quadratic function, where <span class="math inline">\(T_{ij} := \sum_{\mu=1}^K \xi^\mu_i \xi^\mu_j\)</span> is the matrix of symmetric synapses. Learned patterns <span class="math inline">\(\xi^\mu\)</span> are stored in <span class="math inline">\(T\)</span> via a simple, Hebbian learning rule.</p>
 <p>The CHN can be easily implemented in code via</p>
 <div id="cell-12" class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CHN(BinaryAM):</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, </span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        x: Float[Array, <span class="st">"D"</span>] <span class="co"># Possibly noisy query pattern</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        sigma: Float[Array, <span class="st">"D"</span>] <span class="co"># Possibly noisy query pattern</span></span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>        ): </span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">"Quadratic energy function for the CHN"</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> jnp.<span class="bu">sum</span>((<span class="va">self</span>.Xi <span class="op">@</span> x)<span class="op">**</span><span class="dv">2</span>, axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> jnp.<span class="bu">sum</span>((<span class="va">self</span>.Xi <span class="op">@</span> sigma)<span class="op">**</span><span class="dv">2</span>, axis<span class="op">=</span><span class="dv">0</span>)</span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>chn <span class="op">=</span> CHN(Xi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>The asynchronous update rule of <a href="#eq-async-update" class="quarto-xref">Equation&nbsp;1</a> uses the energy difference of a flipped bit to determine whether to keep the flip or not. That update rule is equivalent to the following, arguably more familiar update rule, which describes the next state based on the sign of the <em>total input current</em> to the neuron <span class="math inline">\(x_i\)</span>.</p>
+<p>The asynchronous update rule of <a href="#eq-async-update" class="quarto-xref">Equation&nbsp;1</a> uses the energy difference of a flipped bit to determine whether to keep the flip or not. That update rule is equivalent to the following, arguably more familiar update rule, which describes the next state based on the sign of the <em>total input current</em> to the neuron <span class="math inline">\(\sigma_i\)</span>.</p>
 <p><span class="math display">\[
 \begin{align*}
-x_i^{(t+1)} &amp;\leftarrow \text{sgn}\left(\sum_{\mu} \xi_{\mu i} \sum_{j \neq i} \left(\xi_{\mu j} x_j^{(t)}\right) \right)\\
+\sigma_i^{(t+1)} &amp;\leftarrow \text{sgn}\left(\sum_{\mu} \xi^\mu_i \sum_{j \neq i} \left(\xi^\mu_j \sigma_j^{(t)}\right) \right)\\
 \text{sgn}(x) &amp;:= \begin{cases}
 1 &amp; \text{if } x \geq 0 \\
 -1 &amp; \text{if } x &lt; 0
@@ -679,14 +679,6 @@ x_i^{(t+1)} &amp;\leftarrow \text{sgn}\left(\sum_{\mu} \xi_{\mu i} \sum_{j \neq 
 \end{align*}
 \]</span></p>
 <p>This update rule also ensures the network always moves toward lower energy states. Because the <span class="math inline">\(E_\text{CHN}\)</span> is bounded from below, the network will eventually converge to a local minimum that (ideally) corresponds to one of the stored patterns.</p>
-<!-- ```{python}
-@patch
-def async_update(self:BinaryCHN, x, idx):
-    new_xidx = ((self.Xi.T @ self.Xi @ x.at[idx].set(0))[idx] >= 0) * 2 - 1
-    xnew = x.at[idx].set(new_xidx)
-    energy = self.energy(xnew)
-    return xnew, energy
-.``` -->
 <p>Let’s observe the recall process! We’ll start with a noisy version of the first pattern and see if we can recover it.</p>
 <div id="cell-14" class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> flip_some_bits(key, x, p<span class="op">=</span><span class="fl">0.1</span>):</span>
@@ -694,10 +686,10 @@ def async_update(self:BinaryCHN, x, idx):
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    prange <span class="op">=</span> np.array([p, <span class="dv">1</span><span class="op">-</span>p])</span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x <span class="op">*</span> jr.choice(key, np.array([<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>]), p<span class="op">=</span>prange, shape<span class="op">=</span>x.shape)</span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>x_og <span class="op">=</span> Xi[<span class="dv">0</span>] </span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>x_noisy <span class="op">=</span> flip_some_bits(jr.PRNGKey(<span class="dv">0</span>), x_og, <span class="fl">0.2</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>sigma_og <span class="op">=</span> Xi[<span class="dv">0</span>] </span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>sigma_noisy <span class="op">=</span> flip_some_bits(jr.PRNGKey(<span class="dv">0</span>), sigma_og, <span class="fl">0.2</span>)</span>
 <span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>show_im(jnp.stack([x_og, x_noisy]), figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">3</span>))<span class="op">;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>show_im(jnp.stack([sigma_og, sigma_noisy]), figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">3</span>))<span class="op">;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
@@ -709,20 +701,20 @@ def async_update(self:BinaryCHN, x, idx):
 <p>For the pedagogical purpose of this notebook, we’ll cache the recall process and results so we don’t have to run it every time.</p>
 <div id="cell-16" class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="at">@delegates</span>(BinaryAM.async_recall)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cached_recall(am, cache_name, x_noisy, key<span class="op">=</span>jr.PRNGKey(<span class="dv">0</span>), save<span class="op">=</span><span class="va">True</span>, <span class="op">**</span>kwargs):</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cached_recall(am, cache_name, sigma_noisy, key<span class="op">=</span>jr.PRNGKey(<span class="dv">0</span>), save<span class="op">=</span><span class="va">True</span>, <span class="op">**</span>kwargs):</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Cache the recall process using key `cache_name`"</span></span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    npz_fname <span class="op">=</span> Path(CACHE_DIR) <span class="op">/</span> (cache_name <span class="op">+</span> <span class="st">'.npz'</span>)</span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> npz_fname.exists() <span class="kw">and</span> CACHE_RECALL: </span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        npz_data <span class="op">=</span> np.load(npz_fname)</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        x_final, frames, energies <span class="op">=</span> npz_data[<span class="st">'x_final'</span>], npz_data[<span class="st">'frames'</span>], npz_data[<span class="st">'energies'</span>]</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        sigma_final, frames, energies <span class="op">=</span> npz_data[<span class="st">'sigma_final'</span>], npz_data[<span class="st">'frames'</span>], npz_data[<span class="st">'energies'</span>]</span>
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"Loading cached recall data"</span>)</span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>: </span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        x_final, (frames, energies) <span class="op">=</span> am.async_recall(x_noisy, key<span class="op">=</span>key, <span class="op">**</span>kwargs)</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> save: jnp.savez(npz_fname, x_final<span class="op">=</span>x_final, frames<span class="op">=</span>frames, energies<span class="op">=</span>energies)</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x_final, frames, energies</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        sigma_final, (frames, energies) <span class="op">=</span> am.async_recall(sigma_noisy, key<span class="op">=</span>key, <span class="op">**</span>kwargs)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> save: jnp.savez(npz_fname, sigma_final<span class="op">=</span>sigma_final, frames<span class="op">=</span>frames, energies<span class="op">=</span>energies)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> sigma_final, frames, energies</span>
 <span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>cache_name <span class="op">=</span> <span class="st">'basic_hopfield_recovery'</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>x_final, frames, energies <span class="op">=</span> cached_recall(chn, cache_name, x_noisy, nsteps<span class="op">=</span><span class="dv">12000</span>, key<span class="op">=</span>jr.PRNGKey(<span class="dv">5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>sigma_final, frames, energies <span class="op">=</span> cached_recall(chn, cache_name, sigma_noisy, nsteps<span class="op">=</span><span class="dv">12000</span>, key<span class="op">=</span>jr.PRNGKey(<span class="dv">5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Loading cached recall data</code></pre>
 </div>
@@ -748,9 +740,9 @@ def async_update(self:BinaryCHN, x, idx):
 </div>
 <section id="sec-inverted-retrievals" class="level3">
 <h3 class="anchored" data-anchor-id="sec-inverted-retrievals">Retrieving “inverted” images</h3>
-<p>If we initialize a query with <em>too much</em> noise, it’s possible to retrieve the negative of a stored pattern or an “inverted image”. Because the energy is quadratic, both <span class="math inline">\(x\)</span> and <span class="math inline">\(-x\)</span> produce the same small value of energy. Whether we retrieve the original <span class="math inline">\(x\)</span> or the inverted <span class="math inline">\(-x\)</span> is dependent on whether we initialize our query closer to the original or inverted pattern.</p>
+<p>If we initialize a query with <em>too much</em> noise, it’s possible to retrieve the negative of a stored pattern or an “inverted image”. Because the energy is quadratic, both <span class="math inline">\(\sigma\)</span> and <span class="math inline">\(-\sigma\)</span> produce the same small value of energy. Whether we retrieve the original <span class="math inline">\(\sigma\)</span> or the inverted <span class="math inline">\(-\sigma\)</span> is dependent on whether we initialize our query closer to the original or inverted pattern.</p>
 <p><span class="math display">\[
-E_\text{CHN}(-x) = -\frac{1}{2} \left(\sum_{\mu} \xi_{\mu i} (-x_i)\right)^2 = E_\text{CHN}(x)
+E_\text{CHN}(-\sigma) = -\frac{1}{2} \left(\sum_{\mu} \xi^\mu_i (-\sigma_i)\right)^2 = E_\text{CHN}(\sigma)
 \]</span></p>
 <div id="cell-21" class="cell">
 <div class="cell-output cell-output-stdout">
@@ -814,11 +806,11 @@ CHN failed to retrieve the correct pattern!</code></pre>
 </section>
 <section id="dense-associative-memory" class="level2">
 <h2 class="anchored" data-anchor-id="dense-associative-memory">Dense Associative Memory</h2>
-<p>The CHN has a <em>quadratic</em> energy, which is a special case of a more general class of models called <strong>Dense Associative Memory</strong> (DenseAM). If we increase the degree of the polynomial used in the energy function, we strengthen the coupling between neurons and can store more patterns into the same synaptic matrix.</p>
-<p>The new energy function, written in terms of polynomials of degree <span class="math inline">\(n\)</span> and using the same notation for stored patterns <span class="math inline">\(\xi_{\mu i}\)</span>, is</p>
+<p>The CHN has a <em>quadratic</em> energy, which is a special case of a more general class of models called <strong>Dense Associative Memory</strong> (DenseAM) <span class="citation" data-cites="krotov2016dense"><a href="#ref-krotov2016dense" role="doc-biblioref">[2]</a></span>. If we increase the degree of the polynomial used in the energy function, we strengthen the coupling between neurons and can store more patterns into the same synaptic matrix.</p>
+<p>The new energy function, written in terms of polynomials of degree <span class="math inline">\(n\)</span> and using the same notation for stored patterns <span class="math inline">\(\xi^\mu_i\)</span>, is</p>
 <p><span id="eq-dam-energy"><span class="math display">\[
 \begin{align*}
-E_\text{DAM}(x) &amp;= -\sum_{\mu=1}^K F_n\left(\sum_{i=1}^D \xi_{\mu i} x_i\right),\\
+E_\text{DAM}(\sigma) &amp;= -\sum_{\mu=1}^K F_n\left(\sum_{i=1}^D \xi^\mu_i \sigma_i\right),\\
 \text{where}\;F_n(x) &amp;= \begin{cases} \frac{x^n}{n} &amp; \text{if } x \geq 0 \\ 0 &amp; \text{if } x &lt; 0 \end{cases}.
 \end{align*}
 \tag{3}\]</span></span></p>
@@ -839,7 +831,7 @@ Note
 <p><a href="#eq-dam-energy" class="quarto-xref">Equation&nbsp;3</a> admits the following manual update rule for a single neuron <span class="math inline">\(i\)</span>:</p>
 <p><span id="eq-dam-update"><span class="math display">\[
 \begin{align*}
-x_i^{(t+1)} &amp;\leftarrow \text{sgn}\left( \sum_{\mu} \xi_{\mu i} f_n\left( \sum_{j \neq i} \xi_{\mu j} x_j^{(t)}\right)\right)\\
+\sigma_i^{(t+1)} &amp;\leftarrow \text{sgn}\left( \sum_{\mu} \xi^\mu_i f_n\left( \sum_{j \neq i} \xi^\mu_j \sigma_j^{(t)}\right)\right)\\
 \end{align*}.
 \tag{4}\]</span></span></p>
 <p>Here we introduced an activation function <span class="math inline">\(f_n(\cdot) = F_n'(\cdot)\)</span> that is the derivative of the rectified polynomial used to define the energy. This update can be viewed as the negative gradient of the energy function, ensuring that the network always moves toward lower energy states. Like before, this energy is bounded from below and we will eventually converge to a local minimum that corresponds to one of the stored patterns.</p>
@@ -855,8 +847,8 @@ x_i^{(t+1)} &amp;\leftarrow \text{sgn}\left( \sum_{\mu} \xi_{\mu i} f_n\left( \s
 <span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>        sims <span class="op">=</span> sims.clip(<span class="dv">0</span>) <span class="cf">if</span> <span class="va">self</span>.rectified <span class="cf">else</span> sims</span>
 <span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">1</span> <span class="op">/</span> <span class="va">self</span>.n <span class="op">*</span> sims <span class="op">**</span> <span class="va">self</span>.n</span>
 <span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(<span class="va">self</span>, x): </span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>jnp.<span class="bu">sum</span>(<span class="va">self</span>.F_n(<span class="va">self</span>.Xi <span class="op">@</span> x))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(<span class="va">self</span>, sigma): </span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>jnp.<span class="bu">sum</span>(<span class="va">self</span>.F_n(<span class="va">self</span>.Xi <span class="op">@</span> sigma))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>A simple change to using a polynomial of degree <span class="math inline">\(6\)</span> instead of the CHN’s quadratic energy function allows us to store and retrieve our desired eevee even with up to <span class="math inline">\(K=100\)</span> patterns.</p>
 <div id="cell-28" class="cell">
@@ -869,11 +861,11 @@ x_i^{(t+1)} &amp;\leftarrow \text{sgn}\left( \sum_{\mu} \xi_{\mu i} f_n\left( \s
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>fname <span class="op">=</span> <span class="ss">f'dam_recovery_n_</span><span class="sc">{</span>dam<span class="sc">.</span>n<span class="sc">}</span><span class="ss">_K_</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">'</span></span>
 <span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>x_og <span class="op">=</span> Xi[<span class="dv">0</span>]</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>x_noisy <span class="op">=</span> flip_some_bits(jr.PRNGKey(<span class="dv">0</span>), x_og, <span class="fl">0.2</span>)</span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>x_final, frames, energies <span class="op">=</span> cached_recall(dam, fname, x_noisy, nsteps<span class="op">=</span><span class="dv">20000</span>, key<span class="op">=</span>jr.PRNGKey(<span class="dv">5</span>))</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>sigma_og <span class="op">=</span> Xi[<span class="dv">0</span>]</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>sigma_noisy <span class="op">=</span> flip_some_bits(jr.PRNGKey(<span class="dv">0</span>), sigma_og, <span class="fl">0.2</span>)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>sigma_final, frames, energies <span class="op">=</span> cached_recall(dam, fname, sigma_noisy, nsteps<span class="op">=</span><span class="dv">20000</span>, key<span class="op">=</span>jr.PRNGKey(<span class="dv">5</span>))</span>
 <span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>fig2, axes2 <span class="op">=</span> show_recall_output(x_og, x_noisy, x_final, energies, show_original<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>fig2, axes2 <span class="op">=</span> show_recall_output(sigma_og, sigma_noisy, sigma_final, energies, show_original<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>fig2.suptitle(<span class="ss">f"DenseAM(n=</span><span class="sc">{</span>dam<span class="sc">.</span>n<span class="sc">}</span><span class="ss">, K=</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">)"</span>)</span>
 <span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>plt.subplots_adjust(top<span class="op">=</span><span class="fl">0.75</span>)</span>
 <span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
@@ -910,10 +902,10 @@ x_i^{(t+1)} &amp;\leftarrow \text{sgn}\left( \sum_{\mu} \xi_{\mu i} f_n\left( \s
 <section id="sec-gotta-catch-em-all" class="level2">
 <h2 class="anchored" data-anchor-id="sec-gotta-catch-em-all">Gotta catch ’em all!</h2>
 <p>Let’s try to store and retrieve all <code>1024</code> pokemon patterns into our network (though we will only show retrieval for a subset of them for computational reasons). To do this, we’ll need very large values of <span class="math inline">\(n\)</span>, which is bad for numeric overflow (computers don’t like working in really really large numbers i.e., <code>inf</code> energy regimes).</p>
-<p>We’ll implement an exponential version of the DenseAM <span class="citation" data-cites="demicirgil2017model">(<a href="#ref-demicirgil2017model" role="doc-biblioref">Demircigil et al. 2017</a>)</span> using the numerically stable <code>logsumexp</code> function. This form of the DenseAM energy was introduced by <span class="citation" data-cites="ramsauer2021hopfield">(<a href="#ref-ramsauer2021hopfield" role="doc-biblioref">Ramsauer et al. 2021</a>)</span> and is also referred to as the “Modern Hopfield Network” (MHN).</p>
+<p>We’ll implement an exponential version of the DenseAM <span class="citation" data-cites="demicirgil2017model"><a href="#ref-demicirgil2017model" role="doc-biblioref">[3]</a></span>. Specifically, we will use a numerically stable <code>logsumexp</code> version <span class="citation" data-cites="ramsauer2021hopfield"><a href="#ref-ramsauer2021hopfield" role="doc-biblioref">[4]</a></span>.</p>
 <p><span id="eq-dam-energy-logsumexp"><span class="math display">\[
 \begin{align*}
-E_\text{MHN}(x) &amp;= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi_{\mu i} x_i\right)
+E_\text{eDAM}(\sigma) &amp;= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi^\mu_i \sigma_i\right)
 \end{align*}
 \tag{5}\]</span></span></p>
 <p>where increasing the inverse temperature <span class="math inline">\(\beta\)</span> has a similar effect to increasing <span class="math inline">\(n\)</span> in the DenseAM polynomial energy function. Because the <code>log</code> is a monotonically increasing function, the energy minima of the original energy function are preserved, while simultaneously making the energy function more numerically stable.</p>
@@ -922,8 +914,8 @@ E_\text{MHN}(x) &amp;= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi_{\
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    Xi: jax.Array <span class="co"># (K, D) Memory patterns </span></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    beta: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.0</span> <span class="co"># Temperature parameter</span></span>
 <span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(<span class="va">self</span>, x):</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>jax.nn.logsumexp(<span class="va">self</span>.beta <span class="op">*</span> <span class="va">self</span>.Xi <span class="op">@</span> x, axis<span class="op">=-</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(<span class="va">self</span>, sigma):</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>jax.nn.logsumexp(<span class="va">self</span>.beta <span class="op">*</span> <span class="va">self</span>.Xi <span class="op">@</span> sigma, axis<span class="op">=-</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div id="cell-31" class="cell">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Show larger batch retrieval</span></span>
@@ -967,22 +959,22 @@ Memory usage warning
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>key1, key2 <span class="op">=</span> jr.split(jr.PRNGKey(<span class="dv">3</span>))</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>nh <span class="op">=</span> nw <span class="op">=</span> <span class="dv">10</span></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>N <span class="op">=</span> nh <span class="op">*</span> nw <span class="co"># Sample N patterns to show in grid</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>x_og <span class="op">=</span> jnp.concatenate([</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>sigma_og <span class="op">=</span> jnp.concatenate([</span>
 <span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    data[eevee_pichu_idxs], </span>
 <span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    jr.choice(jr.PRNGKey(<span class="dv">10</span>), data, shape<span class="op">=</span>(N <span class="op">-</span> <span class="bu">len</span>(eevee_pichu_idxs),), replace<span class="op">=</span><span class="va">False</span>)])</span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>x_noisy <span class="op">=</span> flip_some_bits(key2, x_og, <span class="fl">0.25</span>)</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>sigma_noisy <span class="op">=</span> flip_some_bits(key2, sigma_og, <span class="fl">0.25</span>)</span>
 <span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>mhn <span class="op">=</span> ExponentialDenseAM(Xi, beta<span class="op">=</span><span class="fl">50.</span>)</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>edam <span class="op">=</span> ExponentialDenseAM(Xi, beta<span class="op">=</span><span class="fl">50.</span>)</span>
 <span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>cache_name <span class="op">=</span> <span class="st">"logsumexp_batched"</span></span>
-<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>keys <span class="op">=</span> jr.split(key2, x_noisy.shape[<span class="dv">0</span>])</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>keys <span class="op">=</span> jr.split(key2, sigma_noisy.shape[<span class="dv">0</span>])</span>
 <span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>npz_fname <span class="op">=</span> Path(CACHE_DIR) <span class="op">/</span> (cache_name <span class="op">+</span> <span class="st">".npz"</span>)</span>
 <span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> os.path.exists(npz_fname) <span class="kw">and</span> CACHE_RECALL:</span>
 <span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    npz_data <span class="op">=</span> np.load(npz_fname)</span>
-<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    x_final, frames, energies <span class="op">=</span> npz_data[<span class="st">'x_final'</span>], npz_data[<span class="st">'frames'</span>], npz_data[<span class="st">'energies'</span>]</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>    sigma_final, frames, energies <span class="op">=</span> npz_data[<span class="st">'sigma_final'</span>], npz_data[<span class="st">'frames'</span>], npz_data[<span class="st">'energies'</span>]</span>
 <span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
-<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>    x_final, frames, energies <span class="op">=</span> jax.vmap(ft.partial(cached_recall, nsteps<span class="op">=</span><span class="dv">16000</span>, save<span class="op">=</span><span class="va">False</span>), in_axes<span class="op">=</span>(<span class="va">None</span>, <span class="va">None</span>, <span class="dv">0</span>,<span class="dv">0</span>))(mhn, cache_name, x_noisy, keys)</span>
-<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>    np.savez(npz_fname, x_final<span class="op">=</span>x_final, frames<span class="op">=</span>frames, energies<span class="op">=</span>energies)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>    sigma_final, frames, energies <span class="op">=</span> jax.vmap(ft.partial(cached_recall, nsteps<span class="op">=</span><span class="dv">16000</span>, save<span class="op">=</span><span class="va">False</span>), in_axes<span class="op">=</span>(<span class="va">None</span>, <span class="va">None</span>, <span class="dv">0</span>,<span class="dv">0</span>))(edam, cache_name, sigma_noisy, keys)</span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>    np.savez(npz_fname, sigma_final<span class="op">=</span>sigma_final, frames<span class="op">=</span>frames, energies<span class="op">=</span>energies)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p>And of course, what’s the fun if we can’t animate the retrieval process?</p>
@@ -993,12 +985,18 @@ Memory usage warning
 
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body" data-entry-spacing="0" role="list">
+<div id="ref-hopfield1982neural" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline">J. J. Hopfield, <span>“Neural networks and physical systems with emergent collective computational abilities.”</span> <em>Proceedings of the national academy of sciences</em>, vol. 79, no. 8, pp. 2554–2558, 1982.</div>
+</div>
+<div id="ref-krotov2016dense" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline">D. Krotov and J. J. Hopfield, <span>“Dense associative memory for pattern recognition,”</span> <em>Advances in neural information processing systems</em>, vol. 29, 2016.</div>
+</div>
 <div id="ref-demicirgil2017model" class="csl-entry" role="listitem">
-Demircigil, Mete, Judith Heusel, Matthias Löwe, Sven Upgang, and Franck Vermet. 2017. <span>“On a Model of Associative Memory with Huge Storage Capacity.”</span> <em>Journal of Statistical Physics</em> 168 (2): 288–99. <a href="https://doi.org/10.1007/s10955-017-1806-y">https://doi.org/10.1007/s10955-017-1806-y</a>.
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline">M. Demircigil, J. Heusel, M. Löwe, S. Upgang, and F. Vermet, <span>“On a model of associative memory with huge storage capacity,”</span> <em>Journal of Statistical Physics</em>, vol. 168, no. 2, pp. 288–299, May 2017, doi: <a href="https://doi.org/10.1007/s10955-017-1806-y">10.1007/s10955-017-1806-y</a>.</div>
 </div>
 <div id="ref-ramsauer2021hopfield" class="csl-entry" role="listitem">
-Ramsauer, Hubert, Bernhard Schäfl, Johannes Lehner, Philipp Seidl, Michael Widrich, Lukas Gruber, Markus Holzleitner, et al. 2021. <span>“Hopfield Networks Is All You Need.”</span> In <em>International Conference on Learning Representations</em>. <a href="https://openreview.net/forum?id=tL89RnzIiCd">https://openreview.net/forum?id=tL89RnzIiCd</a>.
+<div class="csl-left-margin">[4] </div><div class="csl-right-inline">H. Ramsauer <em>et al.</em>, <span>“Hopfield networks is all you need,”</span> 2021, [Online]. Available: <a href="https://openreview.net/forum?id=tL89RnzIiCd">https://openreview.net/forum?id=tL89RnzIiCd</a>.</div>
 </div>
 </div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
