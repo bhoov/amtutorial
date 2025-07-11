@@ -451,7 +451,8 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#introducing-energy-into-the-transformer" id="toc-introducing-energy-into-the-transformer" class="nav-link active" data-scroll-target="#introducing-energy-into-the-transformer">Introducing Energy into the Transformer</a>
+  <li><a href="#flow-perspective-of-transformers" id="toc-flow-perspective-of-transformers" class="nav-link active" data-scroll-target="#flow-perspective-of-transformers">Flow perspective of Transformers</a></li>
+  <li><a href="#introducing-energy-into-the-transformer" id="toc-introducing-energy-into-the-transformer" class="nav-link" data-scroll-target="#introducing-energy-into-the-transformer">Introducing Energy into the Transformer</a>
   <ul class="collapse">
   <li><a href="#attention-energy" id="toc-attention-energy" class="nav-link" data-scroll-target="#attention-energy">Attention Energy</a></li>
   <li><a href="#memory-energy" id="toc-memory-energy" class="nav-link" data-scroll-target="#memory-energy">Memory Energy</a></li>
@@ -504,6 +505,8 @@ window.Quarto = {
     .yellow { color:rgb(252, 211, 28); }
 </style>
 <p><a target="_blank" href="https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/01_energy_transformer.ipynb"> <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"> </a></p>
+<section id="flow-perspective-of-transformers" class="level2">
+<h2 class="anchored" data-anchor-id="flow-perspective-of-transformers">Flow perspective of Transformers</h2>
 <blockquote class="blockquote">
 <p>Squint, and the Transformer looks like a dynamical system.</p>
 </blockquote>
@@ -526,12 +529,13 @@ Figure&nbsp;1: A vanilla Transformer Block consisting of 4 main operations: <spa
 <figcaption><strong>The Energy Transformer block, shown as the derivative of its energy.</strong> Attention and Hopfield Network (symmetric MLP) updates are computed in parallel. Updates are added to the input via a residual connection that is a byproduct of ET describing a dynamical system.</figcaption>
 </figure>
 </div>
+</section>
 <section id="introducing-energy-into-the-transformer" class="level2">
 <h2 class="anchored" data-anchor-id="introducing-energy-into-the-transformer">Introducing Energy into the Transformer</h2>
 <p>We will now build a kind of associative memory called the “Energy Transformer” <span class="citation" data-cites="hoover2024energy">(<a href="#ref-hoover2024energy" role="doc-biblioref">Hoover et al. 2024</a>)</span> that turns the familiar transformer operation into an energy minimization. Energy Transformer (ET) defines a single energy on an <span class="math inline">\(\mathbf{x} \in \mathbb{R}^{N \times D}\)</span> collection of tokens, where we can think of each token <span class="math inline">\(\mathbf{x}_B\)</span> as a “particle” that knows some information about itself and needs to figure out what it should become. Some particles (unmasked tokens) already know their identity, while others (masked tokens) only know their position and must discover their identity by interacting with their neighbors.</p>
 <p>Minimizing the energy of the Energy Transformer (ET) is a recurrent process. The entire transformer consists of a single Transformer block, and each “layer” of the transformer becomes a gradient descent step down the energy. This gradient descent step looks remarkably like a standard transformer block, complete with attention, MLP-like operations, layer normalizations, and residual connections.</p>
 <p>The global energy combines two intuitive ideas: (1) <strong>attention energy</strong> that encourages masked tokens to align with relevant unmasked tokens, and (2) <strong>memory energy</strong> that ensures all tokens look like realistic patterns the model has learned. The gradient of each of these energies look like a self-attention and MLP, respectively, with some shared weight constraints.</p>
-<p>This is one of those situations where the code ends up being significantly simpler than the equations. We write the equations for completeness, but feel free to skip to <a href="#sec-ET-implementation" class="quarto-xref">Section&nbsp;1.3</a> for succinct code.</p>
+<p>This is one of those situations where the code ends up being significantly simpler than the equations. We write the equations for completeness, but feel free to skip to <a href="#sec-ET-implementation" class="quarto-xref">Section&nbsp;2.3</a> for succinct code.</p>
 <section id="attention-energy" class="level3">
 <h3 class="anchored" data-anchor-id="attention-energy">Attention Energy</h3>
 <p>We describe the energy of a multi-headed attention with <span class="math inline">\(H\)</span> heads, where the <span class="math inline">\(h\)</span>-th head of attention is parameterized by <span class="math inline">\(\mathbf{W}_h^Q, \mathbf{W}_h^K \in \mathbb{R}^{D \times Y}\)</span>, where <span class="math inline">\(Y\)</span> is the “head dimension”. The input to the attention is the normalized token vectors <span class="math inline">\(\hat{\mathbf{x}} \in \mathbb{R}^{N \times D}\)</span>. In the math that follows, we index the heads by <span class="math inline">\(h=1\ldots H\)</span>, the head dimension by <span class="math inline">\(\alpha=1\ldots Y\)</span>, tokens by <span class="math inline">\(A,B,C=1 \ldots N\)</span>, and each token vector by <span class="math inline">\(i,j=1\ldots D\)</span>.</p>
@@ -902,31 +906,35 @@ Figure&nbsp;2: Energy descent for the Energy Transformer.
 </div>
 </div>
 <div id="cell-27" class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>RuntimeWarning: invalid value encountered in cast
+  return im.astype(jnp.uint8)</code></pre>
+</div>
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="01_energy_transformer_files/figure-html/cell-16-output-1.png" width="389" height="410" class="figure-img"></p>
+<p><img src="01_energy_transformer_files/figure-html/cell-16-output-2.png" width="389" height="410" class="figure-img"></p>
 </figure>
 </div>
 </div>
 </div>
 <p><code>Patcher.unpatchify</code> gets us back to the original image.</p>
 <div id="cell-29" class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> jnp.<span class="bu">all</span>(patcher.unpatchify(patched_img) <span class="op">==</span> imgs[<span class="dv">0</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> jnp.<span class="bu">all</span>(patcher.unpatchify(patched_img) <span class="op">==</span> imgs[<span class="dv">0</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We can also process an images and batches of imags into tokens and back.</p>
 <div id="cell-31" class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>tokenified_img <span class="op">=</span> patcher.tokenify(imgs[<span class="dv">0</span>])</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Token pre-embedding shape: "</span>, tokenified_img.shape)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>untokenified_img <span class="op">=</span> patcher.untokenify(tokenified_img)</span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> jnp.<span class="bu">all</span>(untokenified_img <span class="op">==</span> imgs[<span class="dv">0</span>])</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>batch_tokenified_imgs <span class="op">=</span> patcher.tokenify(imgs)</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Batch token pre-embedding shape: "</span>, batch_tokenified_imgs.shape)</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>batch_untokenified_imgs <span class="op">=</span> patcher.untokenify(batch_tokenified_imgs)</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> jnp.<span class="bu">all</span>(batch_untokenified_imgs <span class="op">==</span> imgs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>tokenified_img <span class="op">=</span> patcher.tokenify(imgs[<span class="dv">0</span>])</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Token pre-embedding shape: "</span>, tokenified_img.shape)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>untokenified_img <span class="op">=</span> patcher.untokenify(tokenified_img)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> jnp.<span class="bu">all</span>(untokenified_img <span class="op">==</span> imgs[<span class="dv">0</span>])</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>batch_tokenified_imgs <span class="op">=</span> patcher.tokenify(imgs)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Batch token pre-embedding shape: "</span>, batch_tokenified_imgs.shape)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>batch_untokenified_imgs <span class="op">=</span> patcher.untokenify(batch_tokenified_imgs)</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> jnp.<span class="bu">all</span>(batch_untokenified_imgs <span class="op">==</span> imgs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Token pre-embedding shape:  (196, 768)
 Batch token pre-embedding shape:  (11, 196, 768)</code></pre>
@@ -938,103 +946,103 @@ Batch token pre-embedding shape:  (11, 196, 768)</code></pre>
 <p>Let’s create a full ET, complete with embeddings, model that can be used for masked-image inpainting. We say that each image has <span class="math inline">\(N\)</span> total patches/tokens, where each patch as <span class="math inline">\(Z = c \times h \times w\)</span> pixels when rasterized. We will use linear embeddings (with biases) to embed and unembed rasterized image patches to tokens.</p>
 <p>First, let’s describe the data and ET we are working with.</p>
 <div id="cell-33" class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ImageETConfig(eqx.Module):</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  image_shape: Tuple[<span class="bu">int</span>, <span class="bu">int</span>, <span class="bu">int</span>] <span class="op">=</span> (<span class="dv">3</span>, <span class="dv">224</span>, <span class="dv">224</span>) <span class="co"># (C, H, W) Image shape</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  patch_size: <span class="bu">int</span> <span class="op">=</span> <span class="dv">16</span> <span class="co"># Square patch size</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  et_conf: ETConfig <span class="op">=</span> fullETConfig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ImageETConfig(eqx.Module):</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  image_shape: Tuple[<span class="bu">int</span>, <span class="bu">int</span>, <span class="bu">int</span>] <span class="op">=</span> (<span class="dv">3</span>, <span class="dv">224</span>, <span class="dv">224</span>) <span class="co"># (C, H, W) Image shape</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  patch_size: <span class="bu">int</span> <span class="op">=</span> <span class="dv">16</span> <span class="co"># Square patch size</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  et_conf: ETConfig <span class="op">=</span> fullETConfig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>To work with data, we add a few extra matrices: embedding/unembedding matrices (let’s use a bias for each), position embeddings, and CLS/MASK tokens. The position embeddings are used to encode the position of each token in the sequence, and the CLS/MASK tokens are used for interop with the original ViT. <span class="citation" data-cites="dosovitskiy2020vit">(<a href="#ref-dosovitskiy2020vit" role="doc-biblioref">Dosovitskiy et al. 2020</a>)</span> Additionally, the <code>layernorm</code> is external to the computation of the ET so we’ll insert those parameters here.</p>
 <div id="cell-35" class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ImageEnergyTransformer(eqx.Module):</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  patcher: Patcher</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  W_emb: Float[Array, <span class="st">"Z D"</span>]</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  b_emb: Float[Array, <span class="st">"D"</span>]</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  W_unemb: Float[Array, <span class="st">"D Z"</span>]</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  b_unemb: Float[Array, <span class="st">"Z"</span>]</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  pos_embed: Float[Array, <span class="st">"(N+1) D"</span>] <span class="co"># Don't forget the CLS token!</span></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  cls_token: jax.Array</span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>  mask_token: jax.Array</span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  et: EnergyTransformer</span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>  lnorm: EnergyLayerNorm</span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  config: ImageETConfig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ImageEnergyTransformer(eqx.Module):</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  patcher: Patcher</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  W_emb: Float[Array, <span class="st">"Z D"</span>]</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  b_emb: Float[Array, <span class="st">"D"</span>]</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  W_unemb: Float[Array, <span class="st">"D Z"</span>]</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  b_unemb: Float[Array, <span class="st">"Z"</span>]</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  pos_embed: Float[Array, <span class="st">"(N+1) D"</span>] <span class="co"># Don't forget the CLS token!</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  cls_token: jax.Array</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  mask_token: jax.Array</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  et: EnergyTransformer</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  lnorm: EnergyLayerNorm</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>  config: ImageETConfig</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Let’s define some functions for converting image patches to/from tokens. These are a.k.a. “embedding” and “unembedding” operations.</p>
 <div id="cell-37" class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="at">@patch</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> encode(</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">self</span>: ImageEnergyTransformer, </span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  x: Float[Array, <span class="st">"N Z"</span>]</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>):</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">"Embed rasterized patches to tokens"</span></span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  out <span class="op">=</span> x <span class="op">@</span> <span class="va">self</span>.W_emb <span class="op">+</span> <span class="va">self</span>.b_emb <span class="co"># (..., N, D)</span></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> out</span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="at">@patch</span></span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> decode(</span>
-<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  <span class="va">self</span>: ImageEnergyTransformer, </span>
-<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  x: Float[Array, <span class="st">"N D"</span>]):</span>
-<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>  <span class="co">"Turn x from tokens to rasterized img patches"</span></span>
-<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> x <span class="op">@</span> <span class="va">self</span>.W_unemb <span class="op">+</span> <span class="va">self</span>.b_unemb <span class="co"># (..., N, Z)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="at">@patch</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> encode(</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">self</span>: ImageEnergyTransformer, </span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  x: Float[Array, <span class="st">"N Z"</span>]</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">"Embed rasterized patches to tokens"</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  out <span class="op">=</span> x <span class="op">@</span> <span class="va">self</span>.W_emb <span class="op">+</span> <span class="va">self</span>.b_emb <span class="co"># (..., N, D)</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> out</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="at">@patch</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> decode(</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  <span class="va">self</span>: ImageEnergyTransformer, </span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>  x: Float[Array, <span class="st">"N D"</span>]):</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>  <span class="co">"Turn x from tokens to rasterized img patches"</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> x <span class="op">@</span> <span class="va">self</span>.W_unemb <span class="op">+</span> <span class="va">self</span>.b_unemb <span class="co"># (..., N, Z)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Masking tokens is also a part of this data connection. Let’s corrupt and add the CLS register:</p>
 <div id="cell-39" class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="at">@patch</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> corrupt_tokens(</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">self</span>: ImageEnergyTransformer, </span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  x: Float[Array, <span class="st">"N D"</span>],</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  mask: Float[Array, <span class="st">"N"</span>], </span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  max_n_masked: <span class="bu">int</span><span class="op">=</span><span class="dv">100</span>):</span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">"""Corrupt tokens with MASK tokens wherever `mask` is 1.</span></span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="co">  `max_n_masked` needs to be known in advance for JAX JIT to work properly</span></span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="co">  """</span></span>
-<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  maskmask <span class="op">=</span> jnp.nonzero(mask <span class="op">==</span> <span class="dv">1</span>, size<span class="op">=</span>max_n_masked, fill_value<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> x.at[maskmask].<span class="bu">set</span>(<span class="va">self</span>.mask_token) <span class="co"># (..., N, D)</span></span>
-<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a><span class="at">@patch</span></span>
-<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> prep_tokens(</span>
-<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>  <span class="va">self</span>: ImageEnergyTransformer, </span>
-<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>  x: Float[Array, <span class="st">"N D"</span>], </span>
-<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>  mask: Float[Array, <span class="st">"N"</span>]):</span>
-<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>  <span class="co">"Add CLS+MASK tokens and POS embeddings"</span></span>
-<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>  x <span class="op">=</span> <span class="va">self</span>.corrupt_tokens(x, mask)</span>
-<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>  x <span class="op">=</span> jnp.concatenate([<span class="va">self</span>.cls_token[<span class="va">None</span>], x]) <span class="co"># (..., N+1, D)</span></span>
-<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> x <span class="op">+</span> <span class="va">self</span>.pos_embed <span class="co"># (..., N+1, D)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="at">@patch</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> corrupt_tokens(</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">self</span>: ImageEnergyTransformer, </span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  x: Float[Array, <span class="st">"N D"</span>],</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  mask: Float[Array, <span class="st">"N"</span>], </span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  max_n_masked: <span class="bu">int</span><span class="op">=</span><span class="dv">100</span>):</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">"""Corrupt tokens with MASK tokens wherever `mask` is 1.</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a><span class="co">  `max_n_masked` needs to be known in advance for JAX JIT to work properly</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a><span class="co">  """</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>  maskmask <span class="op">=</span> jnp.nonzero(mask <span class="op">==</span> <span class="dv">1</span>, size<span class="op">=</span>max_n_masked, fill_value<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> x.at[maskmask].<span class="bu">set</span>(<span class="va">self</span>.mask_token) <span class="co"># (..., N, D)</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a><span class="at">@patch</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> prep_tokens(</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>  <span class="va">self</span>: ImageEnergyTransformer, </span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>  x: Float[Array, <span class="st">"N D"</span>], </span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>  mask: Float[Array, <span class="st">"N"</span>]):</span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>  <span class="co">"Add CLS+MASK tokens and POS embeddings"</span></span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>  x <span class="op">=</span> <span class="va">self</span>.corrupt_tokens(x, mask)</span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>  x <span class="op">=</span> jnp.concatenate([<span class="va">self</span>.cls_token[<span class="va">None</span>], x]) <span class="co"># (..., N+1, D)</span></span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> x <span class="op">+</span> <span class="va">self</span>.pos_embed <span class="co"># (..., N+1, D)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>The inference process is <em>gradient descent</em> down the energy, and turns a full image whose patches are masked according to <code>mask</code> and returns predictions for the whole image.</p>
 <div id="cell-41" class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="at">@patch</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> <span class="fu">__call__</span>(</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">self</span>: ImageEnergyTransformer, </span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  img: Float[Array, <span class="st">"C H W"</span>], </span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  mask: Float[Array, <span class="st">"N"</span>], </span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  nsteps<span class="op">=</span><span class="dv">12</span>, </span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  step_size<span class="op">=</span><span class="fl">0.1</span>):</span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">"A complete pipeline for masked image modeling in ET using gradient descent"</span></span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  x <span class="op">=</span> <span class="va">self</span>.patcher.tokenify(img) <span class="co"># (..., N, Z)</span></span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  x <span class="op">=</span> <span class="va">self</span>.encode(x)</span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>  x <span class="op">=</span> <span class="va">self</span>.prep_tokens(x, mask)  <span class="co"># (..., N+1, D)</span></span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  get_energy_info <span class="op">=</span> jax.value_and_grad(<span class="va">self</span>.et.energy)</span>
-<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> gd_step(x, i):</span>
-<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>      xhat <span class="op">=</span> <span class="va">self</span>.lnorm(x)</span>
-<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>      E, dEdg <span class="op">=</span> get_energy_info(xhat)</span>
-<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>      x_next <span class="op">=</span> x <span class="op">-</span> step_size <span class="op">*</span> dEdg</span>
-<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> x_next, {<span class="st">"energy"</span>: E, <span class="st">"xhat"</span>: xhat}</span>
-<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>  x, traj_outputs <span class="op">=</span> jax.lax.scan(gd_step, x, jnp.arange(nsteps))</span>
-<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>  xhat_final <span class="op">=</span> <span class="va">self</span>.lnorm(x)</span>
-<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>  E_final <span class="op">=</span> <span class="va">self</span>.et.energy(xhat_final)</span>
-<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a>  traj_outputs[<span class="st">'xhat'</span>] <span class="op">=</span> jnp.concatenate([traj_outputs[<span class="st">'xhat'</span>], xhat_final[<span class="va">None</span>]], axis<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a>  traj_outputs[<span class="st">'energy'</span>] <span class="op">=</span> jnp.concatenate([traj_outputs[<span class="st">'energy'</span>], E_final[<span class="va">None</span>]], axis<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a>  xhat_final <span class="op">=</span> xhat_final[<span class="dv">1</span>:]  <span class="co"># Discard CLS token for masked inpainting</span></span>
-<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a>  x_decoded <span class="op">=</span> <span class="va">self</span>.decode(xhat_final)</span>
-<span id="cb21-30"><a href="#cb21-30" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="va">self</span>.patcher.untokenify(x_decoded), traj_outputs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="at">@patch</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> <span class="fu">__call__</span>(</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">self</span>: ImageEnergyTransformer, </span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  img: Float[Array, <span class="st">"C H W"</span>], </span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  mask: Float[Array, <span class="st">"N"</span>], </span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  nsteps<span class="op">=</span><span class="dv">12</span>, </span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  step_size<span class="op">=</span><span class="fl">0.1</span>):</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  <span class="co">"A complete pipeline for masked image modeling in ET using gradient descent"</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>  x <span class="op">=</span> <span class="va">self</span>.patcher.tokenify(img) <span class="co"># (..., N, Z)</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  x <span class="op">=</span> <span class="va">self</span>.encode(x)</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  x <span class="op">=</span> <span class="va">self</span>.prep_tokens(x, mask)  <span class="co"># (..., N+1, D)</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  get_energy_info <span class="op">=</span> jax.value_and_grad(<span class="va">self</span>.et.energy)</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> gd_step(x, i):</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>      xhat <span class="op">=</span> <span class="va">self</span>.lnorm(x)</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>      E, dEdg <span class="op">=</span> get_energy_info(xhat)</span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>      x_next <span class="op">=</span> x <span class="op">-</span> step_size <span class="op">*</span> dEdg</span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>      <span class="cf">return</span> x_next, {<span class="st">"energy"</span>: E, <span class="st">"xhat"</span>: xhat}</span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>  x, traj_outputs <span class="op">=</span> jax.lax.scan(gd_step, x, jnp.arange(nsteps))</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>  xhat_final <span class="op">=</span> <span class="va">self</span>.lnorm(x)</span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>  E_final <span class="op">=</span> <span class="va">self</span>.et.energy(xhat_final)</span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>  traj_outputs[<span class="st">'xhat'</span>] <span class="op">=</span> jnp.concatenate([traj_outputs[<span class="st">'xhat'</span>], xhat_final[<span class="va">None</span>]], axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>  traj_outputs[<span class="st">'energy'</span>] <span class="op">=</span> jnp.concatenate([traj_outputs[<span class="st">'energy'</span>], E_final[<span class="va">None</span>]], axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>  xhat_final <span class="op">=</span> xhat_final[<span class="dv">1</span>:]  <span class="co"># Discard CLS token for masked inpainting</span></span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>  x_decoded <span class="op">=</span> <span class="va">self</span>.decode(xhat_final)</span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="va">self</span>.patcher.untokenify(x_decoded), traj_outputs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
@@ -1050,34 +1058,34 @@ Random initialization helper
 <div class="callout-body-container callout-body">
 <p>For completeness, let’s add a helper function to initialize the model with random parameters. We won’t use it in this tutorial, however.</p>
 <div id="cell-43" class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="at">@patch</span>(cls_method<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rand_init(cls: ImageEnergyTransformer, key, config<span class="op">=</span>ImageETConfig()):</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  key1, key2, key3, key4, key5, key6, key7, key8 <span class="op">=</span> jr.split(key, <span class="dv">8</span>)</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  patcher <span class="op">=</span> Patcher.from_img_shape(config.image_shape, config.patch_size)</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  W_emb <span class="op">=</span> jr.normal(key1, (patcher.num_patch_elements, config.et_conf.D)) <span class="op">/</span> config.et_conf.D</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  b_emb <span class="op">=</span> jr.normal(key2, (config.et_conf.D,))</span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  W_unemb <span class="op">=</span> jr.normal(key3, (config.et_conf.D, patcher.num_patch_elements)) <span class="op">/</span> patcher.num_patch_elements</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  b_unemb <span class="op">=</span> jr.normal(key4, (patcher.num_patch_elements,))</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>  pos_embed <span class="op">=</span> jr.normal(key5, (patcher.num_patches, config.et_conf.D)) <span class="op">/</span> config.et_conf.D</span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  cls_token <span class="op">=</span> <span class="fl">0.002</span> <span class="op">*</span> jr.normal(key6, (config.et_conf.D,))</span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  mask_token <span class="op">=</span> <span class="fl">0.002</span> <span class="op">*</span> jr.normal(key7, (config.et_conf.D,))</span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  pos_embed <span class="op">=</span> <span class="fl">0.002</span> <span class="op">*</span> jr.normal(key8, (<span class="dv">1</span> <span class="op">+</span> patcher.num_patches, config.et_conf.D)) <span class="op">/</span> config.et_conf.D</span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> cls(</span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    patcher<span class="op">=</span>patcher,</span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>    W_emb<span class="op">=</span>W_emb,</span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>    b_emb<span class="op">=</span>b_emb,</span>
-<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>    W_unemb<span class="op">=</span>W_unemb,</span>
-<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>    b_unemb<span class="op">=</span>b_unemb,</span>
-<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>    pos_embed<span class="op">=</span>pos_embed,</span>
-<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>    cls_token<span class="op">=</span>cls_token,</span>
-<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>    mask_token<span class="op">=</span>mask_token,</span>
-<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>    et<span class="op">=</span>EnergyTransformer.rand_init(key7, config.et_conf),</span>
-<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>    lnorm<span class="op">=</span>EnergyLayerNorm(gamma<span class="op">=</span><span class="fl">1.</span>, delta<span class="op">=</span>jnp.zeros(config.et_conf.D)),</span>
-<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>    config<span class="op">=</span>config</span>
-<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>imageET <span class="op">=</span> ImageEnergyTransformer.rand_init(key, ImageETConfig())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="at">@patch</span>(cls_method<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rand_init(cls: ImageEnergyTransformer, key, config<span class="op">=</span>ImageETConfig()):</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  key1, key2, key3, key4, key5, key6, key7, key8 <span class="op">=</span> jr.split(key, <span class="dv">8</span>)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  patcher <span class="op">=</span> Patcher.from_img_shape(config.image_shape, config.patch_size)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  W_emb <span class="op">=</span> jr.normal(key1, (patcher.num_patch_elements, config.et_conf.D)) <span class="op">/</span> config.et_conf.D</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  b_emb <span class="op">=</span> jr.normal(key2, (config.et_conf.D,))</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  W_unemb <span class="op">=</span> jr.normal(key3, (config.et_conf.D, patcher.num_patch_elements)) <span class="op">/</span> patcher.num_patch_elements</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  b_unemb <span class="op">=</span> jr.normal(key4, (patcher.num_patch_elements,))</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  pos_embed <span class="op">=</span> jr.normal(key5, (patcher.num_patches, config.et_conf.D)) <span class="op">/</span> config.et_conf.D</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  cls_token <span class="op">=</span> <span class="fl">0.002</span> <span class="op">*</span> jr.normal(key6, (config.et_conf.D,))</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  mask_token <span class="op">=</span> <span class="fl">0.002</span> <span class="op">*</span> jr.normal(key7, (config.et_conf.D,))</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>  pos_embed <span class="op">=</span> <span class="fl">0.002</span> <span class="op">*</span> jr.normal(key8, (<span class="dv">1</span> <span class="op">+</span> patcher.num_patches, config.et_conf.D)) <span class="op">/</span> config.et_conf.D</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> cls(</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>    patcher<span class="op">=</span>patcher,</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>    W_emb<span class="op">=</span>W_emb,</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>    b_emb<span class="op">=</span>b_emb,</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>    W_unemb<span class="op">=</span>W_unemb,</span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>    b_unemb<span class="op">=</span>b_unemb,</span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>    pos_embed<span class="op">=</span>pos_embed,</span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>    cls_token<span class="op">=</span>cls_token,</span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>    mask_token<span class="op">=</span>mask_token,</span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>    et<span class="op">=</span>EnergyTransformer.rand_init(key7, config.et_conf),</span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>    lnorm<span class="op">=</span>EnergyLayerNorm(gamma<span class="op">=</span><span class="fl">1.</span>, delta<span class="op">=</span>jnp.zeros(config.et_conf.D)),</span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>    config<span class="op">=</span>config</span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a>imageET <span class="op">=</span> ImageEnergyTransformer.rand_init(key, ImageETConfig())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
@@ -1087,77 +1095,77 @@ Random initialization helper
 <h3 class="anchored" data-anchor-id="loading-pretrained-weights">Loading pretrained weights</h3>
 <p>ET has publicly available pretrained weights that can be used for masked-image inpainting. The model itself is pretty small ~20MB, with no compression tricks on the weights (everything is <code>np.float32</code>). We load the state dict from a saved <code>.npz</code> file as follows:</p>
 <div id="cell-45" class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="at">@ft.lru_cache</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_pretrained_et():</span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  load_dict <span class="op">=</span> {k: jnp.array(v) <span class="cf">for</span> k,v <span class="kw">in</span> get_et_checkpoint().items()}</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># config from state_dict</span></span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  H, Y, D <span class="op">=</span> load_dict[<span class="st">"Wk"</span>].shape</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  D, M <span class="op">=</span> load_dict[<span class="st">"Xi"</span>].shape</span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  et_config <span class="op">=</span> ETConfig(D<span class="op">=</span>D, H<span class="op">=</span>H, Y<span class="op">=</span>Y, M<span class="op">=</span>M, prevent_self_attention<span class="op">=</span><span class="va">False</span>) <span class="co"># These weights were trained allowing self attention. But the arch works equally well both ways.</span></span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  et <span class="op">=</span> EnergyTransformer(</span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>    Wk <span class="op">=</span> rearrange(load_dict[<span class="st">"Wk"</span>], <span class="st">"h y d -&gt; h d y"</span>),</span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>    Wq <span class="op">=</span> rearrange(load_dict[<span class="st">"Wq"</span>], <span class="st">"h y d -&gt; h d y"</span>),</span>
-<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>    Xi <span class="op">=</span> rearrange(load_dict[<span class="st">"Xi"</span>], <span class="st">"d m -&gt; m d"</span>),</span>
-<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>    config <span class="op">=</span> et_config</span>
-<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>  image_config <span class="op">=</span> ImageETConfig(image_shape<span class="op">=</span>(<span class="dv">3</span>, <span class="dv">224</span>, <span class="dv">224</span>), patch_size<span class="op">=</span><span class="dv">16</span>, et_conf<span class="op">=</span>et_config)</span>
-<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>  patcher <span class="op">=</span> Patcher.from_img_shape(image_config.image_shape, image_config.patch_size)</span>
-<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>  iet <span class="op">=</span> ImageEnergyTransformer(</span>
-<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>    patcher <span class="op">=</span> patcher,</span>
-<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>    W_emb <span class="op">=</span> load_dict[<span class="st">"Wenc"</span>],</span>
-<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>    b_emb <span class="op">=</span> load_dict[<span class="st">"Benc"</span>],</span>
-<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>    W_unemb <span class="op">=</span> load_dict[<span class="st">"Wdec"</span>],</span>
-<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>    b_unemb <span class="op">=</span> load_dict[<span class="st">"Bdec"</span>],</span>
-<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>    pos_embed <span class="op">=</span> load_dict[<span class="st">"POS_embed"</span>],</span>
-<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>    cls_token <span class="op">=</span> load_dict[<span class="st">"CLS_token"</span>],</span>
-<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a>    mask_token <span class="op">=</span> load_dict[<span class="st">"MASK_token"</span>],</span>
-<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a>    et <span class="op">=</span> et,</span>
-<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a>    lnorm <span class="op">=</span> EnergyLayerNorm(gamma<span class="op">=</span>load_dict[<span class="st">"LNORM_gamma"</span>], delta<span class="op">=</span>load_dict[<span class="st">"LNORM_bias"</span>]),</span>
-<span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a>    config <span class="op">=</span> image_config</span>
-<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb23-32"><a href="#cb23-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-33"><a href="#cb23-33" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> iet</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="at">@ft.lru_cache</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_pretrained_et():</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  load_dict <span class="op">=</span> {k: jnp.array(v) <span class="cf">for</span> k,v <span class="kw">in</span> get_et_checkpoint().items()}</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># config from state_dict</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  H, Y, D <span class="op">=</span> load_dict[<span class="st">"Wk"</span>].shape</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  D, M <span class="op">=</span> load_dict[<span class="st">"Xi"</span>].shape</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>  et_config <span class="op">=</span> ETConfig(D<span class="op">=</span>D, H<span class="op">=</span>H, Y<span class="op">=</span>Y, M<span class="op">=</span>M, prevent_self_attention<span class="op">=</span><span class="va">False</span>) <span class="co"># These weights were trained allowing self attention. But the arch works equally well both ways.</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>  et <span class="op">=</span> EnergyTransformer(</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>    Wk <span class="op">=</span> rearrange(load_dict[<span class="st">"Wk"</span>], <span class="st">"h y d -&gt; h d y"</span>),</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>    Wq <span class="op">=</span> rearrange(load_dict[<span class="st">"Wq"</span>], <span class="st">"h y d -&gt; h d y"</span>),</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>    Xi <span class="op">=</span> rearrange(load_dict[<span class="st">"Xi"</span>], <span class="st">"d m -&gt; m d"</span>),</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>    config <span class="op">=</span> et_config</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>  image_config <span class="op">=</span> ImageETConfig(image_shape<span class="op">=</span>(<span class="dv">3</span>, <span class="dv">224</span>, <span class="dv">224</span>), patch_size<span class="op">=</span><span class="dv">16</span>, et_conf<span class="op">=</span>et_config)</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>  patcher <span class="op">=</span> Patcher.from_img_shape(image_config.image_shape, image_config.patch_size)</span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>  iet <span class="op">=</span> ImageEnergyTransformer(</span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>    patcher <span class="op">=</span> patcher,</span>
+<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>    W_emb <span class="op">=</span> load_dict[<span class="st">"Wenc"</span>],</span>
+<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>    b_emb <span class="op">=</span> load_dict[<span class="st">"Benc"</span>],</span>
+<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>    W_unemb <span class="op">=</span> load_dict[<span class="st">"Wdec"</span>],</span>
+<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a>    b_unemb <span class="op">=</span> load_dict[<span class="st">"Bdec"</span>],</span>
+<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a>    pos_embed <span class="op">=</span> load_dict[<span class="st">"POS_embed"</span>],</span>
+<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a>    cls_token <span class="op">=</span> load_dict[<span class="st">"CLS_token"</span>],</span>
+<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a>    mask_token <span class="op">=</span> load_dict[<span class="st">"MASK_token"</span>],</span>
+<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a>    et <span class="op">=</span> et,</span>
+<span id="cb24-29"><a href="#cb24-29" aria-hidden="true" tabindex="-1"></a>    lnorm <span class="op">=</span> EnergyLayerNorm(gamma<span class="op">=</span>load_dict[<span class="st">"LNORM_gamma"</span>], delta<span class="op">=</span>load_dict[<span class="st">"LNORM_bias"</span>]),</span>
+<span id="cb24-30"><a href="#cb24-30" aria-hidden="true" tabindex="-1"></a>    config <span class="op">=</span> image_config</span>
+<span id="cb24-31"><a href="#cb24-31" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb24-32"><a href="#cb24-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-33"><a href="#cb24-33" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> iet</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We can inpaint images with ET.</p>
 <div id="cell-47" class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> inpaint_image(</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  iet: ImageEnergyTransformer, </span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  img: Float[Array, <span class="st">"C H W"</span>], </span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  n_mask: <span class="bu">int</span>, </span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  key: jax.random.PRNGKey, </span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>  nsteps: <span class="bu">int</span><span class="op">=</span><span class="dv">12</span>, </span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  step_size: <span class="bu">float</span><span class="op">=</span><span class="fl">0.1</span>):</span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">" Perform masked image inpainting with Energy Transformer"</span></span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create random mask</span></span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    mask_idxs <span class="op">=</span> jr.choice(</span>
-<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>        key, np.arange(iet.patcher.num_patches), shape<span class="op">=</span>(n_mask,), replace<span class="op">=</span><span class="va">False</span></span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> jnp.zeros(iet.patcher.num_patches).at[mask_idxs].<span class="bu">set</span>(<span class="dv">1</span>)</span>
-<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> iet.patcher.tokenify(img)</span>
-<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> iet.encode(x)  <span class="co"># Img to embedded tokens</span></span>
-<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> iet.prep_tokens(x, mask)[<span class="dv">1</span>:]  <span class="co"># N,D (remove CLS token)</span></span>
-<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>    masked_img <span class="op">=</span> iet.decode(iet.lnorm(x))</span>
-<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a>    masked_img <span class="op">=</span> iet.patcher.untokenify(masked_img)</span>
-<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb24-21"><a href="#cb24-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Reconstruct image using Energy Transformer</span></span>
-<span id="cb24-22"><a href="#cb24-22" aria-hidden="true" tabindex="-1"></a>    recons_img, traj_outputs <span class="op">=</span> iet(img, mask, nsteps<span class="op">=</span>nsteps, step_size<span class="op">=</span>step_size)</span>
-<span id="cb24-23"><a href="#cb24-23" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb24-24"><a href="#cb24-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> masked_img, recons_img, traj_outputs</span>
-<span id="cb24-25"><a href="#cb24-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-26"><a href="#cb24-26" aria-hidden="true" tabindex="-1"></a>iet <span class="op">=</span> get_pretrained_et()</span>
-<span id="cb24-27"><a href="#cb24-27" aria-hidden="true" tabindex="-1"></a>nh, nw <span class="op">=</span> <span class="dv">2</span>, <span class="dv">5</span></span>
-<span id="cb24-28"><a href="#cb24-28" aria-hidden="true" tabindex="-1"></a>N <span class="op">=</span> nh<span class="op">*</span>nw</span>
-<span id="cb24-29"><a href="#cb24-29" aria-hidden="true" tabindex="-1"></a>og_imgs <span class="op">=</span> get_normalized_imgs()[:N]</span>
-<span id="cb24-30"><a href="#cb24-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-31"><a href="#cb24-31" aria-hidden="true" tabindex="-1"></a>keys <span class="op">=</span> jr.split(jr.PRNGKey(<span class="dv">0</span>), <span class="bu">len</span>(og_imgs))</span>
-<span id="cb24-32"><a href="#cb24-32" aria-hidden="true" tabindex="-1"></a>masked_imgs, recons_imgs, traj_outputs <span class="op">=</span> jax.vmap(inpaint_image, in_axes<span class="op">=</span>(<span class="va">None</span>, <span class="dv">0</span>, <span class="va">None</span>, <span class="dv">0</span>))(iet, og_imgs, <span class="dv">100</span>, keys)</span>
-<span id="cb24-33"><a href="#cb24-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-34"><a href="#cb24-34" aria-hidden="true" tabindex="-1"></a>vunnormalize_img <span class="op">=</span> jax.vmap(unnormalize_img)</span>
-<span id="cb24-35"><a href="#cb24-35" aria-hidden="true" tabindex="-1"></a>og_imgs_show, masked_imgs_show, recons_imgs_show <span class="op">=</span> [vunnormalize_img(im) <span class="cf">for</span> im <span class="kw">in</span> (og_imgs, masked_imgs, recons_imgs)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> inpaint_image(</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  iet: ImageEnergyTransformer, </span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  img: Float[Array, <span class="st">"C H W"</span>], </span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  n_mask: <span class="bu">int</span>, </span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  key: jax.random.PRNGKey, </span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  nsteps: <span class="bu">int</span><span class="op">=</span><span class="dv">12</span>, </span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  step_size: <span class="bu">float</span><span class="op">=</span><span class="fl">0.1</span>):</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">" Perform masked image inpainting with Energy Transformer"</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create random mask</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    mask_idxs <span class="op">=</span> jr.choice(</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>        key, np.arange(iet.patcher.num_patches), shape<span class="op">=</span>(n_mask,), replace<span class="op">=</span><span class="va">False</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> jnp.zeros(iet.patcher.num_patches).at[mask_idxs].<span class="bu">set</span>(<span class="dv">1</span>)</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> iet.patcher.tokenify(img)</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> iet.encode(x)  <span class="co"># Img to embedded tokens</span></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> iet.prep_tokens(x, mask)[<span class="dv">1</span>:]  <span class="co"># N,D (remove CLS token)</span></span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>    masked_img <span class="op">=</span> iet.decode(iet.lnorm(x))</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>    masked_img <span class="op">=</span> iet.patcher.untokenify(masked_img)</span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Reconstruct image using Energy Transformer</span></span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>    recons_img, traj_outputs <span class="op">=</span> iet(img, mask, nsteps<span class="op">=</span>nsteps, step_size<span class="op">=</span>step_size)</span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> masked_img, recons_img, traj_outputs</span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>iet <span class="op">=</span> get_pretrained_et()</span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a>nh, nw <span class="op">=</span> <span class="dv">2</span>, <span class="dv">5</span></span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a>N <span class="op">=</span> nh<span class="op">*</span>nw</span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>og_imgs <span class="op">=</span> get_normalized_imgs()[:N]</span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>keys <span class="op">=</span> jr.split(jr.PRNGKey(<span class="dv">0</span>), <span class="bu">len</span>(og_imgs))</span>
+<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a>masked_imgs, recons_imgs, traj_outputs <span class="op">=</span> jax.vmap(inpaint_image, in_axes<span class="op">=</span>(<span class="va">None</span>, <span class="dv">0</span>, <span class="va">None</span>, <span class="dv">0</span>))(iet, og_imgs, <span class="dv">100</span>, keys)</span>
+<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a>vunnormalize_img <span class="op">=</span> jax.vmap(unnormalize_img)</span>
+<span id="cb25-35"><a href="#cb25-35" aria-hidden="true" tabindex="-1"></a>og_imgs_show, masked_imgs_show, recons_imgs_show <span class="op">=</span> [vunnormalize_img(im) <span class="cf">for</span> im <span class="kw">in</span> (og_imgs, masked_imgs, recons_imgs)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div id="cell-48" class="cell">
 <div class="cell-output cell-output-display">
@@ -1172,15 +1180,15 @@ Random initialization helper
 <div id="cell-50" class="cell">
 <details class="code-fold">
 <summary>Animation dependencies</summary>
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.animation <span class="im">as</span> animation</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Video, Markdown</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> moviepy.editor <span class="im">import</span> ipython_display</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>CACHE_DIR <span class="op">=</span> Path(<span class="st">"./cache"</span>) <span class="op">/</span> <span class="st">"01_energy_transformer"</span></span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>CACHE_DIR.mkdir(exist_ok<span class="op">=</span><span class="va">True</span>, parents<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>CACHE_VIDEOS <span class="op">=</span> <span class="va">True</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.animation <span class="im">as</span> animation</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Video, Markdown</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> moviepy.editor <span class="im">import</span> ipython_display</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>CACHE_DIR <span class="op">=</span> Path(<span class="st">"./cache"</span>) <span class="op">/</span> <span class="st">"01_energy_transformer"</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>CACHE_DIR.mkdir(exist_ok<span class="op">=</span><span class="va">True</span>, parents<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>CACHE_VIDEOS <span class="op">=</span> <span class="va">True</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <div id="cell-51" class="cell" data-fig-label="Minimizing the energy of ET inpaints the masked tokens. All tokens are allowed to evolve during inference, and energy monotonically decreases each iteration.">
@@ -1207,9 +1215,9 @@ The energy is still decreasing! Shouldn’t the images get better if we run long
 <div class="callout-body-container callout-body">
 <p>Unfortunately, these weights were only trained to 12 steps at a fixed step size. Running longer will still cause the energy to decrease, but our image reconstruction quality will not improve. This reflects that our model has learned a kind of ‘metastable state’ at which nice reconstructions are retrieved, but these reconstructions are not “memories” in the formal definition of the term.</p>
 <div id="cell-53" class="cell">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>masked_imgs, recons_imgs, traj_outputs <span class="op">=</span> jax.vmap(ft.partial(inpaint_image, nsteps<span class="op">=</span><span class="dv">40</span>), in_axes<span class="op">=</span>(<span class="va">None</span>, <span class="dv">0</span>, <span class="va">None</span>, <span class="dv">0</span>))(iet, og_imgs, <span class="dv">100</span>, keys)</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>video, video_fname <span class="op">=</span> show_et_recall_animation(iet, traj_outputs, <span class="st">"et_reconstruction_long"</span>, </span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>                                             steps_per_sample<span class="op">=</span><span class="dv">1</span>, force_remake<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>masked_imgs, recons_imgs, traj_outputs <span class="op">=</span> jax.vmap(ft.partial(inpaint_image, nsteps<span class="op">=</span><span class="dv">40</span>), in_axes<span class="op">=</span>(<span class="va">None</span>, <span class="dv">0</span>, <span class="va">None</span>, <span class="dv">0</span>))(iet, og_imgs, <span class="dv">100</span>, keys)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>video, video_fname <span class="op">=</span> show_et_recall_animation(iet, traj_outputs, <span class="st">"et_reconstruction_long"</span>, </span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>                                             steps_per_sample<span class="op">=</span><span class="dv">1</span>, force_remake<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div id="cell-54" class="cell" data-fig-label="Because of training limitations, running for longer doesn't improve the reconstruction quality">
 <div class="cell-output cell-output-display cell-output-markdown">
@@ -1229,13 +1237,13 @@ The energy is still decreasing! Shouldn’t the images get better if we run long
 <h2 class="anchored" data-anchor-id="interpreting-et">Interpreting ET</h2>
 <p>The representations learned by ET are attractors of the dynamics. That is, the weights of the Hofield Network in ET are not arbitrary linear transformations — they are actual stored data patterns. Visualizing the weights reveals what the model has actually learned.</p>
 <div id="cell-56" class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> decode_stored_pattern(iet, xi):</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  c,h,w <span class="op">=</span> iet.patcher.patch_shape</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  decoded <span class="op">=</span> iet.decode(iet.lnorm(xi))</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  patches <span class="op">=</span> rearrange(decoded, <span class="st">'... (c h w) -&gt; ... c h w'</span>, c<span class="op">=</span>c, h<span class="op">=</span>h, w<span class="op">=</span>w)</span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> unnormalize_img(patches) </span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>Xi_show <span class="op">=</span> jax.vmap(ft.partial(decode_stored_pattern, iet))(iet.et.Xi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> decode_stored_pattern(iet, xi):</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  c,h,w <span class="op">=</span> iet.patcher.patch_shape</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  decoded <span class="op">=</span> iet.decode(iet.lnorm(xi))</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>  patches <span class="op">=</span> rearrange(decoded, <span class="st">'... (c h w) -&gt; ... c h w'</span>, c<span class="op">=</span>c, h<span class="op">=</span>h, w<span class="op">=</span>w)</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> unnormalize_img(patches) </span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>Xi_show <span class="op">=</span> jax.vmap(ft.partial(decode_stored_pattern, iet))(iet.et.Xi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div id="cell-57" class="cell">
 <div class="cell-output cell-output-display">

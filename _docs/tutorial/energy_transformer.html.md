@@ -14,6 +14,8 @@
 <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 </a>
 
+## Flow perspective of Transformers
+
 > Squint, and the Transformer looks like a dynamical system.
 
 At its core, the transformer is a stack of *L* transformer blocks that
@@ -74,7 +76,7 @@ weight constraints.
 This is one of those situations where the code ends up being
 significantly simpler than the equations. We write the equations for
 completeness, but feel free to skip to
-<a href="#sec-ET-implementation" class="quarto-xref">Section 1.3</a> for
+<a href="#sec-ET-implementation" class="quarto-xref">Section 2.3</a> for
 succinct code.
 
 ### Attention Energy
@@ -531,8 +533,11 @@ print(patched_img.shape)
 
     (196, 3, 16, 16)
 
+    RuntimeWarning: invalid value encountered in cast
+      return im.astype(jnp.uint8)
+
 <img
-src="01_energy_transformer_files/figure-commonmark/cell-16-output-1.png"
+src="01_energy_transformer_files/figure-commonmark/cell-16-output-2.png"
 width="389" height="410" />
 
 `Patcher.unpatchify` gets us back to the original image.
