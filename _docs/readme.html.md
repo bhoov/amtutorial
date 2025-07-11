@@ -47,13 +47,15 @@ detail.
 To add new examples, edit the source tutorial notebooks (as either
 `.ipynb` or plain text `.qmd` files) saved in `nbs/tutorial/`.
 
-> [!WARNING]
->
-> ### Slow first run
+<div>
+
+> **Slow first run**
 >
 > The first time you run the notebooks will be slow. We cache some of
 > the long-running code after the first time, but the cache will not
 > persist across Colab sessions.
+
+</div>
 
 #### Utitity library
 
