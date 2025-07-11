@@ -1,6 +1,6 @@
 [project]
 name="amtutorial"
-version = "0.0.6"
+version = "0.0.7"
 description = "Add your description here"
 readme = "README.md"
 authors = [
@@ -23,7 +23,6 @@ dependencies = [
     "scikit-learn>=1.6.1",
     "scipy>=1.13.1",
     "seaborn>=0.13.2",
-    "torch>=2.6.0",
     "tqdm>=4.67.1",
 ]
 
