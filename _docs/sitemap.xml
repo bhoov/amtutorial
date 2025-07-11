@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://bhoov.github.io/amtutorial/index.html</loc>
-    <lastmod>2025-07-11T15:05:58.942Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bhoov.github.io/amtutorial/lib/index.html</loc>
-    <lastmod>2025-07-11T15:05:59.040Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bhoov.github.io/amtutorial/tutorial/index.html</loc>
-    <lastmod>2025-07-11T15:05:59.021Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bhoov.github.io/amtutorial/tutorial/diffusion_as_memory.html</loc>
-    <lastmod>2025-07-11T15:05:58.986Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bhoov.github.io/amtutorial/tutorial/dense_storage.html</loc>
-    <lastmod>2025-07-11T15:06:06.430Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bhoov.github.io/amtutorial/tutorial/energy_transformer.html</loc>
-    <lastmod>2025-07-11T15:06:10.303Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bhoov.github.io/amtutorial/tutorial/distributed_memory.html</loc>
-    <lastmod>2025-07-11T15:05:59.024Z</lastmod>
-  </url>
-  <url>
-    <loc>https://bhoov.github.io/amtutorial/readme.html</loc>
-    <lastmod>2025-07-11T15:05:58.943Z</lastmod>
+    <loc>https://bhoov.github.io/amtutorial/readme_lowercase.html</loc>
+    <lastmod>2025-07-11T15:15:18.101Z</lastmod>
   </url>
   <url>
     <loc>https://bhoov.github.io/amtutorial/lib/data_utils.html</loc>
-    <lastmod>2025-07-11T15:06:03.031Z</lastmod>
+    <lastmod>2025-07-11T15:15:23.736Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bhoov.github.io/amtutorial/tutorial/index.html</loc>
+    <lastmod>2025-07-11T15:15:18.165Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bhoov.github.io/amtutorial/tutorial/diffusion_as_memory.html</loc>
+    <lastmod>2025-07-11T15:15:18.155Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bhoov.github.io/amtutorial/tutorial/dense_storage.html</loc>
+    <lastmod>2025-07-11T15:15:25.776Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bhoov.github.io/amtutorial/tutorial/energy_transformer.html</loc>
+    <lastmod>2025-07-11T15:15:29.321Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bhoov.github.io/amtutorial/tutorial/distributed_memory.html</loc>
+    <lastmod>2025-07-11T15:15:18.168Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bhoov.github.io/amtutorial/lib/index.html</loc>
+    <lastmod>2025-07-11T15:15:18.201Z</lastmod>
+  </url>
+  <url>
+    <loc>https://bhoov.github.io/amtutorial/index.html</loc>
+    <lastmod>2025-07-11T15:15:18.103Z</lastmod>
   </url>
 </urlset>

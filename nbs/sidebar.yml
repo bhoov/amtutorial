@@ -2,7 +2,7 @@ website:
   sidebar:
     contents:
       - index.ipynb
-      - readme.ipynb
+      - README_lowercase.ipynb
       - section: lib
         contents:
           - lib/01_data_utils.ipynb
