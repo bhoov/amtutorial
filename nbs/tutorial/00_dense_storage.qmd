@@ -51,7 +51,7 @@ Our goal in this section is to build the smallest abstraction for Associative Me
 
 Let's assume an unimplemented, arbitrary energy function and setup a basic object for a binary AM. All we need to provide is an `energy` method, parameterized by $\Xi$, that is a function of query $x$.
 
-Historically, the Hopfield Network minimizes energy using *asynchronous* update rules (where we minimize the query's energy one randomly selected bit at a time). We'll follow that precedent in this notebook since it makes for nicer visualizations, though fully *synchronous* update rules (where we minimize the energy by scanning through all bits sequentially) are also possible. The default `async_update` is simple: for a randomly sampled bit in the query pattern, compare the energy of that bit when it is flipped and not flipped. Keep the pattern whose energy is lower.
+Historically, the Hopfield Network [@hopfield1982neural] minimizes energy using *asynchronous* update rules (where we minimize the query's energy one randomly selected bit at a time). We'll follow that precedent in this notebook since it makes for nicer visualizations, though fully *synchronous* update rules (where we minimize the energy by scanning through all bits sequentially) are also possible. The default `async_update` is simple: for a randomly sampled bit in the query pattern, compare the energy of that bit when it is flipped and not flipped. Keep the pattern whose energy is lower.
 
 $$
 x_i^{(t+1)} = \underset{b \in \{-1, 1\}}{\mathrm{argmin}}\left[E\left(x_i = b, x_{j \neq i} = x_j^{(t)}\right)\right]
@@ -188,7 +188,7 @@ plt.show()
 print(f"K={Xi.shape[0]}, D={Xi.shape[1]}")
 ```
 
-The Classical Hopfield Network (CHN) defines an energy function for this collection of patterns, putting the $\mu$-th stored pattern $\xi_\mu$ at a *low* value of energy. The CHN energy is a quadratic function described by dot-product correlations:
+The Classical Hopfield Network (CHN) [@hopfield1982neural] defines an energy function for this collection of patterns, putting the $\mu$-th stored pattern $\xi_\mu$ at a *low* value of energy. The CHN energy is a quadratic function described by dot-product correlations:
 
 $$
 E_\text{CHN}(x) = -\frac{1}{2} \left(\sum_{\mu} \xi_{\mu i} x_i\right)^2 = -\frac{1}{2} \sum_{i,j} T_{ij} x_i x_j.
@@ -456,7 +456,7 @@ ipython_display(str(video_fname))
 
 ## Dense Associative Memory
 
-The CHN has a *quadratic* energy, which is a special case of a more general class of models called **Dense Associative Memory** (DenseAM). If we increase the degree of the polynomial used in the energy function, we strengthen the coupling between neurons and can store more patterns into the same synaptic matrix.
+The CHN has a *quadratic* energy, which is a special case of a more general class of models called **Dense Associative Memory** (DenseAM) [@krotov2016dense]. If we increase the degree of the polynomial used in the energy function, we strengthen the coupling between neurons and can store more patterns into the same synaptic matrix.
 
 The new energy function, written in terms of polynomials of degree $n$ and using the same notation for stored patterns $\xi_{\mu i}$, is
 
@@ -539,11 +539,11 @@ A higher degree polynomial gives us more **storage capacity**, which means that 
 
 Let's try to store and retrieve all `1024` pokemon patterns into our network (though we will only show retrieval for a subset of them for computational reasons). To do this, we'll need very large values of $n$, which is bad for numeric overflow (computers don't like working in really really large numbers i.e., `inf` energy regimes).
 
-We'll implement an exponential version of the DenseAM [@demicirgil2017model] using the numerically stable `logsumexp` function. This form of the DenseAM energy was introduced by [@ramsauer2021hopfield] and is also referred to as the "Modern Hopfield Network" (MHN).
+We'll implement an exponential version of the DenseAM [@demicirgil2017model]. Specifically, we will use a numerically stable `logsumexp` version [@ramsauer2021hopfield].
 
 $$
 \begin{align*}
-E_\text{MHN}(x) &= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi_{\mu i} x_i\right)
+E_\text{eDAM}(x) &= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi_{\mu i} x_i\right)
 \end{align*}
 $${#eq-dam-energy-logsumexp}
 
@@ -587,7 +587,7 @@ x_og = jnp.concatenate([
     jr.choice(jr.PRNGKey(10), data, shape=(N - len(eevee_pichu_idxs),), replace=False)])
 x_noisy = flip_some_bits(key2, x_og, 0.25)
 
-mhn = ExponentialDenseAM(Xi, beta=50.)
+edam = ExponentialDenseAM(Xi, beta=50.)
 
 cache_name = "logsumexp_batched"
 keys = jr.split(key2, x_noisy.shape[0])
@@ -596,7 +596,7 @@ if os.path.exists(npz_fname) and CACHE_RECALL:
     npz_data = np.load(npz_fname)
     x_final, frames, energies = npz_data['x_final'], npz_data['frames'], npz_data['energies']
 else:
-    x_final, frames, energies = jax.vmap(ft.partial(cached_recall, nsteps=16000, save=False), in_axes=(None, None, 0,0))(mhn, cache_name, x_noisy, keys)
+    x_final, frames, energies = jax.vmap(ft.partial(cached_recall, nsteps=16000, save=False), in_axes=(None, None, 0,0))(edam, cache_name, x_noisy, keys)
     np.savez(npz_fname, x_final=x_final, frames=frames, energies=energies)
 ```
 

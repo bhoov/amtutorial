@@ -3,7 +3,6 @@
 
 This website serves as a living companion to the [tutorial manuscript](https://arxiv.org/abs/2507.06211) and to the [tutorial presentation at ICML 2025](https://icml.cc/virtual/2025/40004). It dreams of being a one-stop shop for learning all things about Associative Memory. It's definitely not there yet.
 
-
 ### Website structure
 
 #### Notebook demos
