@@ -22,7 +22,7 @@ SHOW_FULL_ANIMATIONS = True # If True, render videos instead of gifs. This is sl
 
 Our goal in this section is to build the smallest abstraction for
 Associative Memory, which at its core is just an *energy function*
-*E*<sub>*Ξ*</sub>(*x*) ∈ ℝ. where *query pattern*
+*E*<sub>*Ξ*</sub>(*σ*) ∈ ℝ. where *query pattern*
 *σ* ∈ {−1, 1}<sup>*D*</sup> is a possibly noisy *D*-dimensional, binary
 pattern and *memory matrix* *Ξ* ∈ {−1, 1}<sup>*K* × *D*</sup> is our
 matrix of *K* stored patterns. *E*<sub>*Ξ*</sub>(*σ*) stores patterns at
@@ -201,7 +201,7 @@ quadratic function described by dot-product correlations:
 
 <span id="eq-chn-energy">
 $$
-E\_\text{CHN}(\sigma) = -\frac{1}{2} \sum\_\mu \left(\sum\_{i} \xi^\mu_i x_i\right)^2 = -\frac{1}{2} \sum\_{i,j} T\_{ij} \sigma_i \sigma_j.
+E\_\text{CHN}(\sigma) = -\frac{1}{2} \sum\_\mu \left(\sum\_{i} \xi^\mu_i \sigma_i\right)^2 = -\frac{1}{2} \sum\_{i,j} T\_{ij} \sigma_i \sigma_j.
  \qquad(2)$$
 </span>
 
