@@ -3,3 +3,20 @@ include LICENSE
 include CONTRIBUTING.md
 include README.md
 recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+
+# Exclude large data files
+recursive-exclude data *
+recursive-exclude _docs *
+recursive-exclude _proc *
+recursive-exclude _archive *
+recursive-exclude nbs *
+recursive-exclude tutorial_ipynbs *
+
+# Exclude cache and temporary files
+recursive-exclude * *.npz
+recursive-exclude * *.npy
+recursive-exclude * *.mp4
+recursive-exclude * *.mov
+recursive-exclude * *.avi
+recursive-exclude * cache
