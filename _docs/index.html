@@ -20,6 +20,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -30,7 +65,6 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./readme.html" rel="next">
 <link href=".//img/favicon_io/favicon.ico" rel="icon">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
@@ -285,21 +319,9 @@ ul.task-list li input[type="checkbox"] {
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="sidebar-menu-container"> 
     <ul class="list-unstyled mt-1">
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Associative Memory Tutorial</span></a>
-  </div>
-</li>
-        <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="./readme.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Getting started</span></a>
-  </div>
-</li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a href="./lib/index.html" class="sidebar-item-text sidebar-link">
+            <a href="./lib/index.ipynb" class="sidebar-item-text sidebar-link">
  <span class="menu-text">lib</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
@@ -359,7 +381,18 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#associative-memory-tutorial" id="toc-associative-memory-tutorial" class="nav-link active" data-scroll-target="#associative-memory-tutorial">Associative Memory Tutorial</a></li>
+  <li><a href="#associative-memory-tutorial" id="toc-associative-memory-tutorial" class="nav-link active" data-scroll-target="#associative-memory-tutorial">Associative Memory Tutorial</a>
+  <ul class="collapse">
+  <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started">Getting Started</a>
+  <ul class="collapse">
+  <li><a href="#website-structure" id="toc-website-structure" class="nav-link" data-scroll-target="#website-structure">Website structure</a></li>
+  </ul></li>
+  <li><a href="#sec-installation" id="toc-sec-installation" class="nav-link" data-scroll-target="#sec-installation">Installation</a>
+  <ul class="collapse">
+  <li><a href="#i-just-want-to-run-the-notebooks-locally" id="toc-i-just-want-to-run-the-notebooks-locally" class="nav-link" data-scroll-target="#i-just-want-to-run-the-notebooks-locally">I just want to run the notebooks locally</a></li>
+  <li><a href="#i-want-to-develop-the-website" id="toc-i-want-to-develop-the-website" class="nav-link" data-scroll-target="#i-want-to-develop-the-website">I want to develop the website</a></li>
+  </ul></li>
+  </ul></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/bhoov/amtutorial/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="index.md"><i class="bi bi-file-code"></i>CommonMark</a></li></ul></div></nav>
     </div>
@@ -427,23 +460,114 @@ ul.task-list li input[type="checkbox"] {
 <blockquote class="blockquote">
 <p>A complete introduction to Associative Memories and Hopfield Networks</p>
 </blockquote>
+<p>This website serves as a living companion to the <a href="https://arxiv.org/abs/2507.06211">tutorial manuscript</a> and to the <a href="https://icml.cc/virtual/2025/40004">tutorial presentation at ICML 2025</a>. It dreams of being a one-stop shop for learning all things about Associative Memory. It’s still working towards that.</p>
+<section id="getting-started" class="level2">
+<h2 class="anchored" data-anchor-id="getting-started">Getting Started</h2>
+<blockquote class="blockquote">
+<p>Playing with the codebase</p>
+</blockquote>
+<section id="website-structure" class="level3">
+<h3 class="anchored" data-anchor-id="website-structure">Website structure</h3>
+<section id="notebook-demos" class="level4">
+<h4 class="anchored" data-anchor-id="notebook-demos">Notebook demos</h4>
+<p>The website is a (growing) collection of notebook demos on Associative Memory. Each notebook is primarily a blog post on this site, but it is also fully runnable on colab and as a raw <code>.ipynb</code> file using the <code>uv</code> environment setup <a href="#sec-installation">below</a>.</p>
+<ul>
+<li><a href="./tutorial/dense_storage.html"><strong>Dense binary storage</strong></a>, also distributed as <a href="https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/00_dense_storage.ipynb">colab notebook</a> and <a href="https://github.com/bhoov/amtutorial/blob/main/tutorial_ipynbs/00_dense_storage.ipynb">raw .ipynb</a>.</li>
+<li><a href="./tutorial/energy_transformer.html"><strong>Energy Transformer</strong></a>, also distributed as <a href="https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/01_energy_transformer.ipynb">colab notebook</a> and <a href="https://github.com/bhoov/amtutorial/blob/main/tutorial_ipynbs/01_energy_transformer.ipynb">raw .ipynb</a>. <!-- - **Energy Transformer: Rederiving the Transformer as an energy-based Associative Memory**. Distributed as [blog](./tutorial/01_energy_transformer.ipynb), [colab notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/01_energy_transformer.ipynb), and [raw .ipynb](https://github.com/bhoov/amtutorial/blob/main/tutorial_ipynbs/01_energy_transformer.ipynb). --></li>
+<li><a href="./tutorial/diffusion_as_memory.html"><strong>Diffusion as Memory</strong></a>, also distributed as <a href="https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/02_diffusion_as_memory.ipynb">colab notebook</a> and <a href="https://github.com/bhoov/amtutorial/blob/main/tutorial_ipynbs/02_diffusion_as_memory.ipynb">raw .ipynb</a>.</li>
+<li><a href="./tutorial/distributed_memory.html"><strong>Distributed Associative Memory</strong></a>, also distributed as <a href="https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/03_distributed_memory.ipynb">colab notebook</a> and <a href="https://github.com/bhoov/amtutorial/blob/main/tutorial_ipynbs/03_distributed_memory.ipynb">raw .ipynb</a>.</li>
+</ul>
+<p>See the overview in <a href="./tutorial/index.html">tutorials</a> for a bit more detail.</p>
+<p>To add new examples, edit the source tutorial notebooks (as either <code>.ipynb</code> or plain text <code>.qmd</code> files) saved in <code>nbs/tutorial/</code>.</p>
 <div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-🚧 Under construction
+Slow first run
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>This website and it’s accompanying notebooks are under construction until July 14, 2025, when this tutorial will be presented at ICML 2025.</p>
+<p>The first time you run the notebooks will be slow. We cache some of the long-running code after the first time, but the cache will not persist across Colab sessions.</p>
 </div>
 </div>
-<p>See the <a href="./tutorial/index.html">tutorials</a> for a brief introduction to the list of example notebooks.</p>
-<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+</section>
+<section id="utitity-library" class="level4">
+<h4 class="anchored" data-anchor-id="utitity-library">Utitity library</h4>
+<p><code>pip install amtutorial</code></p>
+<p>We aim for simplicity and clarity in the notebooks. Thus, we migrate some helper functions (particularly around loading and processing data, see <a href="./lib/data_utils.html"><code>nbs/lib/01_data_utils.qmd</code></a>) to a pypi package called <a href="https://www.piwheels.org/project/amtutorial/"><code>amtutorial</code></a> to avoid cluttering the notebooks. An added benefit of this is that all dependencies needed to run these notebooks can be installed using <code>pip install amtutorial</code>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+How this website is built
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The <a href="https://tutorial.amemory.net">website</a> is built using an in-house fork of <a href="https://github.com/bhoov/nbdev/tree/qmd_support"><code>nbdev</code></a> that develops everything in this tutorial from source <code>.ipynb</code> or <code>.qmd</code> files saved in <code>nbs/</code>. The website, pypi package, and package documentation all come for free with <code>nbdev</code>. The in-house fork enables working with plain text <code>.qmd</code> files instead of <code>.ipynb</code> files. With the <a href="https://quarto.org/docs/tools/vscode/index.html">right extensions</a> and <a href="https://github.com/bhoov/nbdev/blob/qmd_support/nbs/tutorials/develop_in_plain_text.qmd">hotkeys</a>, <code>.qmd</code> files are pleasant to develop inside VSCode and interop seamlessly with both git and AI tooling.</p>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="sec-installation" class="level2">
+<h2 class="anchored" data-anchor-id="sec-installation">Installation</h2>
+<section id="i-just-want-to-run-the-notebooks-locally" class="level3">
+<h3 class="anchored" data-anchor-id="i-just-want-to-run-the-notebooks-locally">I just want to run the notebooks locally</h3>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install amtutorial</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">## Install torch to run the `diffusion as memory` notebook. CPU or CUDA versions work</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># pip install torch --index-url https://download.pytorch.org/whl/cpu</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">## OPTIONAL: For rendering videos in notebooks, use ffmpeg. Can use conda to install as</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">#conda install conda-forge::ffmpeg conda-forge::openh264 </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Then open up the .ipynb notebooks in <code>tutorial_ipynbs/</code> in your favorite notebook editor, using the same env where you installed <code>amtutorial</code>.</p>
+</section>
+<section id="i-want-to-develop-the-website" class="level3">
+<h3 class="anchored" data-anchor-id="i-want-to-develop-the-website">I want to develop the website</h3>
+<p><strong>Pre-requisites</strong></p>
+<ul>
+<li>Install <a href="https://docs.astral.sh/uv/getting-started/installation/"><code>uv</code></a> using <code>curl -LsSf https://astral.sh/uv/install.sh | sh</code></li>
+<li>Install <a href="https://quarto.org/docs/download/"><code>quarto</code></a></li>
+<li>We use <a href="https://www.anaconda.com/docs/getting-started/miniconda/install"><code>conda</code></a> (or better yet, <a href="https://github.com/conda-forge/miniforge"><code>mamba</code></a>) for managing the <code>ffmpeg</code> dependency, which only matters if <code>ffmpeg</code> is not already installed on your system.</li>
+</ul>
+<p><strong>Setting up the environment</strong></p>
+<p>From the root of the repo:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> sync</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Expose venv to ipython</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ipython kernel install <span class="at">--user</span> <span class="at">--env</span> VIRTUAL_ENV <span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span>/.venv <span class="at">--name</span><span class="op">=</span>amtutorial </span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">## Install torch to run the `diffusion as memory` notebook. CPU or CUDA versions work</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># pip install torch --index-url https://download.pytorch.org/whl/cpu</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># OPTIONAL: For rendering videos in notebooks</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="ex">conda</span> install conda-forge::ffmpeg conda-forge::openh264 </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><strong>Development pipelines</strong></p>
+<p>View a local version of the website with:</p>
+<pre><code>uv run nbdev_preview</code></pre>
+<p>Pushes to <code>main</code> deploy the website. The site will be live after a few minutes on github.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> checkout main</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Update the website. Takes a moment even with cached training runs</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> deploy <span class="kw">&amp;&amp;</span> <span class="fu">git</span> add . <span class="kw">&amp;&amp;</span> <span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Update site"</span> <span class="kw">&amp;&amp;</span> <span class="fu">git</span> push</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Make a minor-patch update to the pypi package (preferably, only if <code>amtutorials/src</code> was updated):</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> pypi <span class="kw">&amp;&amp;</span> <span class="ex">uv</span> run nbdev_pypi</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><strong>Useful scripts</strong> (for reference only)</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run nbdev_preview                         <span class="co"># Preview website locally</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/prep_website_deploy.sh          <span class="co"># Sync dependencies, export qmd notebooks to ipynb for colab, and build website</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/export_qmd_as_ipynb.sh          <span class="co"># Export qmd notebooks to ipynb for colab</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run python scripts/sync_dependencies.py   <span class="co"># Sync nbdev and pyproject.toml dependencies</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run python scripts/prep_pypi.py           <span class="co"># Bump patch version and sync dependencies</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run nbdev_pypi                            <span class="co"># Push to pypi</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 
+</section>
+</section>
 </section>
 
 </main> <!-- /main -->
@@ -859,15 +983,6 @@ ul.task-list li input[type="checkbox"] {
     }
   });
   </script>
-<nav class="page-navigation column-body">
-  <div class="nav-page nav-page-previous">
-  </div>
-  <div class="nav-page nav-page-next">
-      <a href="./readme.html" class="pagination-link" aria-label="Getting started">
-        <span class="nav-page-text">Getting started</span> <i class="bi bi-arrow-right-short"></i>
-      </a>
-  </div>
-</nav>
 </div> <!-- /content -->
 
 

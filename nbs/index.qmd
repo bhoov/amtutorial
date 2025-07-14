@@ -1,19 +1,39 @@
-# Getting started
+---
+authors:
+  - name: Dmitry Krotov
+    email: krotov@ibm.com
+    affiliations: IBM Research, MIT
+  - name: Benjamin Hoover
+    email: bhoov@gatech.edu
+    affiliations: IBM Research, Georgia Tech
+  - name: Parikshit Ram
+    email: parikshit.ram@ibm.com
+    affiliations: IBM Research
+  - name: Bao Pham
+    email: phamb@rpi.edu
+    affiliations: IBM Research, RPI
+---
+
+# Associative Memory Tutorial
+> A complete introduction to Associative Memories and Hopfield Networks
+
+This website serves as a living companion to the [tutorial manuscript](https://arxiv.org/abs/2507.06211) and to the [tutorial presentation at ICML 2025](https://icml.cc/virtual/2025/40004). It dreams of being a one-stop shop for learning all things about Associative Memory. It's still working towards that.
+
+## Getting Started
 > Playing with the codebase
 
-This website serves as a living companion to the [tutorial manuscript](https://arxiv.org/abs/2507.06211) and to the [tutorial presentation at ICML 2025](https://icml.cc/virtual/2025/40004). It dreams of being a one-stop shop for learning all things about Associative Memory. It's definitely not there yet.
-
 ### Website structure
+
 
 #### Notebook demos
 
 The website is a (growing) collection of notebook demos on Associative Memory. Each notebook is primarily a blog post on this site, but it is also fully runnable on colab and as a raw `.ipynb` file using the `uv` environment setup [below](#sec-installation). 
 
-- [**Dense binary storage**](./tutorial/00_dense_storage.qmd), also distributed as [colab notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/00_dense_storage.ipynb) and [raw .ipynb](https://github.com/bhoov/amtutorial/blob/main/tutorial_ipynbs/00_dense_storage.ipynb).
-- [**Energy Transformer**](./tutorial/01_energy_transformer.qmd), also distributed as [colab notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/01_energy_transformer.ipynb) and [raw .ipynb](https://github.com/bhoov/amtutorial/blob/main/tutorial_ipynbs/01_energy_transformer.ipynb).
-<!-- - **Energy Transformer: Rederiving the Transformer as an energy-based Associative Memory**. Distributed as [blog](./tutorial/01_energy_transformer.qmd), [colab notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/01_energy_transformer.ipynb), and [raw .ipynb](https://github.com/bhoov/amtutorial/blob/main/tutorial_ipynbs/01_energy_transformer.ipynb). -->
-- [**Diffusion as Memory**](./tutorial/02_diffusion_as_memory.qmd), also distributed as [colab notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/02_diffusion_as_memory.ipynb) and [raw .ipynb](https://github.com/bhoov/amtutorial/blob/main/tutorial_ipynbs/02_diffusion_as_memory.ipynb).
-- [**Distributed Associative Memory**](./tutorial/03_distributed_memory.qmd), also distributed as [colab notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/03_distributed_memory.ipynb) and [raw .ipynb](https://github.com/bhoov/amtutorial/blob/main/tutorial_ipynbs/03_distributed_memory.ipynb).
+- [**Dense binary storage**](./tutorial/00_dense_storage.ipynb), also distributed as [colab notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/00_dense_storage.ipynb) and [raw .ipynb](https://github.com/bhoov/amtutorial/blob/main/tutorial_ipynbs/00_dense_storage.ipynb).
+- [**Energy Transformer**](./tutorial/01_energy_transformer.ipynb), also distributed as [colab notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/01_energy_transformer.ipynb) and [raw .ipynb](https://github.com/bhoov/amtutorial/blob/main/tutorial_ipynbs/01_energy_transformer.ipynb).
+<!-- - **Energy Transformer: Rederiving the Transformer as an energy-based Associative Memory**. Distributed as [blog](./tutorial/01_energy_transformer.ipynb), [colab notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/01_energy_transformer.ipynb), and [raw .ipynb](https://github.com/bhoov/amtutorial/blob/main/tutorial_ipynbs/01_energy_transformer.ipynb). -->
+- [**Diffusion as Memory**](./tutorial/02_diffusion_as_memory.ipynb), also distributed as [colab notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/02_diffusion_as_memory.ipynb) and [raw .ipynb](https://github.com/bhoov/amtutorial/blob/main/tutorial_ipynbs/02_diffusion_as_memory.ipynb).
+- [**Distributed Associative Memory**](./tutorial/03_distributed_memory.ipynb), also distributed as [colab notebook](https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/03_distributed_memory.ipynb) and [raw .ipynb](https://github.com/bhoov/amtutorial/blob/main/tutorial_ipynbs/03_distributed_memory.ipynb).
 
 See the overview in [tutorials](./tutorial/index.ipynb) for a bit more detail.
 
@@ -29,7 +49,7 @@ The first time you run the notebooks will be slow. We cache some of the long-run
 
 `pip install amtutorial`
 
-We aim for simplicity and clarity in the notebooks. Thus, we migrate some helper functions (particularly around loading and processing data) to a pypi package called [`amtutorial`](https://www.piwheels.org/project/amtutorial/) to avoid cluttering the notebooks. An added benefit of this is that all dependencies needed to run these notebooks can be installed using `pip install amtutorial`.
+We aim for simplicity and clarity in the notebooks. Thus, we migrate some helper functions (particularly around loading and processing data, see [`nbs/lib/01_data_utils.qmd`](./lib/01_data_utils.ipynb)) to a pypi package called [`amtutorial`](https://www.piwheels.org/project/amtutorial/) to avoid cluttering the notebooks. An added benefit of this is that all dependencies needed to run these notebooks can be installed using `pip install amtutorial`.
 
 
 :::{.callout-note}

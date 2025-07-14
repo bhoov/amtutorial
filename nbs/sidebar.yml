@@ -2,11 +2,10 @@ website:
   sidebar:
     contents:
       - index.ipynb
-      - readme.ipynb
       - section: lib
         contents:
           - lib/01_data_utils.ipynb
-        href: lib/00_index.ipynb
+        href: lib/index.ipynb
       - section: tutorial
         contents:
           - tutorial/00_dense_storage.ipynb
