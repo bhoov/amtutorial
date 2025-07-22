@@ -13,9 +13,7 @@ cite-method: citeproc
 format:
   html:
     page-layout: full
-    include-in-header:
-      - text: | 
-          <meta name="robots" content="noindex">
+
     theme: 
       light: [flatly, styles/custom-light.scss]
       dark: [darkly, styles/custom-dark.scss]
