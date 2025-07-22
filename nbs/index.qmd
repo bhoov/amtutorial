@@ -19,6 +19,20 @@ authors:
 
 This website serves as a living companion to the [tutorial manuscript](https://arxiv.org/abs/2507.06211) and to the [tutorial presentation at ICML 2025](https://icml.cc/virtual/2025/40004). It dreams of being a one-stop shop for learning all things about Associative Memory. It's still working towards that.
 
+:::{.callout-note collapse="true"}
+
+## ICML presentation resources
+
+The tutorial has happened! Checkout the presentation recordings at the [ICML website](https://icml.cc/virtual/2025/40004). 
+
+You can also download the slides from each of the speakers below:
+
+- [**Dima's slides**](./resources/dima--ICML_tutorial_slides.key){download="dima--ICML_tutorial_slides.key"} (needs Keynote)
+- [**Ben's slides**](./resources/ben--ICML_tutorial_slides.zip){download="ben--ICML_tutorial_slides.zip"} (unzip and open the `index.html` file in a local browser)
+- [**Pari's slides**](./resources/pari--ICML_tutorial_slides.pptx){download="pari--ICML_tutorial_slides.pptx"} (needs PowerPoint)
+:::
+
+
 ## Getting Started
 > Playing with the codebase
 
