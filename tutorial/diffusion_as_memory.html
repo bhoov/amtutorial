@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="From Memorization to Generalization with Diffusion Models">
+
+<title>Memory and Diffusion – Tutorial on Associative Memories</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../tutorial/distributed_memory.html" rel="next">
+<link href="../tutorial/energy_transformer.html" rel="prev">
+<link href="..//img/favicon_io/favicon.ico" rel="icon">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-2fef5ea3f8957b3e4ecc936fc74692ca.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-3778b8a0ae653903a65bdc64294d5334.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-19193a01f5d0326dec7c803ae5dcbca8.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-3778b8a0ae653903a65bdc64294d5334.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+<script src="https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles/styles.css">
+<meta property="og:title" content="Memory and Diffusion – Tutorial on Associative Memories">
+<meta property="og:description" content="From Memorization to Generalization with Diffusion Models">
+<meta property="og:image" content="https://bhoov.github.io/amtutorial/tutorial/02_diffusion_as_memory_files/figure-html/cell-6-output-1.png">
+<meta property="og:site_name" content="Tutorial on Associative Memories">
+<meta property="og:image:height" content="550">
+<meta property="og:image:width" content="554">
+<meta name="twitter:title" content="Memory and Diffusion – Tutorial on Associative Memories">
+<meta name="twitter:description" content="From Memorization to Generalization with Diffusion Models">
+<meta name="twitter:image" content="https://bhoov.github.io/amtutorial/tutorial/02_diffusion_as_memory_files/figure-html/cell-6-output-1.png">
+<meta name="twitter:image-height" content="550">
+<meta name="twitter:image-width" content="554">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../img/favicon_io/android-chrome-512x512.png" alt="" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Tutorial on Associative Memories</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+    <a href="https://github.com/bhoov/amtutorial" title="" class="quarto-navigation-tool px-1" aria-label=""><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+          <h1 class="quarto-secondary-nav-title">Memory and Diffusion</h1>
+        </a>     
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../lib/index.ipynb" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">lib</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../lib/data_utils.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pokemon Sprites</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../tutorial/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tutorial</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/dense_storage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Binary Dense Storage</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/energy_transformer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Energy Transformer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/diffusion_as_memory.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Memory and Diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/distributed_memory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Distributed Memory</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#data-generation-and-visualization" id="toc-data-generation-and-visualization" class="nav-link active" data-scroll-target="#data-generation-and-visualization">Data Generation and Visualization</a>
+  <ul class="collapse">
+  <li><a href="#creating-a-small-training-set" id="toc-creating-a-small-training-set" class="nav-link" data-scroll-target="#creating-a-small-training-set">Creating a Small Training Set</a></li>
+  </ul></li>
+  <li><a href="#the-diffusion-model" id="toc-the-diffusion-model" class="nav-link" data-scroll-target="#the-diffusion-model">The Diffusion Model</a>
+  <ul class="collapse">
+  <li><a href="#scorenet-architecture" id="toc-scorenet-architecture" class="nav-link" data-scroll-target="#scorenet-architecture">ScoreNet Architecture</a></li>
+  </ul></li>
+  <li><a href="#training" id="toc-training" class="nav-link" data-scroll-target="#training">Training</a></li>
+  <li><a href="#sampling-from-the-trained-model" id="toc-sampling-from-the-trained-model" class="nav-link" data-scroll-target="#sampling-from-the-trained-model">Sampling from the Trained Model</a></li>
+  <li><a href="#potential-energy-of-generated-and-data-samples" id="toc-potential-energy-of-generated-and-data-samples" class="nav-link" data-scroll-target="#potential-energy-of-generated-and-data-samples">Potential Energy of Generated and Data Samples</a>
+  <ul class="collapse">
+  <li><a href="#visualizing-the-energy" id="toc-visualizing-the-energy" class="nav-link" data-scroll-target="#visualizing-the-energy">Visualizing the Energy</a></li>
+  </ul></li>
+  <li><a href="#exact-energy-from-dense-associative-memory" id="toc-exact-energy-from-dense-associative-memory" class="nav-link" data-scroll-target="#exact-energy-from-dense-associative-memory">Exact Energy from Dense Associative Memory</a>
+  <ul class="collapse">
+  <li><a href="#the-empirical-energy-and-score-function-for-the-toy-model" id="toc-the-empirical-energy-and-score-function-for-the-toy-model" class="nav-link" data-scroll-target="#the-empirical-energy-and-score-function-for-the-toy-model">The Empirical Energy and Score Function for the Toy Model</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/bhoov/amtutorial/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="diffusion_as_memory.html.md"><i class="bi bi-file-code"></i>CommonMark</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content column-body" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block">Memory and Diffusion</h1>
+</div>
+
+<div>
+  <div class="description">
+    From Memorization to Generalization with Diffusion Models
+  </div>
+</div>
+
+
+<div class="quarto-title-meta column-body">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p><a target="_blank" href="https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/02_diffusion_as_memory.ipynb"> <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"> </a></p>
+<p>This notebook is a simplified, step-by-step walkthrough of the 2D toy example from the paper: <a href="(https://arxiv.org/abs/2505.21777)">“Memorization to Generalization: Emergence of Diffusion Models from Associative Memory”</a>.</p>
+<p>We will train a score-based diffusion model on a small dataset of points lying on a circle. Our goal is to understand how the model learns the data distribution and to visualize its learned “energy landscape,” which reveals how it behaves like an Associative Memory system initially to later transition into a generative model.</p>
+<p>For more details, please read the <a href="https://arxiv.org/abs/2505.21777">paper</a> and the <a href="https://github.com/Lemon-cmd/Diffusion-Models-and-Associative-Memory/tree/main">code repository</a>.</p>
+<div id="38ad38c6" class="cell" data-execution_count="1">
+<details class="code-fold">
+<summary>Imports and Setup</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Essential Libraries ---</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch.utils.data <span class="im">import</span> Dataset, DataLoader</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tqdm.notebook <span class="im">import</span> tqdm</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> itertools <span class="im">import</span> cycle</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> PIL <span class="im">import</span> Image</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> copy <span class="im">import</span> deepcopy</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># --- SciPy for specific math functions ---</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.special <span class="im">import</span> i0, i1 <span class="co"># Modified Bessel functions for analytical energy</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> scipy.integrate <span class="im">as</span> integrate <span class="co"># For ODE solving (likelihood calculation)</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Scikit-learn for Clustering ---</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> AgglomerativeClustering</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> mpl_toolkits.mplot3d <span class="im">import</span> Axes3D</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Set a nice plot style</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>sns.set_theme(style<span class="op">=</span><span class="st">"whitegrid"</span>)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="co"># turn off warnings</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> OrderedDict</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div id="d4d9ea6d" class="cell" data-execution_count="2">
+<details class="code-fold">
+<summary>Caching models</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For caching trained models</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>CACHE_DIR <span class="op">=</span> Path(<span class="st">"./cache/02_diffusion_as_memory"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>CACHE_DIR.mkdir(parents<span class="op">=</span><span class="va">True</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>CACHE_MODELS <span class="op">=</span> <span class="va">True</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="data-generation-and-visualization" class="level2">
+<h2 class="anchored" data-anchor-id="data-generation-and-visualization">Data Generation and Visualization</h2>
+<p>The paper uses a simple dataset: points sampled from the circumference of a unit circle. This helps us easily visualize how the model learns.</p>
+<p>We’ll define a function to generate these points and a PyTorch <code>Dataset</code> class to handle them.</p>
+<div id="0cabef6b" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> generate_circle_data(num_samples<span class="op">=</span><span class="dv">60_000</span>, radius<span class="op">=</span><span class="dv">1</span>, seed<span class="op">=</span><span class="dv">59</span>):</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Generates data points that lie on a unit circle."""</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    np.random.seed(seed)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Sample angles uniformly from 0 to 2*pi</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    angles <span class="op">=</span> np.random.uniform(<span class="dv">0</span>, <span class="dv">2</span> <span class="op">*</span> np.pi, num_samples)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Convert polar coordinates (angles, radius) to Cartesian (x, y)</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> radius <span class="op">*</span> np.cos(angles)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> radius <span class="op">*</span> np.sin(angles)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.stack([x, y], axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CircleDataset(Dataset):</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""A PyTorch Dataset to wrap our circle data."""</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, num_samples<span class="op">=</span><span class="dv">60_000</span>, radius<span class="op">=</span><span class="dv">1</span>, seed<span class="op">=</span><span class="dv">9</span>):</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Generate and store the data as a torch tensor</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.data <span class="op">=</span> torch.from_numpy(generate_circle_data(num_samples, radius, seed)).<span class="bu">float</span>()</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__len__</span>(<span class="va">self</span>):</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="bu">len</span>(<span class="va">self</span>.data)</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__getitem__</span>(<span class="va">self</span>, idx):</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.data[idx]</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> create_subset(dataset, sample_size, seed<span class="op">=</span><span class="dv">42</span>):</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Create a subset of the dataset based on the specified sample size. """</span></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    max_size <span class="op">=</span> <span class="bu">len</span>(dataset)</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    generator <span class="op">=</span> torch.Generator().manual_seed(seed)</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> <span class="dv">1</span> <span class="op">&lt;=</span> sample_size <span class="op">&lt;=</span> <span class="bu">len</span>(dataset):</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="st">"Sample size must be between 1 and the size of the dataset inclusive."</span>)</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    subset, _ <span class="op">=</span> torch.utils.data.random_split(</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>        dataset, [sample_size, max_size <span class="op">-</span> sample_size], generator<span class="op">=</span>generator</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> subset</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="creating-a-small-training-set" class="level3">
+<h3 class="anchored" data-anchor-id="creating-a-small-training-set">Creating a Small Training Set</h3>
+<p>Diffusion models can learn from very few samples. In the paper, this is referred to as memorizing “patterns”. Let’s create a tiny dataset with just 9 data points (patterns) to train on.</p>
+<div id="1c90caa7" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --- Configuration ---</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>SAMPLE_SIZE <span class="op">=</span> <span class="dv">9</span> <span class="co"># The number of data points (patterns) to memorize</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>BATCH_SIZE <span class="op">=</span> <span class="bu">min</span>(<span class="dv">500</span>, SAMPLE_SIZE)  <span class="co"># Use all data points in each batch</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>SEED <span class="op">=</span> <span class="dv">9</span>       <span class="co"># For reproducibility</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Create Dataset</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>dataset <span class="op">=</span> CircleDataset(<span class="dv">60_000</span>, seed<span class="op">=</span>SEED)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Split Dataset</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>train_subset <span class="op">=</span> create_subset(dataset, SAMPLE_SIZE, SEED)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a DataLoader</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>train_loader <span class="op">=</span> DataLoader(train_subset, batch_size<span class="op">=</span>BATCH_SIZE, shuffle<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract the training data points for visualization</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>patterns <span class="op">=</span> train_subset.dataset[train_subset.indices]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s plot our small dataset. These are the specific points we want our model to learn and remember.</p>
+<div id="8bab1088" class="cell" data-execution_count="5">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="02_diffusion_as_memory_files/figure-html/cell-6-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="the-diffusion-model" class="level2">
+<h2 class="anchored" data-anchor-id="the-diffusion-model">The Diffusion Model</h2>
+<p>The diffusion model is simply a model <span class="math inline">\(s_\theta(\mathbf{x}_t, t)\)</span> which approximates the <code>score</code> function: <span class="math display">\[
+s_\theta(\mathbf{x}_t, t) ≈ \nabla_{\mathbf{x}_t} \log p_t (\mathbf{x}_t)
+\]</span> over a series of timesteps.</p>
+<p>In this tutorial, we will be using Variance Exploding <code>(VE) SDE</code>, which defines how data is gradually noised over time ranging from <span class="math inline">\(t \in [\epsilon, 1]\)</span>: <span class="math display">\[
+  \mathrm{d} \mathbf{x}_t = \sigma  \mathrm{d} \mathbf{w}_t
+\]</span> and the corresponding reverse process: <span class="math display">\[
+  \mathrm{d} \mathbf{x}_t = \big [ -\sigma^2 \nabla_{\mathbf{x}_t} \log p_t (\mathbf{x}_t) \big ] \mathrm{d}t + \sigma^2 \mathrm{d} \mathbf{w}_t
+\]</span> where <span class="math inline">\(g(t) = \sigma\)</span> is the <code>diffusion coefficient</code> and <span class="math inline">\(\mathbf{w}_t\)</span> is <code>brownian motion</code>.</p>
+<div id="acf99479" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> VESDETerms:</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Defines the terms for the Variance Exploding SDE."""</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, sigma_max, device<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.sigma <span class="op">=</span> sigma_max</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.device <span class="op">=</span> device</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> marginal_prob_std(<span class="va">self</span>, t):</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        t <span class="op">=</span> torch.as_tensor(t, device<span class="op">=</span><span class="va">self</span>.device, dtype<span class="op">=</span>torch.float32)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.sigma <span class="op">*</span> torch.sqrt(t)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> diffusion_coeff(<span class="va">self</span>, t):</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>        t <span class="op">=</span> torch.as_tensor(t, device<span class="op">=</span><span class="va">self</span>.device, dtype<span class="op">=</span>torch.float32)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.sigma <span class="op">*</span> torch.ones_like(t)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="scorenet-architecture" class="level3">
+<h3 class="anchored" data-anchor-id="scorenet-architecture">ScoreNet Architecture</h3>
+<p>Our score network is a simple Multi-Layer Perceptron (<code>MLP</code>). It takes a noisy data point <code>x</code> and a time step <code>t</code> as inputs, and returns the <code>estimated score</code>. The conditioning on time step <code>t</code> is performed via the <code>Fourier embedding</code>, a standard method of time conditioning in diffusion models.</p>
+<div id="7662a09c" class="cell" data-execution_count="7">
+<details class="code-fold">
+<summary>PyTorch ScoreNet</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="at">@torch.no_grad</span>()</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> update_ema(ema_model, model, decay<span class="op">=</span><span class="fl">0.9999</span>):</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">    Step the EMA model towards the current model.</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    ema_params <span class="op">=</span> OrderedDict(ema_model.named_parameters())</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    model_params <span class="op">=</span> OrderedDict(model.named_parameters())</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> name, param <span class="kw">in</span> model_params.items():</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> param.requires_grad <span class="op">==</span> <span class="va">True</span>:</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>            ema_params[name].mul_(decay).add_(param.data, alpha<span class="op">=</span><span class="fl">1.</span> <span class="op">-</span> decay)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> FourierEmbedding(torch.nn.Module):</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Embeds time `t` into a high-dimensional feature space."""</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, embed_dim, scale<span class="op">=</span><span class="dv">16</span>):</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.register_buffer(<span class="st">'freqs'</span>, torch.randn(embed_dim <span class="op">//</span> <span class="dv">2</span>) <span class="op">*</span> scale)</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> x.ger((<span class="fl">2.</span> <span class="op">*</span> torch.pi <span class="op">*</span> <span class="va">self</span>.freqs).to(x.dtype))</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> torch.cat([x.cos(), x.sin()], dim<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> x</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ScoreNet(nn.Module):</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""The score-based model (a simple MLP)."""</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>,</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>        input_dim<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>        num_layers<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>        hidden_dim<span class="op">=</span><span class="dv">128</span>,</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>        embed_dim<span class="op">=</span><span class="dv">128</span>,</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>        marginal_prob_std<span class="op">=</span><span class="va">None</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>    ):</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.act <span class="op">=</span> nn.SiLU()</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.marginal_prob_std <span class="op">=</span> marginal_prob_std</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Time embedding</span></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.time_embed <span class="op">=</span> nn.Sequential(</span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>            FourierEmbedding(embed_dim<span class="op">=</span>embed_dim),</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>            nn.Linear(embed_dim, embed_dim),</span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>            nn.SiLU(),</span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a>            nn.Linear(embed_dim, embed_dim),</span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>            nn.SiLU()</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Project combined (x + time-embedding) to hidden dimension</span></span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.input_proj <span class="op">=</span> nn.Linear(input_dim <span class="op">+</span> embed_dim, hidden_dim)</span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Hidden MLP layers</span></span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a>        layers <span class="op">=</span> []</span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(num_layers <span class="op">-</span> <span class="dv">1</span>):</span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a>            layers.append(nn.Linear(hidden_dim, hidden_dim))</span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> _ <span class="op">==</span> num_layers <span class="op">-</span> <span class="dv">2</span>:</span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>                layers.append(nn.LayerNorm(hidden_dim))</span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>                layers.append(nn.SiLU())</span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a>                layers.append(nn.SiLU())</span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.hidden <span class="op">=</span> nn.Sequential(<span class="op">*</span>layers)</span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Final output to 2 dimensions</span></span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.output <span class="op">=</span> nn.Linear(hidden_dim, <span class="dv">2</span>)</span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x, t):</span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Generate time embedding and concatenate with x</span></span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a>        t_emb <span class="op">=</span> <span class="va">self</span>.time_embed(t)</span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a>        h <span class="op">=</span> torch.cat([x, t_emb], dim<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Pass through MLP</span></span>
+<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a>        h <span class="op">=</span> <span class="va">self</span>.input_proj(h)</span>
+<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a>        h <span class="op">=</span> <span class="va">self</span>.hidden(h)</span>
+<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a>        h <span class="op">=</span> <span class="va">self</span>.output(h)</span>
+<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Scale by 1 / marginal_prob_std(t)</span></span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> h <span class="op">/</span> <span class="va">self</span>.marginal_prob_std(t)[:, <span class="va">None</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+</section>
+<section id="training" class="level2">
+<h2 class="anchored" data-anchor-id="training">Training</h2>
+<p>We use the denoising score matching (<code>DSM</code>) loss. The goal is to train the <code>ScoreNet</code> model so that its output, the score, matches the direction of the noise <code>z</code> that was added to the clean data <code>x</code> at each time step <code>t</code>. <span class="math display">\[
+\mathcal{L} = \mathbb{E}_{\mathbf{x}_0, \mathbf{x}_t, t} \, \bigg  [ \lambda(t) \lVert s_\theta (\mathbf{x}_t, t) -  \nabla_{\mathbf{x}_t} \log p(\mathbf{x}_t | \mathbf{x}_0) \rVert^2 \bigg ]
+\]</span> where <span class="math inline">\(\mathbf{x}_0\)</span> denotes the clean data point and <span class="math inline">\(\mathbf{x}_t\)</span> is the perturbed data point.</p>
+<p>For example, assume <span class="math inline">\(\tilde{\mathbf{x}} \sim \mathcal{N} (\tilde{\mathbf{x}} | \mathbf{x}, \sigma^2 \mathbf{I})\)</span> for the simple case of <code>DSM</code>. We have the following: <span class="math display">\[
+\nabla_{\tilde{\mathbf{x}}} \log p(\tilde{\mathbf{x}} | \mathbf{x}) = \nabla_\tilde{\mathbf{x}} \bigg ( -\frac{1}{2\sigma^2} (\tilde{\mathbf{x}} - \mathbf{x})^2 \bigg ) = -\frac{\tilde{\mathbf{x}} - \mathbf{x}}{\sigma^2} = -\frac{\mathbf{z}}{\sigma}
+\]</span> as the score function, which we have to learn for a single timestep of denoising. <span class="math inline">\(\mathbf{z} \sim \mathcal{N}(0, \mathbf{I})\)</span>.</p>
+<div id="e2650127" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>Training Loop and Loss Function</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> loss_fn(model, x, marginal_prob_std, eps<span class="op">=</span><span class="fl">1e-5</span>):</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""The denoising score matching loss function."""</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Sample a random time t</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    random_t <span class="op">=</span> torch.rand(x.shape[<span class="dv">0</span>], device<span class="op">=</span>x.device) <span class="op">*</span> (<span class="fl">1.</span> <span class="op">-</span> eps) <span class="op">+</span> eps</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Sample a random noise vector</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    z <span class="op">=</span> torch.randn_like(x)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    std <span class="op">=</span> marginal_prob_std(random_t)[:, <span class="va">None</span>]</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Create the noisy data point</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    perturbed_x <span class="op">=</span> x <span class="op">+</span> z <span class="op">*</span> std</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Get the model's score prediction: -z / 𝜎</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    score <span class="op">=</span> model(perturbed_x, random_t)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate the loss</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    loss <span class="op">=</span> torch.mean(torch.square(score <span class="op">*</span> std <span class="op">+</span> z))</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> loss</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> train_loop(train_loader, vesde, iterations<span class="op">=</span><span class="dv">100_000</span>, lr<span class="op">=</span><span class="fl">1e-4</span>, device<span class="op">=</span><span class="st">'cuda'</span>, log_freq<span class="op">=</span><span class="dv">10_000</span>):</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create our score model</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    score_model <span class="op">=</span> ScoreNet(marginal_prob_std<span class="op">=</span>vesde.marginal_prob_std)</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create an exponential moving average version of the model</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    ema <span class="op">=</span> deepcopy(score_model).to(device)</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    score_model <span class="op">=</span> score_model.to(device)</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    <span class="co"># create optimizer</span></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>    optimizer <span class="op">=</span> torch.optim.Adam(score_model.parameters(), lr<span class="op">=</span>lr)</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Use an infinite data loader to cycle through our small dataset</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>    infinite_loader <span class="op">=</span> <span class="bu">iter</span>(cycle(train_loader))</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>    <span class="co"># --- Training ---</span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>    score_model.train()</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>    running_loss <span class="op">=</span> <span class="fl">0.</span></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>    pbar <span class="op">=</span> tqdm(<span class="bu">range</span>(iterations))</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> iteration <span class="kw">in</span> pbar:</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Get a batch of data</span></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="bu">next</span>(infinite_loader).to(device)</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Calculate loss</span></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>        loss <span class="op">=</span> loss_fn(score_model, x, vesde.marginal_prob_std)</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>        running_loss <span class="op">+=</span> loss.item()</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>        loss.backward()</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>        optimizer.step()</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>        optimizer.zero_grad()</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>        <span class="co"># udpate ema</span></span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>        update_ema(ema, score_model)</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Log progress</span></span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> iteration <span class="op">%</span> log_freq <span class="op">==</span> <span class="dv">0</span> <span class="kw">and</span> iteration <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>            pbar.set_description(<span class="ss">f"Loss: </span><span class="sc">{</span>running_loss <span class="op">/</span> log_freq<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>            running_loss <span class="op">=</span> <span class="fl">0.</span></span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>    <span class="co"># return the exponential moving average model</span></span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>    ema.<span class="bu">eval</span>()</span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> ema</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Time to train! The following code takes a few minutes to run, but the results are cached after the first run.</p>
+<div id="4f2471fc" class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Train our SDE-based diffusion models for training data sizes: 2, 9, and 1000.</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>SEED <span class="op">=</span> <span class="dv">9</span>       <span class="co"># For reproducibility</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>LR <span class="op">=</span> <span class="fl">1e-4</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>SIGMA_MAX <span class="op">=</span> <span class="fl">1.</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>ITERATIONS <span class="op">=</span> <span class="dv">50_000</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Instantiate the SDE and the Model</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>device <span class="op">=</span> <span class="st">"cuda"</span> <span class="cf">if</span> torch.cuda.is_available() <span class="cf">else</span> <span class="st">"cpu"</span> </span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>vesde <span class="op">=</span> VESDETerms(sigma_max<span class="op">=</span>SIGMA_MAX, device<span class="op">=</span>device)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>CACHE_MODELS <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> make_cache_name(sample_size, seed, lr, sigma_max, iterations):</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="ss">f"ema_model_</span><span class="sc">{</span>sample_size<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>seed<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>lr<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>sigma_max<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>iterations<span class="sc">}</span><span class="ss">.pth"</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_ema_model(cache_name):</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    cache_path <span class="op">=</span> CACHE_DIR <span class="op">/</span> cache_name</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> cache_path.exists():</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>        model <span class="op">=</span> ScoreNet(marginal_prob_std<span class="op">=</span>vesde.marginal_prob_std)</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>        state_dict <span class="op">=</span> torch.load(cache_path)</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>        model.load_state_dict(state_dict)</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> model</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span> <span class="co"># Will need to train it</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>data_sizes <span class="op">=</span> [<span class="dv">2</span>, <span class="dv">9</span>, <span class="dv">1000</span>] <span class="co"># Takes ~5 min on an M1 Pro CPU</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>ema_set, pattern_set <span class="op">=</span> [], [] <span class="co"># store our ema models and training patterns into two separate lists</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> sample_size <span class="kw">in</span> data_sizes:</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    ema <span class="op">=</span> <span class="va">None</span>        </span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>    cache_name <span class="op">=</span> make_cache_name(sample_size, SEED, LR, SIGMA_MAX, ITERATIONS)</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Extract the training data points for visualization</span></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    batch_size <span class="op">=</span> <span class="bu">min</span>(<span class="dv">500</span>, sample_size)  <span class="co"># Use all data points in each batch</span></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>    train_subset <span class="op">=</span> create_subset(dataset, sample_size, SEED)</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>    train_loader <span class="op">=</span> DataLoader(train_subset, batch_size<span class="op">=</span>batch_size, shuffle<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> CACHE_MODELS:</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>        ema <span class="op">=</span> get_ema_model(cache_name)</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> ema <span class="kw">is</span> <span class="va">None</span> <span class="kw">or</span> <span class="kw">not</span> CACHE_MODELS: </span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Train the model if no cache exists</span></span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>        torch.manual_seed(SEED)</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>        ema <span class="op">=</span> train_loop(train_loader, vesde, ITERATIONS, LR, device<span class="op">=</span>device)</span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>        torch.save(ema.state_dict(), CACHE_DIR <span class="op">/</span> <span class="ss">f"</span><span class="sc">{</span>cache_name<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>    patterns <span class="op">=</span> train_subset.dataset[train_subset.indices]</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>    pattern_set.append(patterns)</span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>    ema_set.append(ema)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="sampling-from-the-trained-model" class="level2">
+<h2 class="anchored" data-anchor-id="sampling-from-the-trained-model">Sampling from the Trained Model</h2>
+<p>To generate new samples, we run the diffusion process in reverse. We start with pure random noise (sampled at <code>t=1</code>) and use our trained score model to guide it back towards the data distribution (towards <code>t=0</code>). This is done using a numerical SDE solver, like the <a href="https://en.wikipedia.org/wiki/Euler%E2%80%93Maruyama_method">Euler-Maruyama method</a>.</p>
+<div id="fb801b82" class="cell" data-execution_count="10">
+<details class="code-fold">
+<summary>Euler-Maruyama Sampler</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> Euler_Maruyama_sampler(score_model,</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                           sde,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                           batch_size<span class="op">=</span><span class="dv">64</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                           num_steps<span class="op">=</span><span class="dv">1000</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                           device<span class="op">=</span><span class="st">'cuda'</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>                           eps<span class="op">=</span><span class="fl">1e-5</span>):</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Generate samples from the score-based model using the Euler-Maruyama solver."""</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    score_model.<span class="bu">eval</span>()</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    t_end <span class="op">=</span> torch.ones(batch_size, device<span class="op">=</span>device)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Start with orthogonalized random noise ~ N(0, sigma_max^2 * I)</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    init_x <span class="op">=</span> torch.randn(batch_size, <span class="dv">2</span>, device<span class="op">=</span>device)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    init_x <span class="op">=</span> init_x  <span class="op">/</span> torch.norm(init_x, dim <span class="op">=</span> (<span class="dv">1</span>), keepdim<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    init_x <span class="op">=</span> init_x <span class="op">*</span> sde.marginal_prob_std(t_end)[:, <span class="va">None</span>]</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    time_steps <span class="op">=</span> torch.linspace(<span class="fl">1.</span>, eps, num_steps, device<span class="op">=</span>device)</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    step_size <span class="op">=</span> time_steps[<span class="dv">0</span>] <span class="op">-</span> time_steps[<span class="dv">1</span>] <span class="co">#dt</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> init_x</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> time_step <span class="kw">in</span> tqdm(time_steps, desc<span class="op">=</span><span class="st">"Sampling"</span>):</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>            batch_time_step <span class="op">=</span> torch.ones(batch_size, device<span class="op">=</span>device) <span class="op">*</span> time_step</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>            g <span class="op">=</span> sde.diffusion_coeff(batch_time_step)</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>            <span class="co"># This is the reverse SDE update step</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>            mean_x <span class="op">=</span> x <span class="op">+</span> (g<span class="op">**</span><span class="dv">2</span>)[:, <span class="va">None</span>] <span class="op">*</span> score_model(x, batch_time_step) <span class="op">*</span> step_size</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>            eps <span class="op">=</span> torch.randn_like(x)</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>            noise <span class="op">=</span> torch.sqrt(step_size) <span class="op">*</span> g[:, <span class="va">None</span>] <span class="op">*</span> eps</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>            x <span class="op">=</span> mean_x <span class="op">+</span> noise</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>    score_model.train()</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mean_x <span class="co"># Return the final denoised sample</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>We can now sample from the trained models.</p>
+<div id="9b07e76e" class="cell" data-execution_count="11">
+<details class="code-fold">
+<summary>Sampling from the Trained Models</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>generated_set <span class="op">=</span> []</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ema <span class="kw">in</span> ema_set:</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    generated_samples <span class="op">=</span> Euler_Maruyama_sampler(ema, vesde, batch_size<span class="op">=</span><span class="dv">1_500</span>, device<span class="op">=</span>device)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    generated_samples <span class="op">=</span> generated_samples.detach().cpu().numpy()</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    generated_set.append(generated_samples)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id":"596804220ffe43d38ddedfe5f1ed69db","version_major":2,"version_minor":0,"quarto_mimetype":"application/vnd.jupyter.widget-view+json"}
+</script>
+</div>
+<div class="cell-output cell-output-display">
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id":"64abbbdeef694e6aafcb8a58b4a161b6","version_major":2,"version_minor":0,"quarto_mimetype":"application/vnd.jupyter.widget-view+json"}
+</script>
+</div>
+<div class="cell-output cell-output-display">
+<script type="application/vnd.jupyter.widget-view+json">
+{"model_id":"33ea5daa378d4940b8e6857dd459dc2d","version_major":2,"version_minor":0,"quarto_mimetype":"application/vnd.jupyter.widget-view+json"}
+</script>
+</div>
+</div>
+</section>
+<section id="potential-energy-of-generated-and-data-samples" class="level2">
+<h2 class="anchored" data-anchor-id="potential-energy-of-generated-and-data-samples">Potential Energy of Generated and Data Samples</h2>
+<p>Recall the relationship between energy and probability denoted by the <code>Boltzmann distribution</code>: <span class="math display">\[
+    p_\theta(\mathbf{x}) = \frac{\exp{(-E_\theta(\mathbf{x}))} }{Z_\theta}
+\]</span> This indicates that our energy (up to a constant) is obtained by computing the negative log-likelihood: <span class="math display">\[
+    -\log p_\theta(\mathbf{x}) = E_\theta(\mathbf{x}) + C
+\]</span></p>
+<p>Since we are dealing with a non-equilibrium system, that is our diffusion model, we follow the formulations and codes provided in <a href="https://arxiv.org/abs/2011.13456">Song et al.&nbsp;(2021)</a> to compute the log-likelihood: <span class="math display">\[
+    \log p_0(\mathbf{x}_0;\mathbf{\theta}) = \log p_T(\mathbf{x}_T; \theta) + \int_0^T \nabla \cdot \tilde{\mathbf{f}}(\mathbf{x}_t, t)  \mathrm{d}t
+\]</span> where <span class="math display">\[
+    \tilde{\mathbf{f}}(\mathbf{x}_t, t) =-\frac{1}{2}\sigma^2 \nabla_{\mathbf{x}_{t}} \log p_t(\mathbf{x}_{t}; \theta)
+\]</span> for this setting. Keep in mind, <span class="math inline">\(\nabla \cdot ()\)</span> denotes the laplacian operation.</p>
+<p>To derive the above equation, we start with the <code>Fokker-Planck</code> equation, as did in <a href="https://arxiv.org/abs/1806.07366">Chen et al.&nbsp;(2018)</a> and <a href="https://arxiv.org/abs/2011.13456">Song et al.&nbsp;(2021)</a>, which yields the following general probability flow ODE (derived from the forward process SDE): <span class="math display">\[
+    \mathrm{d} \mathbf{x}_t = \tilde{\mathbf{f}}(\mathbf{x}_t, t)\mathrm{d} t + \tilde{\mathbf{g}} (\mathbf{x}_t, t) \mathrm{d} \mathbf{w}_t
+\]</span> where <span class="math display">\[\tilde{\mathbf{f}}(\mathbf{x}_t, t) = \mathbf{f} (\mathbf{x}_t, t) - \frac{1}{2} \nabla \cdot \big[\mathbf{g} (\mathbf{x}_t, t) \mathbf{g} (\mathbf{x}_t, t)^\top \big] - \frac{1}{2}  \big [ \mathbf{g} (\mathbf{x}_t, t) \mathbf{g} (\mathbf{x}_t, t)^\top \big ] \nabla_{\mathbf{x}_t} \log p_t(\mathbf{x}_t)\]</span> and <span class="math inline">\(\tilde{\mathbf{g}} (\mathbf{x}_t, t) = 0\)</span>.</p>
+<p>Here, <span class="math inline">\(\mathbf{f}(\mathbf{x}_t, t) = 0\)</span> denotes the drift term which vanishes in the VE setting while <span class="math inline">\(\mathbf{g} (\mathbf{x}_t, t) = \sigma\)</span> which is constant in this setting. Thus, the probability flow ODE for our setting is simply: <span class="math display">\[
+    \mathrm{d} \mathbf{x}_t = \tilde{\mathbf{f}}(\mathbf{x}_t, t)\mathrm{d} t = -\frac{1}{2}\sigma^2 \nabla_{\mathbf{x}_{t}} \log p_t(\mathbf{x}_{t}) \, \mathrm{d}t
+\]</span></p>
+<div id="600625cf" class="cell" data-execution_count="12">
+<details class="code-fold">
+<summary>Computing the Laplacian and Log-Likelihood</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># @title Code to Compute Laplacian and Log-Likelihood</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_laplacian(score_fn, x, t):</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">    Compute the Laplacian of the score function using torch.func utilities.</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="co">    This is a more efficient, vectorized alternative to the loop-based approach.</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> get_laplacian_for_single_sample(x_sample, t_sample):</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="co">        A helper function that computes the Laplacian for one sample.</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co">        This is the function we will vectorize using vmap (like Jax).</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>        <span class="co"># We have to unsqueeze since torch module requires a batch dim.</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>        f <span class="op">=</span> <span class="kw">lambda</span> x_inp: score_fn(x_inp[<span class="va">None</span>], t_sample[<span class="va">None</span>]).squeeze(<span class="dv">0</span>)</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Compute the Jacobian of the score function w.r.t. x.</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>        <span class="co"># This gives a D x D matrix where D is the dimension of x.</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>        J <span class="op">=</span> torch.func.jacrev(f)(x_sample)</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>        <span class="co"># The Laplacian is the trace of the Jacobian matrix (sum of its diagonal).</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> torch.trace(J)</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Apply vmap over the first dimension for both inputs</span></span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> torch.func.vmap(get_laplacian_for_single_sample, in_dims<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">0</span>))(x, t)</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> ode_likelihood_with_laplacian(x, score_model, sde, device<span class="op">=</span><span class="st">'cuda'</span>, eps<span class="op">=</span><span class="fl">1e-5</span>):</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Compute the log-likelihood of x by solving the probability flow ODE."""</span></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>    shape <span class="op">=</span> x.shape</span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> score_eval_wrapper(sample, time_steps):</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""A wrapper for evaluating the score-based model for the ODE solver."""</span></span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>        sample <span class="op">=</span> torch.tensor(sample, device<span class="op">=</span>device, dtype<span class="op">=</span>torch.float32).reshape(shape)</span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>        time_steps <span class="op">=</span> torch.tensor(time_steps, device<span class="op">=</span>device, dtype<span class="op">=</span>torch.float32).reshape((sample.shape[<span class="dv">0</span>], ))</span>
+<span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>            score <span class="op">=</span> score_model(sample, time_steps)</span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> score.cpu().numpy().reshape((<span class="op">-</span><span class="dv">1</span>, shape[<span class="dv">1</span>])).astype(np.float64)</span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> laplacian_eval_wrapper(sample, time_steps):</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""A wrapper for evaluating the Laplacian of the score function."""</span></span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>        sample <span class="op">=</span> torch.tensor(sample, device<span class="op">=</span>device, dtype<span class="op">=</span>torch.float32).reshape(shape)</span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>        time_steps <span class="op">=</span> torch.tensor(time_steps, device<span class="op">=</span>device, dtype<span class="op">=</span>torch.float32).reshape((sample.shape[<span class="dv">0</span>], ))</span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>        laplacian <span class="op">=</span> compute_laplacian(score_model, sample, time_steps)</span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> laplacian.cpu().numpy().reshape((<span class="op">-</span><span class="dv">1</span>,)).astype(np.float64)</span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> ode_func(t, x_and_logp):</span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>        time_steps <span class="op">=</span> torch.from_numpy(np.ones((shape[<span class="dv">0</span>],)) <span class="op">*</span> t).to(device, torch.float32)</span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>        sample <span class="op">=</span> torch.from_numpy(x_and_logp[:<span class="op">-</span>shape[<span class="dv">0</span>]].reshape(shape)).to(device, torch.float32)</span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a>            g <span class="op">=</span> sde.diffusion_coeff(time_steps).cpu().numpy()</span>
+<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-53"><a href="#cb11-53" aria-hidden="true" tabindex="-1"></a>            score <span class="op">=</span> score_eval_wrapper(sample, time_steps)</span>
+<span id="cb11-54"><a href="#cb11-54" aria-hidden="true" tabindex="-1"></a>            laplacian <span class="op">=</span> laplacian_eval_wrapper(sample, time_steps)</span>
+<span id="cb11-55"><a href="#cb11-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-56"><a href="#cb11-56" aria-hidden="true" tabindex="-1"></a>        drift <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> g[:, <span class="va">None</span>]<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> score</span>
+<span id="cb11-57"><a href="#cb11-57" aria-hidden="true" tabindex="-1"></a>        logp_grad <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> g<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> laplacian</span>
+<span id="cb11-58"><a href="#cb11-58" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> np.concatenate([drift.flatten(), logp_grad], axis <span class="op">=</span> <span class="dv">0</span>)</span>
+<span id="cb11-59"><a href="#cb11-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-60"><a href="#cb11-60" aria-hidden="true" tabindex="-1"></a>    init <span class="op">=</span> np.concatenate([x.cpu().numpy().flatten(), np.zeros((shape[<span class="dv">0</span>],))])</span>
+<span id="cb11-61"><a href="#cb11-61" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> integrate.solve_ivp(ode_func, (eps, <span class="fl">1.</span>), init, rtol<span class="op">=</span><span class="fl">1e-5</span>, atol<span class="op">=</span><span class="fl">1e-5</span>, method<span class="op">=</span><span class="st">'RK45'</span>)</span>
+<span id="cb11-62"><a href="#cb11-62" aria-hidden="true" tabindex="-1"></a>    zp <span class="op">=</span> torch.tensor(res.y[:, <span class="op">-</span><span class="dv">1</span>], device<span class="op">=</span>device)</span>
+<span id="cb11-63"><a href="#cb11-63" aria-hidden="true" tabindex="-1"></a>    z <span class="op">=</span> zp[:<span class="op">-</span>shape[<span class="dv">0</span>]].reshape(shape)</span>
+<span id="cb11-64"><a href="#cb11-64" aria-hidden="true" tabindex="-1"></a>    delta_logp <span class="op">=</span> zp[<span class="op">-</span>shape[<span class="dv">0</span>]:]</span>
+<span id="cb11-65"><a href="#cb11-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-66"><a href="#cb11-66" aria-hidden="true" tabindex="-1"></a>    sigma_max <span class="op">=</span> sde.marginal_prob_std(torch.tensor(<span class="fl">1.</span>))</span>
+<span id="cb11-67"><a href="#cb11-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-68"><a href="#cb11-68" aria-hidden="true" tabindex="-1"></a>    prior_logp <span class="op">=</span> <span class="op">-</span>shape[<span class="dv">1</span>] <span class="op">/</span> <span class="fl">2.</span> <span class="op">*</span> torch.log(<span class="dv">2</span> <span class="op">*</span> np.pi <span class="op">*</span> sigma_max <span class="op">**</span> <span class="dv">2</span>)</span>
+<span id="cb11-69"><a href="#cb11-69" aria-hidden="true" tabindex="-1"></a>    prior_logp <span class="op">=</span> prior_logp <span class="op">-</span> torch.<span class="bu">sum</span>(z <span class="op">**</span> <span class="dv">2</span>, dim<span class="op">=-</span><span class="dv">1</span>) <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> sigma_max <span class="op">**</span> <span class="dv">2</span>)</span>
+<span id="cb11-70"><a href="#cb11-70" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (prior_logp <span class="op">+</span> delta_logp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="visualizing-the-energy" class="level3">
+<h3 class="anchored" data-anchor-id="visualizing-the-energy">Visualizing the Energy</h3>
+<p>Since we are generating quite a lot of synthetic data points, we use <code>hierarchical clustering</code> to get a sense of where the concentrations of these new points are at. To be more informative, we are also displaying the energy profile of these concentrations alongside that of the training data points.</p>
+<p>At <code>K = 2</code>, we can see that the concentrations of generated points are pretty much surrounding the data points and their energy profile are similar to that of the training data points.</p>
+<p>Meanwhile, at <code>K = 9</code>, we now see local minima of the energy that devitate drastically from the training points. These new local minima of the energy are called <code>spurious patterns</code>.</p>
+<p>Finally, when <code>K = 1000</code>, the energy now very closely matches that of the DenseAM’s derived <code>exact energy</code>, see below.</p>
+<div id="4a391dfb" class="cell" data-execution_count="13">
+<details class="code-fold">
+<summary>Plot Functions for Energy Landscape in 2D and 3D</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># @title Plot Functions for Energy Landscape in 2D and 3D</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> to_energy(loglikelihood, normalize<span class="op">=</span><span class="va">True</span>):</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># nll = E + C</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    energy <span class="op">=</span> <span class="op">-</span>loglikelihood</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> normalize:</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>         <span class="co"># normalize energy by its minimum</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> energy <span class="op">-</span> energy.<span class="bu">min</span>()</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> energy</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_combined_landscape(fig, ax, score_model, sde, patterns, samples, labels, centers, t_eval<span class="op">=</span><span class="fl">1e-5</span>, device<span class="op">=</span><span class="st">'cpu'</span>, annotate<span class="op">=</span><span class="va">True</span>, quiver_stride<span class="op">=</span><span class="dv">10</span>):</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Visualize the energy landscape with annotated points."""</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    score_model.<span class="bu">eval</span>()</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 1. Calculate Energy for Patterns and Centers</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Energy for original patterns</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    patterns_tensor <span class="op">=</span> patterns.to(device)</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    logp_patterns <span class="op">=</span> ode_likelihood_with_laplacian(patterns_tensor, score_model, sde, device, eps<span class="op">=</span>t_eval)</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>    energy_patterns <span class="op">=</span> to_energy(logp_patterns).cpu().numpy()</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Energy for found cluster centers</span></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    centers_tensor <span class="op">=</span> torch.from_numpy(centers).<span class="bu">float</span>().to(device)</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    logp_centers <span class="op">=</span> ode_likelihood_with_laplacian(centers_tensor, score_model, sde, device, eps<span class="op">=</span>t_eval)</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>    energy_centers <span class="op">=</span> to_energy(logp_centers).cpu().numpy()</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 2. Create a grid of points</span></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>    bounds<span class="op">=</span>(<span class="op">-</span><span class="fl">1.5</span>, <span class="fl">1.5</span>)<span class="op">;</span> resolution<span class="op">=</span><span class="dv">75</span></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>    x_ <span class="op">=</span> torch.linspace(bounds[<span class="dv">0</span>], bounds[<span class="dv">1</span>], resolution)</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>    y_ <span class="op">=</span> torch.linspace(bounds[<span class="dv">0</span>], bounds[<span class="dv">1</span>], resolution)</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>    X, Y <span class="op">=</span> torch.meshgrid(x_, y_, indexing<span class="op">=</span><span class="st">'ij'</span>)</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>    grid_tensor <span class="op">=</span> torch.stack([X.flatten(), Y.flatten()], dim<span class="op">=</span><span class="dv">1</span>).to(device)</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 3. Calculate the energy and score for the grid</span></span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>    logp_grid <span class="op">=</span> ode_likelihood_with_laplacian(grid_tensor, score_model, sde, device, eps<span class="op">=</span>t_eval)</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>    energy_grid <span class="op">=</span> to_energy(logp_grid).cpu().numpy().reshape(resolution, resolution)</span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>        vec_t <span class="op">=</span> torch.ones(grid_tensor.shape[<span class="dv">0</span>], device<span class="op">=</span>device) <span class="op">*</span> t_eval</span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>        scores <span class="op">=</span> score_model(grid_tensor, vec_t).cpu().numpy()</span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 4. Create the comprehensive plot</span></span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f'K = </span><span class="sc">{</span><span class="bu">len</span>(patterns)<span class="sc">}</span><span class="ss">'</span>, fontsize<span class="op">=</span><span class="fl">7.5</span>, pad<span class="op">=-</span><span class="fl">0.025</span>)</span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>    ax.set_aspect(<span class="st">'equal'</span>)<span class="op">;</span> ax.grid(<span class="va">False</span>)</span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot energy contour</span></span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>    contour <span class="op">=</span> ax.contourf(X.cpu(), Y.cpu(), energy_grid, levels<span class="op">=</span><span class="dv">100</span>, cmap<span class="op">=</span><span class="st">'inferno'</span>, zorder<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot the unit circle</span></span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a>    theta <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">2</span> <span class="op">*</span> np.pi, <span class="dv">200</span>)</span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a>    ax.plot(np.cos(theta), np.sin(theta), color<span class="op">=</span><span class="st">'white'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.6</span>, zorder<span class="op">=</span><span class="dv">1</span>, label<span class="op">=</span><span class="st">'Unit Circle'</span>)</span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot score field</span></span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a>    ax.quiver(grid_tensor[:, <span class="dv">0</span>].cpu()[::quiver_stride], grid_tensor[:, <span class="dv">1</span>].cpu()[::quiver_stride],</span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a>              scores[:, <span class="dv">0</span>][::quiver_stride], scores[:, <span class="dv">1</span>][::quiver_stride], color<span class="op">=</span><span class="st">'white'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>,</span>
+<span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a>              width<span class="op">=</span><span class="fl">0.005</span>, headwidth<span class="op">=</span><span class="dv">3</span>, zorder<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot original patterns</span></span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a>    ax.scatter(patterns[:, <span class="dv">0</span>].cpu(), patterns[:, <span class="dv">1</span>].cpu(), marker<span class="op">=</span><span class="st">"*"</span>, alpha<span class="op">=</span><span class="fl">0.75</span>,</span>
+<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a>               s<span class="op">=</span><span class="dv">100</span>, color<span class="op">=</span><span class="st">"deeppink"</span>, label<span class="op">=</span><span class="st">"Original Patterns"</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>, zorder<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> annotate: <span class="co"># turn off annotation and plotting center since there are too many patterns at this point</span></span>
+<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Plot generated samples</span></span>
+<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a>        ax.scatter(samples[:, <span class="dv">0</span>], samples[:, <span class="dv">1</span>], c<span class="op">=</span>labels, cmap<span class="op">=</span><span class="st">'viridis'</span>,</span>
+<span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a>                   s<span class="op">=</span><span class="fl">7.5</span>, alpha<span class="op">=</span><span class="fl">0.2</span>, zorder<span class="op">=</span><span class="dv">3</span>, label<span class="op">=</span><span class="st">'Generated Samples'</span>)</span>
+<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Plot found cluster centers</span></span>
+<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a>        ax.scatter(centers[:, <span class="dv">0</span>], centers[:, <span class="dv">1</span>], marker<span class="op">=</span><span class="st">'X'</span>, s<span class="op">=</span><span class="dv">40</span>,</span>
+<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a>                    color<span class="op">=</span><span class="st">'aqua'</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>, zorder<span class="op">=</span><span class="dv">4</span>, label<span class="op">=</span><span class="st">'Cluster Centers'</span>)</span>
+<span id="cb12-70"><a href="#cb12-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-71"><a href="#cb12-71" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Add energy annotations for patterns</span></span>
+<span id="cb12-72"><a href="#cb12-72" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i, p <span class="kw">in</span> <span class="bu">enumerate</span>(patterns.cpu().numpy()):</span>
+<span id="cb12-73"><a href="#cb12-73" aria-hidden="true" tabindex="-1"></a>            ax.annotate(<span class="ss">f'</span><span class="sc">{</span>energy_patterns[i]<span class="sc">:.2f}</span><span class="ss">'</span>, (p[<span class="dv">0</span>], p[<span class="dv">1</span>]),</span>
+<span id="cb12-74"><a href="#cb12-74" aria-hidden="true" tabindex="-1"></a>                        xytext<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">0</span>), textcoords<span class="op">=</span><span class="st">'offset points'</span>, color<span class="op">=</span><span class="st">'deeppink'</span>, fontsize<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb12-75"><a href="#cb12-75" aria-hidden="true" tabindex="-1"></a>                        weight<span class="op">=</span><span class="st">'bold'</span>, bbox<span class="op">=</span><span class="bu">dict</span>(boxstyle<span class="op">=</span><span class="st">"round,pad=0.2"</span>, fc<span class="op">=</span><span class="st">"black"</span>, ec<span class="op">=</span><span class="st">"lime"</span>, lw<span class="op">=</span><span class="dv">1</span>, alpha<span class="op">=</span><span class="fl">0.6</span>))</span>
+<span id="cb12-76"><a href="#cb12-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-77"><a href="#cb12-77" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Add energy annotations for cluster centers</span></span>
+<span id="cb12-78"><a href="#cb12-78" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i, c <span class="kw">in</span> <span class="bu">enumerate</span>(centers):</span>
+<span id="cb12-79"><a href="#cb12-79" aria-hidden="true" tabindex="-1"></a>            ax.annotate(<span class="ss">f'</span><span class="sc">{</span>energy_centers[i]<span class="sc">:.2f}</span><span class="ss">'</span>, (c[<span class="dv">0</span>], c[<span class="dv">1</span>]),</span>
+<span id="cb12-80"><a href="#cb12-80" aria-hidden="true" tabindex="-1"></a>                        xytext<span class="op">=</span>(<span class="op">-</span><span class="dv">15</span>, <span class="dv">0</span>), textcoords<span class="op">=</span><span class="st">'offset points'</span>, color<span class="op">=</span><span class="st">'aqua'</span>, fontsize<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb12-81"><a href="#cb12-81" aria-hidden="true" tabindex="-1"></a>                        weight<span class="op">=</span><span class="st">'bold'</span>, bbox<span class="op">=</span><span class="bu">dict</span>(boxstyle<span class="op">=</span><span class="st">"round,pad=0.2"</span>, fc<span class="op">=</span><span class="st">"black"</span>, ec<span class="op">=</span><span class="st">"yellow"</span>, lw<span class="op">=</span><span class="dv">1</span>, alpha<span class="op">=</span><span class="fl">0.6</span>))</span>
+<span id="cb12-82"><a href="#cb12-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-83"><a href="#cb12-83" aria-hidden="true" tabindex="-1"></a>    <span class="co">#ax.set_xlabel('x', fontsize=5.5); ax.set_ylabel('y', fontsize=5.5);</span></span>
+<span id="cb12-84"><a href="#cb12-84" aria-hidden="true" tabindex="-1"></a>    ax.set_xticks([])<span class="op">;</span> ax.set_yticks([])<span class="op">;</span></span>
+<span id="cb12-85"><a href="#cb12-85" aria-hidden="true" tabindex="-1"></a>    ax.set_xlim(bounds)<span class="op">;</span> ax.set_ylim(bounds)<span class="op">;</span></span>
+<span id="cb12-86"><a href="#cb12-86" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> contour</span>
+<span id="cb12-87"><a href="#cb12-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-88"><a href="#cb12-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-89"><a href="#cb12-89" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_energy_surface_3d(fig, ax, X, Y, energy, view_angle<span class="op">=</span>(<span class="dv">60</span>, <span class="op">-</span><span class="dv">60</span>), title<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb12-90"><a href="#cb12-90" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb12-91"><a href="#cb12-91" aria-hidden="true" tabindex="-1"></a><span class="co">    Creates a 3D surface plot of the energy landscape.</span></span>
+<span id="cb12-92"><a href="#cb12-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-93"><a href="#cb12-93" aria-hidden="true" tabindex="-1"></a><span class="co">    Args:</span></span>
+<span id="cb12-94"><a href="#cb12-94" aria-hidden="true" tabindex="-1"></a><span class="co">        X (np.ndarray): Meshgrid for X coordinates.</span></span>
+<span id="cb12-95"><a href="#cb12-95" aria-hidden="true" tabindex="-1"></a><span class="co">        Y (np.ndarray): Meshgrid for Y coordinates.</span></span>
+<span id="cb12-96"><a href="#cb12-96" aria-hidden="true" tabindex="-1"></a><span class="co">        energy (np.ndarray): 2D array of energy values.</span></span>
+<span id="cb12-97"><a href="#cb12-97" aria-hidden="true" tabindex="-1"></a><span class="co">        view_angle (tuple): Tuple of (elevation, azimuth) for the plot's camera angle.</span></span>
+<span id="cb12-98"><a href="#cb12-98" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb12-99"><a href="#cb12-99" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot the 3D surface</span></span>
+<span id="cb12-100"><a href="#cb12-100" aria-hidden="true" tabindex="-1"></a>    surface <span class="op">=</span> ax.plot_surface(X, Y, energy, cmap<span class="op">=</span><span class="st">'inferno'</span>, rstride<span class="op">=</span><span class="dv">1</span>, cstride<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb12-101"><a href="#cb12-101" aria-hidden="true" tabindex="-1"></a>                              linewidth<span class="op">=</span><span class="dv">0</span>, antialiased<span class="op">=</span><span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.9</span>)</span>
+<span id="cb12-102"><a href="#cb12-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-103"><a href="#cb12-103" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Set labels and title</span></span>
+<span id="cb12-104"><a href="#cb12-104" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(<span class="st">'x'</span>, fontsize<span class="op">=</span><span class="dv">5</span>, labelpad<span class="op">=-</span><span class="dv">18</span>)</span>
+<span id="cb12-105"><a href="#cb12-105" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(<span class="st">'y'</span>, fontsize<span class="op">=</span><span class="dv">5</span>, labelpad<span class="op">=-</span><span class="dv">18</span>)</span>
+<span id="cb12-106"><a href="#cb12-106" aria-hidden="true" tabindex="-1"></a>    ax.set_zlabel(<span class="st">'Energy'</span>, fontsize<span class="op">=</span><span class="dv">5</span>, labelpad<span class="op">=-</span><span class="dv">18</span>, rotation<span class="op">=-</span><span class="dv">90</span>)</span>
+<span id="cb12-107"><a href="#cb12-107" aria-hidden="true" tabindex="-1"></a>    ax.set_title(title, fontsize<span class="op">=</span><span class="fl">7.5</span>, y<span class="op">=-</span><span class="fl">0.08</span>)</span>
+<span id="cb12-108"><a href="#cb12-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-109"><a href="#cb12-109" aria-hidden="true" tabindex="-1"></a>    ax.set_xticks([])</span>
+<span id="cb12-110"><a href="#cb12-110" aria-hidden="true" tabindex="-1"></a>    ax.set_yticks([])</span>
+<span id="cb12-111"><a href="#cb12-111" aria-hidden="true" tabindex="-1"></a>    ax.set_zticks([])</span>
+<span id="cb12-112"><a href="#cb12-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-113"><a href="#cb12-113" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Set a nice viewing angle</span></span>
+<span id="cb12-114"><a href="#cb12-114" aria-hidden="true" tabindex="-1"></a>    ax.view_init(elev<span class="op">=</span>view_angle[<span class="dv">0</span>], azim<span class="op">=</span>view_angle[<span class="dv">1</span>])</span>
+<span id="cb12-115"><a href="#cb12-115" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> surface</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div id="e4a5a4ec" class="cell" data-execution_count="14">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="02_diffusion_as_memory_files/figure-html/cell-15-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="41cc4010" class="cell" data-execution_count="15">
+<details class="code-fold">
+<summary>Visualization of the Energy Landscape Across K training Sizes in 2D</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This threshold determines how close points need to be to be considered in the same cluster.</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co"># You may need to tune this value based on your results.</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>dist_thresholds <span class="op">=</span> [<span class="dv">3</span>, <span class="dv">2</span>, <span class="fl">0.45</span>]</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>annotates <span class="op">=</span> [<span class="va">True</span>, <span class="va">True</span>, <span class="va">False</span>]</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>t_evals <span class="op">=</span> [<span class="fl">0.15</span>] <span class="op">*</span> <span class="bu">len</span>(dist_thresholds) <span class="co"># evaluate potentials at eps = 0.15</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">8</span>), constrained_layout<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, (patterns, generated_samples, ema, threshold, t_eval, annotate) <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="bu">zip</span>(pattern_set, generated_set, ema_set, dist_thresholds, t_evals, annotates)):</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Perform Agglomerative (Hierarchical) Clustering</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    clustering <span class="op">=</span> AgglomerativeClustering(</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>        n_clusters<span class="op">=</span><span class="va">None</span>,                                      <span class="co"># We let the algorithm find the clusters based on the threshold</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>        distance_threshold<span class="op">=</span>threshold</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    ).fit(generated_samples)</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Find the center of each identified cluster</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    cluster_labels <span class="op">=</span> clustering.labels_</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    n_clusters_found <span class="op">=</span> <span class="bu">len</span>(np.unique(cluster_labels))</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    cluster_centers <span class="op">=</span> np.array([</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>        generated_samples[cluster_labels <span class="op">==</span> i].mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(n_clusters_found)</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>    ])</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>    contour <span class="op">=</span> plot_combined_landscape(</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>        fig, axs[i],</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>        ema,</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>        vesde,</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>        patterns,</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>        generated_samples,</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>        cluster_labels,</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>        cluster_centers,</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>        device<span class="op">=</span>device,</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>        t_eval<span class="op">=</span>t_eval,</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>        annotate<span class="op">=</span>annotate,</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].legend(loc<span class="op">=</span><span class="st">'lower left'</span>, fontsize<span class="op">=</span><span class="dv">4</span>)</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a><span class="co"># Set the ticks to only be at the min and max</span></span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>cbar <span class="op">=</span> fig.colorbar(contour, ax<span class="op">=</span>axs[<span class="op">-</span><span class="dv">1</span>], shrink<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>cbar.set_label(<span class="st">'Energy (Lower is Better)'</span>, fontsize<span class="op">=</span><span class="dv">8</span>, labelpad<span class="op">=-</span><span class="dv">10</span>)</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>vmin, vmax <span class="op">=</span> contour.get_clim()</span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>cbar.set_ticks([vmin, vmax])</span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>cbar.set_ticklabels([<span class="st">'Low'</span>, <span class="st">'High'</span>], fontsize<span class="op">=</span><span class="fl">7.5</span>)</span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="02_diffusion_as_memory_files/figure-html/cell-16-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="40b0c596" class="cell">
+<details class="code-fold">
+<summary>Visualization of the Energy Landscape Across K training Sizes in 3D</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This code is slow to run, so we cache the figure</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>CACHE_FIG <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>bounds <span class="op">=</span> (<span class="op">-</span><span class="fl">1.5</span>, <span class="fl">1.5</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>resolution <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>X_grid, Y_grid <span class="op">=</span> torch.meshgrid(</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    torch.linspace(bounds[<span class="dv">0</span>], bounds[<span class="dv">1</span>], resolution),</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    torch.linspace(bounds[<span class="dv">0</span>], bounds[<span class="dv">1</span>], resolution),</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    indexing<span class="op">=</span><span class="st">'ij'</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>grid_tensor <span class="op">=</span> torch.stack([X_grid.ravel(), Y_grid.ravel()], dim<span class="op">=</span><span class="dv">1</span>).to(device)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>fig_fname <span class="op">=</span> CACHE_DIR <span class="op">/</span> <span class="st">"slow_fig.png"</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> CACHE_FIG <span class="kw">and</span> fig_fname.exists():</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    img <span class="op">=</span> Image.<span class="bu">open</span>(<span class="bu">str</span>(fig_fname))</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    display(img)</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">6</span>), constrained_layout<span class="op">=</span><span class="va">True</span>, subplot_kw<span class="op">=</span>{<span class="st">"projection"</span>: <span class="st">"3d"</span>})</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, (patterns, score_model, annotate, eps) <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="bu">zip</span>(pattern_set, ema_set, annotates, t_evals)):</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Calculate the energy for the grid (this is the slow step)</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>        logp_grid <span class="op">=</span> ode_likelihood_with_laplacian(grid_tensor, score_model, vesde, device<span class="op">=</span>device, eps<span class="op">=</span>eps)</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>        energy_grid <span class="op">=</span> to_energy(logp_grid).cpu().numpy()</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>        energy_grid <span class="op">=</span> energy_grid.reshape(resolution, resolution)</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Create the plot</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>        contour <span class="op">=</span> plot_energy_surface_3d(fig, axs[i], X_grid.cpu().numpy(), Y_grid.cpu().numpy(), energy_grid, title<span class="op">=</span><span class="ss">f'K = </span><span class="sc">{</span><span class="bu">len</span>(patterns)<span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>        <span class="co"># show the data points again...</span></span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> annotate:</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>            axs[i].scatter(</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>                patterns[:, <span class="dv">0</span>].cpu(), patterns[:, <span class="dv">1</span>].cpu(), marker<span class="op">=</span><span class="st">"*"</span>, alpha<span class="op">=</span><span class="fl">0.75</span>,</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>                s<span class="op">=</span><span class="dv">35</span>, color<span class="op">=</span><span class="st">"deeppink"</span>, label<span class="op">=</span><span class="st">"Original Patterns"</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>, zorder<span class="op">=</span><span class="dv">5</span></span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Set the ticks to only be at the min and max</span></span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>    cbar <span class="op">=</span> fig.colorbar(contour, ax<span class="op">=</span>axs[<span class="op">-</span><span class="dv">1</span>], shrink<span class="op">=</span><span class="fl">0.25</span>)</span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>    cbar.set_label(<span class="st">'Energy (Lower is Better)'</span>, fontsize<span class="op">=</span><span class="dv">8</span>, labelpad<span class="op">=-</span><span class="dv">15</span>)</span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>    vmin, vmax <span class="op">=</span> contour.get_clim()</span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>    cbar.set_ticks([vmin, vmax])</span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>    cbar.set_ticklabels([<span class="st">'Low'</span>, <span class="st">'High'</span>], fontsize<span class="op">=</span><span class="dv">7</span>)</span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a>    plt.savefig(fig_fname)</span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="02_diffusion_as_memory_files/figure-html/cell-17-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="exact-energy-from-dense-associative-memory" class="level1">
+<h1>Exact Energy from Dense Associative Memory</h1>
+<p>Consider the typical <code>DenseAM</code>’s energy function which involves the <code>logsumexp</code> function: <span class="math display">\[
+E^\text{AM}(\mathbf{x}) = -\beta^{-1} \log \bigg[\sum\limits_{\mu=1}^K \exp\Big(- \beta \lVert \mathbf{x} - \boldsymbol{\xi}^\mu \rVert^2_2\Big) \bigg]
+\]</span> which is related to the energy of the diffusion model, derived in our <a href="https://arxiv.org/abs/2505.21777">work</a>: <span class="math display">\[
+E^\text{DM}(\mathbf{x}_t, t) = -2 \sigma^2 t \log\bigg[\sum\limits_{\mu=1}^K \exp \Big(- \frac{\lVert \mathbf{x}_t - \boldsymbol{\xi}^\mu \rVert^2_2}{2 \sigma^2 t}\Big) \bigg]
+\]</span></p>
+<p>Both of these energies expressed competitions among the memories (or stored data patterns). But, the main difference is in the value of the <code>inverse temperature</code> <span class="math inline">\(\beta\)</span>. In the case of diffusion models, it is alternating over time, i.e., <span class="math inline">\(\beta_t = \frac{1}{2 \sigma^2 t}\)</span>, but for DenseAM, this variable is fixed. Nonetheless, although their dynamical trajetories are slightly different, the fixed points (obtained at <span class="math inline">\(t \approx 0\)</span>) of both equations are still the same.</p>
+<p>Using DenseAM energy, for the case of <span class="math inline">\(K = 2\)</span>, we have the following: <span class="math display">\[
+E^\text{AM}(\mathbf{x}) = -\beta^{-1} \log \Big[\exp \Big(- \beta \lVert \mathbf{x} - \boldsymbol{\xi}^1 \rVert^2_2\Big) + \exp \Big(- \beta \lVert \mathbf{x} - \boldsymbol{\xi}^2 \rVert^2_2 \Big) \Big]
+\]</span></p>
+<p>For small finite values of <span class="math inline">\(\beta\)</span>, it is possible for a minimum to exist: <span class="math display">\[
+\boldsymbol{\eta} = \underset{\mathbf{x}}{\text{arg min}} \, E^\text{AM}(\mathbf{x})
+\]</span> such that <span class="math inline">\(\boldsymbol{\eta} \neq \xi^1\)</span> and <span class="math inline">\(\boldsymbol{\eta} \neq \xi^2\)</span>. This minimum is the <code>spurious pattern</code>.</p>
+<p>Assume that the empirical data distribution is <span class="math inline">\(p(\mathbf{y}) = \frac{1}{K}\sum\limits_{\mu=1}^K \delta^{(N)}(\mathbf{y} - \boldsymbol{\xi}^\mu)\)</span> where <span class="math inline">\(\boldsymbol{\xi}^\mu\)</span> represents an individual data point (with data size <span class="math inline">\(K\)</span>).</p>
+<p>When the training data size <span class="math inline">\(K \rightarrow \infty\)</span>, this <code>empirical data distirbution</code> becomes a continuous density of states: <span class="math display">\[
+p(\mathbf{y}) = \frac{1}{\pi} \delta\big(y_1^2+y_2^2-1\big)
+\]</span> The probability of the generated data is then proportional (up to terms independent of the state <span class="math inline">\(\mathbf{x}\)</span>) to <span class="math display">\[
+p(\mathbf{x}) \sim \int\limits_{-\infty}^{+\infty} dy_1 dy_2\ p(\mathbf{y})\ e^{- \beta \lVert \mathbf{x} - \mathbf{y} \rVert^2_2} = e^{-\beta (R^2+1)} I_0(2\beta R)
+\]</span> where <span class="math inline">\(I_0(\cdot)\)</span> is a <code>modified Bessel function</code> of the first kind and <span class="math inline">\(R\)</span> is the radius of the circle. Then, the exact energy of our toy model is the following: <span class="math display">\[
+E^\text{AM}(R, \phi) =  R^2+1 - \frac{1}{\beta} \log\big[I_0(2\beta R)\big] \underset{\beta\rightarrow\infty}{\approx} (R - 1)^2
+\]</span> given the polar angle <span class="math inline">\(\phi\)</span>.</p>
+<section id="the-empirical-energy-and-score-function-for-the-toy-model" class="level2">
+<h2 class="anchored" data-anchor-id="the-empirical-energy-and-score-function-for-the-toy-model">The Empirical Energy and Score Function for the Toy Model</h2>
+<div id="70778452" class="cell" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cartesian_to_polar(samples):</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    x, y <span class="op">=</span> samples[:, <span class="dv">0</span>], samples[:, <span class="dv">1</span>]</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> np.sqrt(x <span class="op">**</span> <span class="dv">2</span> <span class="op">+</span> y <span class="op">**</span> <span class="dv">2</span>)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    angles <span class="op">=</span> np.arctan2(y, x)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> r, angles</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> energy_am(samples, beta, normalize<span class="op">=</span><span class="va">True</span>):</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co">    Computes the energy function</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="co">        E^AM(R, phi) = R^2 + 1 - (1 / beta) * log(I_0(2 * beta * R))</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="co">    See Eq. (13) in the paper.</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>    r, _ <span class="op">=</span> cartesian_to_polar(samples)</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    energy <span class="op">=</span> r<span class="op">**</span><span class="dv">2</span> <span class="op">+</span> <span class="dv">1</span> <span class="op">-</span> (<span class="dv">1</span> <span class="op">/</span> beta) <span class="op">*</span> np.log(i0(<span class="dv">2</span> <span class="op">*</span> beta <span class="op">*</span> r))</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Shift so that the lowest energy is</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> normalize:</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>        energy <span class="op">=</span> energy <span class="op">-</span> energy.<span class="bu">min</span>()</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> energy</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> score_am(samples, beta, epsilon<span class="op">=</span><span class="fl">1e-6</span>):</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a><span class="co">    Computes the score function</span></span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a><span class="co">        S^AM(R, phi) = -2 * R - (2 / beta) * I_1(2 * beta * R) / I_0(2 * beta * R)</span></span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a><span class="co">    See Eq. (18) in the paper.</span></span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>    r, _ <span class="op">=</span> cartesian_to_polar(samples)</span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Ensure r is not zero to avoid division by zero</span></span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> np.clip(r, epsilon, np.inf)</span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>    bessel_ratio <span class="op">=</span> i1(<span class="dv">2</span> <span class="op">*</span> beta <span class="op">*</span> r) <span class="op">/</span> i0(<span class="dv">2</span> <span class="op">*</span> beta <span class="op">*</span> r)</span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>    score_r <span class="op">=</span> <span class="dv">2</span> <span class="op">*</span> (bessel_ratio <span class="op">-</span> r)</span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>    score <span class="op">=</span> score_r[:, <span class="va">None</span>] <span class="op">*</span> samples <span class="op">/</span> r[:, <span class="va">None</span>]</span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> score</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="b06cc1e5" class="cell" data-execution_count="18">
+<details class="code-fold">
+<summary>Visualization of the Empirical Energy Landscape and its Score Function</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># @title Visualization of the Empirical Energy Landscape and its Score Function</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Inverse Temperature -- Beta</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>beta <span class="op">=</span> <span class="dv">1</span> <span class="op">/</span> <span class="fl">0.05</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>grid_square <span class="op">=</span> torch.stack([X_grid, Y_grid], dim<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>scores <span class="op">=</span> score_am(grid_square, beta)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>energy <span class="op">=</span> energy_am(grid_square, beta)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>energy_grid <span class="op">=</span> energy.reshape(resolution, resolution)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> plt.figure(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">8</span>), constrained_layout<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> fig.add_subplot(<span class="dv">121</span>)</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Exact'</span>, fontsize<span class="op">=</span><span class="dv">8</span>, y<span class="op">=-</span><span class="fl">0.1</span>)</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>ax.set_aspect(<span class="st">'equal'</span>)<span class="op">;</span> ax.grid(<span class="va">False</span>)</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot energy contour</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>contour <span class="op">=</span> ax.contourf(X_grid.cpu(), Y_grid.cpu(), energy_grid, levels<span class="op">=</span><span class="dv">100</span>, cmap<span class="op">=</span><span class="st">'inferno'</span>, zorder<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the unit circle</span></span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>theta <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="dv">2</span> <span class="op">*</span> np.pi, <span class="dv">200</span>)</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>ax.plot(np.cos(theta), np.sin(theta), color<span class="op">=</span><span class="st">'white'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.6</span>, zorder<span class="op">=</span><span class="dv">1</span>, label<span class="op">=</span><span class="st">'Unit Circle'</span>)</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>stride <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot score field</span></span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>ax.quiver(grid_square[:, <span class="dv">0</span>].cpu()[::stride], grid_square[:, <span class="dv">1</span>].cpu()[::stride],</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>          scores[:, <span class="dv">0</span>][::stride], scores[:, <span class="dv">1</span>][::stride], color<span class="op">=</span><span class="st">'white'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>,</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>          width<span class="op">=</span><span class="fl">0.002</span>, headwidth<span class="op">=</span><span class="dv">3</span>, zorder<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'x'</span>, fontsize<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'y'</span>, fontsize<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>ax.set_xticks([])<span class="op">;</span> ax.set_yticks([])<span class="op">;</span></span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>ax <span class="op">=</span> fig.add_subplot(<span class="dv">122</span>, projection<span class="op">=</span><span class="st">"3d"</span>)</span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a>contour <span class="op">=</span> plot_energy_surface_3d(fig, ax, X_grid, Y_grid, energy_grid, view_angle<span class="op">=</span>(<span class="dv">60</span>, <span class="op">-</span><span class="dv">60</span>), title<span class="op">=</span><span class="st">'Exact'</span>)</span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a>cbar <span class="op">=</span> fig.colorbar(contour, ax<span class="op">=</span>ax, shrink<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a>cbar.set_label(<span class="st">'Energy (Lower is Better)'</span>, fontsize<span class="op">=</span><span class="dv">10</span>, labelpad<span class="op">=-</span><span class="dv">18</span>)</span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a>vmin, vmax <span class="op">=</span> contour.get_clim()</span>
+<span id="cb16-41"><a href="#cb16-41" aria-hidden="true" tabindex="-1"></a>cbar.set_ticks([vmin, vmax])</span>
+<span id="cb16-42"><a href="#cb16-42" aria-hidden="true" tabindex="-1"></a>cbar.set_ticklabels([<span class="st">'Low'</span>, <span class="st">'High'</span>], fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb16-43"><a href="#cb16-43" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="02_diffusion_as_memory_files/figure-html/cell-19-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script type="application/vnd.jupyter.widget-state+json">
+{"state":{},"version_major":2,"version_minor":0}
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/bhoov\.github\.io\/amtutorial");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation column-body">
+  <div class="nav-page nav-page-previous">
+      <a href="../tutorial/energy_transformer.html" class="pagination-link" aria-label="Energy Transformer">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Energy Transformer</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../tutorial/distributed_memory.html" class="pagination-link" aria-label="Distributed Memory">
+        <span class="nav-page-text">Distributed Memory</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/bhoov/amtutorial/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
