@@ -17,18 +17,22 @@ Associative Memory. It’s still working towards that.
 > The tutorial has happened! Checkout the presentation recordings at the
 > [ICML website](https://icml.cc/virtual/2025/40004).
 >
-> You can also download the slides from each of the speakers below:
+> You can also download the slidedeck from each of the speakers below:
 >
-> - <a href="./resources/dima--ICML_tutorial_slides.key"
->   download="dima--ICML_tutorial_slides.key"><strong>Dima’s
->   slides</strong></a> (needs Keynote)
-> - <a href="./resources/ben--ICML_tutorial_slides.zip"
->   download="ben--ICML_tutorial_slides.zip"><strong>Ben’s
->   slides</strong></a> (unzip and open the `index.html` file in a local
->   browser)
-> - <a href="./resources/pari--ICML_tutorial_slides.pptx"
->   download="pari--ICML_tutorial_slides.pptx"><strong>Pari’s
->   slides</strong></a> (needs PowerPoint)
+> - <a href="./resources/dima--ICML_tutorial_slides.pdf"
+>   download="dima--ICML_tutorial_slides.pdf"><strong>PDF of Dima’s
+>   slides</strong></a> ([raw
+>   slides](./resources/dima--ICML_tutorial_slides.key) needs Keynote)
+> - <a href="./resources/ben--ICML_tutorial_slides.pdf"
+>   download="ben--ICML_tutorial_slides.pdf"><strong>PDF of Ben’s
+>   slides</strong></a> (to use the [raw
+>   slides](./resources/ben--ICML_tutorial_slides.zip), unzip and open
+>   the `index.html` file in a local browser)
+> - <a href="./resources/pari--ICML_tutorial_slides.pdf"
+>   download="pari--ICML_tutorial_slides.pdf"><strong>PDF of Pari’s
+>   slides</strong></a> ([raw
+>   slides](./resources/pari--ICML_tutorial_slides.pptx) needs
+>   PowerPoint)
 
 </div>
 

@@ -118,11 +118,12 @@ conda install conda-forge::ffmpeg conda-forge::openh264
 
 **Development pipelines**
 
-View a local version of the website with:
+```sh
+make preview # Preview website locally
+make deploy # Build & Deploy website
+make pypi # # Bump version and updates for pypi
+```
 
-```
-uv run nbdev_preview
-```
 
 Pushes to `main` deploy the website. The site will be live after a few minutes on github.
 
