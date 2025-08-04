@@ -170,28 +170,13 @@ conda install conda-forge::ffmpeg conda-forge::openh264
 
 **Development pipelines**
 
-View a local version of the website with:
-
-    uv run nbdev_preview
-
-Pushes to `main` deploy the website. The site will be live after a few
-minutes on github.
-
 ``` sh
-git checkout main
-
-# Update the website. Takes a moment even with cached training runs
-make deploy && git add . && git commit -m "Update site" && git push
+make preview # Preview website locally
+make deploy  # Build & Deploy website
+make pypi    # Bump version and updates for pypi
 ```
 
-Make a minor-patch update to the pypi package (preferably, only if
-`amtutorials/src` was updated):
-
-``` sh
-make pypi && uv run nbdev_pypi
-```
-
-**Useful scripts** (for reference only)
+**Reference scripts** (for reference only)
 
 ``` sh
 uv run nbdev_preview                         # Preview website locally
