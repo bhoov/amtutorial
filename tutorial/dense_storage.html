@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Improving the storage capacity of the Hopfield Network">
+
+<title>Binary Dense Storage – Tutorial on Associative Memories</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../tutorial/energy_transformer.html" rel="next">
+<link href="../tutorial/index.html" rel="prev">
+<link href="..//img/favicon_io/favicon.ico" rel="icon">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-2fef5ea3f8957b3e4ecc936fc74692ca.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-3778b8a0ae653903a65bdc64294d5334.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-19193a01f5d0326dec7c803ae5dcbca8.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-3778b8a0ae653903a65bdc64294d5334.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles/styles.css">
+<meta property="og:title" content="Binary Dense Storage – Tutorial on Associative Memories">
+<meta property="og:description" content="Improving the storage capacity of the Hopfield Network">
+<meta property="og:image" content="https://bhoov.github.io/amtutorial/tutorial/00_dense_storage_files/figure-html/cell-5-output-1.png">
+<meta property="og:site_name" content="Tutorial on Associative Memories">
+<meta property="og:image:height" content="1006">
+<meta property="og:image:width" content="963">
+<meta name="twitter:title" content="Binary Dense Storage – Tutorial on Associative Memories">
+<meta name="twitter:description" content="Improving the storage capacity of the Hopfield Network">
+<meta name="twitter:image" content="https://bhoov.github.io/amtutorial/tutorial/00_dense_storage_files/figure-html/cell-5-output-1.png">
+<meta name="twitter:image-height" content="1006">
+<meta name="twitter:image-width" content="963">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../img/favicon_io/android-chrome-512x512.png" alt="" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Tutorial on Associative Memories</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+    <a href="https://github.com/bhoov/amtutorial" title="" class="quarto-navigation-tool px-1" aria-label=""><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+          <h1 class="quarto-secondary-nav-title">Binary Dense Storage</h1>
+        </a>     
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../lib/index.ipynb" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">lib</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../lib/data_utils.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pokemon Sprites</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../tutorial/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tutorial</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/dense_storage.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Binary Dense Storage</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/energy_transformer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Energy Transformer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/diffusion_as_memory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Memory and Diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/distributed_memory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Distributed Memory</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#general-associative-memory" id="toc-general-associative-memory" class="nav-link active" data-scroll-target="#general-associative-memory">General Associative Memory</a></li>
+  <li><a href="#loading-data" id="toc-loading-data" class="nav-link" data-scroll-target="#loading-data">Loading data</a></li>
+  <li><a href="#the-classical-hopfield-network" id="toc-the-classical-hopfield-network" class="nav-link" data-scroll-target="#the-classical-hopfield-network">The Classical Hopfield Network</a>
+  <ul class="collapse">
+  <li><a href="#sec-inverted-retrievals" id="toc-sec-inverted-retrievals" class="nav-link" data-scroll-target="#sec-inverted-retrievals">Retrieving “inverted” images</a></li>
+  <li><a href="#memory-retrieval-failure" id="toc-memory-retrieval-failure" class="nav-link" data-scroll-target="#memory-retrieval-failure">Memory retrieval failure</a></li>
+  </ul></li>
+  <li><a href="#dense-associative-memory" id="toc-dense-associative-memory" class="nav-link" data-scroll-target="#dense-associative-memory">Dense Associative Memory</a></li>
+  <li><a href="#sec-gotta-catch-em-all" id="toc-sec-gotta-catch-em-all" class="nav-link" data-scroll-target="#sec-gotta-catch-em-all">Gotta catch ’em all!</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/bhoov/amtutorial/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="dense_storage.html.md"><i class="bi bi-file-code"></i>CommonMark</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content column-body" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block">Binary Dense Storage</h1>
+</div>
+
+<div>
+  <div class="description">
+    Improving the storage capacity of the Hopfield Network
+  </div>
+</div>
+
+
+<div class="quarto-title-meta column-body">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p><a target="_blank" href="https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/00_dense_storage.ipynb"> <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"> </a></p>
+<div id="cell-3" class="cell">
+<details class="code-fold">
+<summary>Notebook Execution Settings</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>CACHE_DIR <span class="op">=</span> <span class="st">"cache/00_dense_storage"</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>CACHE_RECALL <span class="op">=</span> <span class="va">True</span> <span class="co"># If False, regenerate all saved results even if files exist.</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>SHOW_FULL_ANIMATIONS <span class="op">=</span> <span class="va">True</span> <span class="co"># If True, render videos instead of gifs. This is slower than gifs and relies on `ffmpeg` to save the animation, but it lets us see the energy descent alongside the frame evolution.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="general-associative-memory" class="level3">
+<h3 class="anchored" data-anchor-id="general-associative-memory">General Associative Memory</h3>
+<p>Our goal in this section is to build the smallest abstraction for Associative Memory, which at its core is just an <em>energy function</em> <span class="math inline">\(E_\Xi(\sigma) \in \mathbb{R}\)</span>. where <em>query pattern</em> <span class="math inline">\(\sigma \in \{-1, 1\}^D\)</span> is a possibly noisy <span class="math inline">\(D\)</span>-dimensional, binary pattern and <em>memory matrix</em> <span class="math inline">\(\Xi \in \{-1, 1\}^{K \times D}\)</span> is our matrix of <span class="math inline">\(K\)</span> stored patterns. <span class="math inline">\(E_\Xi(\sigma)\)</span> stores patterns at low energies. To retrieve our stored patterns,we want to minimize <span class="math inline">\(E_\Xi(\sigma)\)</span>.</p>
+<p>Let’s assume an unimplemented, arbitrary energy function and setup a basic object for a binary AM. All we need to provide is an <code>energy</code> method, parameterized by <span class="math inline">\(\Xi\)</span>, that is a function of query <span class="math inline">\(\sigma\)</span>.</p>
+<p>Historically, the Hopfield Network <span class="citation" data-cites="hopfield1982neural"><a href="#ref-hopfield1982neural" role="doc-biblioref">[1]</a></span> minimizes energy using <em>asynchronous</em> update rules (where we minimize the query’s energy one randomly selected bit at a time). We’ll follow that precedent in this notebook since it makes for nicer visualizations, though fully <em>synchronous</em> update rules (where we minimize the energy by scanning through all bits sequentially) are also possible. The default <code>async_update</code> is simple: for a randomly sampled bit in the query pattern, compare the energy of that bit when it is flipped and not flipped. Keep the pattern whose energy is lower.</p>
+<p><span id="eq-async-update"><span class="math display">\[
+\sigma_i^{(t+1)} = \underset{b \in \{-1, 1\}}{\mathrm{argmin}}\left[E\left(\sigma_i = b, \sigma_{j \neq i} = \sigma_j^{(t)}\right)\right]
+\tag{1}\]</span></span></p>
+<p>Converting a noisy query pattern into a stored pattern is a matter of repeatedly applying the <code>async_update</code> rule to minimize energy. Because this process, if run long enough, will “recall” a memory, we call this the <code>async_recall</code> method.</p>
+<p>We use <code>jax</code> primitives like <code>jax.lax.scan</code> and <code>jax.lax.cond</code> so we can JIT our code run quickly. A <code>scan</code> is just a glorified for loop, and a <code>cond</code> is a glorified if-else statement.</p>
+<p>With all this, we can fully encapsulate a basic, binary AM in the following object.</p>
+<div id="cell-5" class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> BinaryAM(eqx.Module):</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    Xi: Float[Array, <span class="st">"K D"</span>] <span class="co"># matrix of stored patterns </span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        sigma: Float[Array, <span class="st">"D"</span>] <span class="co"># Possibly noisy query pattern</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        ): </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        ... <span class="co"># Left to implement later</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> async_update(</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>,</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        sigma: Float[Array, <span class="st">"D"</span>], <span class="co"># Possibly noisy query pattern</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>        idx:<span class="bu">int</span>,              <span class="co"># Index of bit to flip</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        ):                    <span class="co"># Return next state and its energy</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        <span class="co">"Minimize the energy of `x[idx]`"</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        sigma_flipped <span class="op">=</span> jnp.array(sigma).at[idx].multiply(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>        energy_og <span class="op">=</span> <span class="va">self</span>.energy(sigma)</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        energy_flipped <span class="op">=</span> <span class="va">self</span>.energy(sigma_flipped)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        keep_flip <span class="op">=</span> (energy_flipped <span class="op">-</span> energy_og) <span class="op">&lt;</span> <span class="dv">0</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> lax.cond(</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>            keep_flip, </span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Keep flipped bit if it has lower energy</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>            <span class="kw">lambda</span>: (sigma_flipped, energy_flipped), </span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Otherwise keep original bit</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>            <span class="kw">lambda</span>: (sigma, energy_og)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">@eqx.filter_jit</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> async_recall(</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, </span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>        sigma0: Float[Array, <span class="st">"D"</span>], <span class="co"># Initial query pattern</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>        nsteps:<span class="bu">int</span><span class="op">=</span><span class="dv">20000</span>, <span class="co"># Number of bits to flip &amp; check</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>        key<span class="op">=</span>jr.PRNGKey(<span class="dv">0</span>) <span class="co"># Random key for bit-flip choices</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>        ):</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        <span class="co">"Minimize energy of `sigma0` by repeatedly applying `async_update`"</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>        <span class="kw">def</span> update_step(sigma, idx):</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>            sigma_new, energy_new <span class="op">=</span> <span class="va">self</span>.async_update(sigma, idx)</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> sigma_new, (sigma_new, energy_new)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>        D <span class="op">=</span> sigma0.shape[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Randomly sample `nsteps` bits to flip</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>        bitflip_sequence <span class="op">=</span> jr.choice(key, np.arange(D), shape<span class="op">=</span>(nsteps,))</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Apply `async_update` to each bitflip in seq</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>        final_x, (frames, energies) <span class="op">=</span> lax.scan(update_step, sigma0, bitflip_sequence)</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Return final pattern and the trajectory</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> final_x, (frames, energies)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="loading-data" class="level3">
+<h3 class="anchored" data-anchor-id="loading-data">Loading data</h3>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Feel free to skip this section. It’s just loading data and setting up some fancy visualization functions.</p>
+</div>
+</div>
+<p>Let’s build some helper functions to load and view our data: binarized pokemon sprites. While other fields like to work with <span class="math inline">\(\{0,1\}\)</span> binary data, Hopfield Networks like to work with bipolar data where each datapoint <span class="math inline">\(\sigma \in \{-1, 1\}^D\)</span>.</p>
+<div id="cell-7" class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> amtutorial.data_utils <span class="im">import</span> get_pokemon_data</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>poke_pixels, poke_names <span class="op">=</span> get_pokemon_data()</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> poke_pixels</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>pxh, pxw <span class="op">=</span> data.shape[<span class="op">-</span><span class="dv">2</span>:]</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> data.reshape(<span class="op">-</span><span class="dv">1</span>, pxh <span class="op">*</span> pxw)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> gridify(images, grid_h<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Convert list of images to a single grid image"""</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    images <span class="op">=</span> np.array(images)  <span class="co"># Shape: (n_images, H*W)</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> grid_h <span class="kw">is</span> <span class="va">None</span>: grid_h <span class="op">=</span> <span class="bu">int</span>(np.sqrt(<span class="bu">len</span>(images)))</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    grid_w <span class="op">=</span> <span class="bu">int</span>(np.ceil(<span class="bu">len</span>(images) <span class="op">/</span> grid_h))</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Pad if necessary</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    n_needed <span class="op">=</span> grid_h <span class="op">*</span> grid_w</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(images) <span class="op">&lt;</span> n_needed:</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        padding_shape <span class="op">=</span> (n_needed <span class="op">-</span> <span class="bu">len</span>(images),) <span class="op">+</span> images.shape[<span class="dv">1</span>:]</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>        padding <span class="op">=</span> np.zeros(padding_shape)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>        images <span class="op">=</span> np.concatenate([images, padding], axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Reshape individual images and arrange in grid</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    grid <span class="op">=</span> rearrange(images[:n_needed], <span class="st">'(gh gw) h w -&gt; (gh h) (gw w)'</span>, gh<span class="op">=</span>grid_h, gw<span class="op">=</span>grid_w)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> grid</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> show_im(sigma, ax<span class="op">=</span><span class="va">None</span>, do_gridify<span class="op">=</span><span class="va">True</span>, grid_h<span class="op">=</span><span class="va">None</span>, figsize<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Vector to figure"""</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    sigma <span class="op">=</span> rearrange(sigma, <span class="st">"... (h w) -&gt; ... h w"</span>, h<span class="op">=</span>pxh, w<span class="op">=</span>pxw)</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> do_gridify <span class="kw">and</span> <span class="bu">len</span>(sigma.shape) <span class="op">==</span> <span class="dv">3</span>: sigma <span class="op">=</span> gridify(sigma, grid_h)</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    empty_ax <span class="op">=</span> ax <span class="kw">is</span> <span class="va">None</span></span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>    figsize <span class="op">=</span> figsize <span class="kw">or</span> (<span class="dv">8</span>, <span class="fl">2.67</span>) <span class="co"># Quarto aspect ratio</span></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> empty_ax: fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>figsize)</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    ax.imshow(sigma, cmap<span class="op">=</span><span class="st">"gray"</span>, vmin<span class="op">=-</span><span class="dv">1</span>, vmax<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    ax.axis(<span class="st">"off"</span>)</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="va">None</span> <span class="cf">if</span> <span class="kw">not</span> empty_ax <span class="cf">else</span> fig, ax</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-8" class="cell">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="00_dense_storage_files/figure-html/cell-5-output-1.png" width="481" height="503" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="the-classical-hopfield-network" class="level2">
+<h2 class="anchored" data-anchor-id="the-classical-hopfield-network">The Classical Hopfield Network</h2>
+<p>Let’s revisit our task to store <span class="math inline">\(K\)</span> binary patterns each of dimension <span class="math inline">\(D\)</span> into an energy function. Let’s keep things simple and fast for the first part of this notebook and focus on storing and retrieving <span class="math inline">\(K=2\)</span> patterns: an eevee and pichu, where each <code>(48,48)</code> image is rasterized to a vector dimension of <span class="math inline">\(D=2304\)</span>.</p>
+<div id="cell-10" class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>desired_names <span class="op">=</span> [<span class="st">"eevee"</span>, <span class="st">"pichu"</span>]</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>eevee_pichu_idxs <span class="op">=</span> [poke_names.index(name) <span class="cf">for</span> name <span class="kw">in</span> desired_names]</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[eevee_pichu_idxs]</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> show_im(Xi, figsize<span class="op">=</span>(<span class="dv">6</span>,<span class="dv">3</span>))<span class="op">;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">"Stored patterns"</span>)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"K=</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">, D=</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>K=2, D=2304</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="00_dense_storage_files/figure-html/cell-6-output-2.png" width="481" height="272" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The Classical Hopfield Network (CHN) <span class="citation" data-cites="hopfield1982neural"><a href="#ref-hopfield1982neural" role="doc-biblioref">[1]</a></span> defines an energy function for this collection of patterns, putting the <span class="math inline">\(\mu\)</span>-th stored pattern <span class="math inline">\(\xi^\mu\)</span> at a <em>low</em> value of energy. The CHN energy is a quadratic function described by dot-product correlations:</p>
+<p><span id="eq-chn-energy"><span class="math display">\[
+E_\text{CHN}(\sigma) = -\frac{1}{2} \sum_\mu \left(\sum_{i} \xi^\mu_i \sigma_i\right)^2 = -\frac{1}{2} \sum_{i,j} T_{ij} \sigma_i \sigma_j.
+\tag{2}\]</span></span></p>
+<p>We see the familiar equation for CHN energy on the RHS if we expand the quadratic function, where <span class="math inline">\(T_{ij} := \sum_{\mu=1}^K \xi^\mu_i \xi^\mu_j\)</span> is the matrix of symmetric synapses. Learned patterns <span class="math inline">\(\xi^\mu\)</span> are stored in <span class="math inline">\(T\)</span> via a simple, Hebbian learning rule.</p>
+<p>The CHN can be easily implemented in code via</p>
+<div id="cell-12" class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> CHN(BinaryAM):</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        sigma: Float[Array, <span class="st">"D"</span>] <span class="co"># Possibly noisy query pattern</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>        ): </span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>        <span class="co">"Quadratic energy function for the CHN"</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> jnp.<span class="bu">sum</span>((<span class="va">self</span>.Xi <span class="op">@</span> sigma)<span class="op">**</span><span class="dv">2</span>, axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>chn <span class="op">=</span> CHN(Xi)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The asynchronous update rule of <a href="#eq-async-update" class="quarto-xref">Equation&nbsp;1</a> uses the energy difference of a flipped bit to determine whether to keep the flip or not. That update rule is equivalent to the following, arguably more familiar update rule, which describes the next state based on the sign of the <em>total input current</em> to the neuron <span class="math inline">\(\sigma_i\)</span>.</p>
+<p><span class="math display">\[
+\begin{align*}
+\sigma_i^{(t+1)} &amp;\leftarrow \text{sgn}\left(\sum_{\mu} \xi^\mu_i \sum_{j \neq i} \left(\xi^\mu_j \sigma_j^{(t)}\right) \right)\\
+\text{sgn}(x) &amp;:= \begin{cases}
+1 &amp; \text{if } x \geq 0 \\
+-1 &amp; \text{if } x &lt; 0
+\end{cases}\quad.
+\end{align*}
+\]</span></p>
+<p>This update rule also ensures the network always moves toward lower energy states. Because the <span class="math inline">\(E_\text{CHN}\)</span> is bounded from below, the network will eventually converge to a local minimum that (ideally) corresponds to one of the stored patterns.</p>
+<p>Let’s observe the recall process! We’ll start with a noisy version of the first pattern and see if we can recover it.</p>
+<div id="cell-14" class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> flip_some_bits(key, x, p<span class="op">=</span><span class="fl">0.1</span>):</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Flip `p` fraction of bits in `x`"</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    prange <span class="op">=</span> np.array([p, <span class="dv">1</span><span class="op">-</span>p])</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x <span class="op">*</span> jr.choice(key, np.array([<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>]), p<span class="op">=</span>prange, shape<span class="op">=</span>x.shape)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>sigma_og <span class="op">=</span> Xi[<span class="dv">0</span>] </span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>sigma_noisy <span class="op">=</span> flip_some_bits(jr.PRNGKey(<span class="dv">0</span>), sigma_og, <span class="fl">0.2</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>show_im(jnp.stack([sigma_og, sigma_noisy]), figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">3</span>))<span class="op">;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="00_dense_storage_files/figure-html/cell-8-output-1.png" width="481" height="251" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>For the pedagogical purpose of this notebook, we’ll cache the recall process and results so we don’t have to run it every time.</p>
+<div id="cell-16" class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="at">@delegates</span>(BinaryAM.async_recall)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cached_recall(am, cache_name, sigma_noisy, key<span class="op">=</span>jr.PRNGKey(<span class="dv">0</span>), save<span class="op">=</span><span class="va">True</span>, <span class="op">**</span>kwargs):</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">"Cache the recall process using key `cache_name`"</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    npz_fname <span class="op">=</span> Path(CACHE_DIR) <span class="op">/</span> (cache_name <span class="op">+</span> <span class="st">'.npz'</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> npz_fname.exists() <span class="kw">and</span> CACHE_RECALL: </span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        npz_data <span class="op">=</span> np.load(npz_fname)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        sigma_final, frames, energies <span class="op">=</span> npz_data[<span class="st">'sigma_final'</span>], npz_data[<span class="st">'frames'</span>], npz_data[<span class="st">'energies'</span>]</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"Loading cached recall data"</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>: </span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        sigma_final, (frames, energies) <span class="op">=</span> am.async_recall(sigma_noisy, key<span class="op">=</span>key, <span class="op">**</span>kwargs)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> save: jnp.savez(npz_fname, sigma_final<span class="op">=</span>sigma_final, frames<span class="op">=</span>frames, energies<span class="op">=</span>energies)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> sigma_final, frames, energies</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>cache_name <span class="op">=</span> <span class="st">'basic_hopfield_recovery'</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>sigma_final, frames, energies <span class="op">=</span> cached_recall(chn, cache_name, sigma_noisy, nsteps<span class="op">=</span><span class="dv">12000</span>, key<span class="op">=</span>jr.PRNGKey(<span class="dv">5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Loading cached recall data</code></pre>
+</div>
+</div>
+<div id="cell-17" class="cell">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="00_dense_storage_files/figure-html/cell-10-output-1.png" width="640" height="305" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>We can animate the recall process to view the “thinking” process of the CHN.</p>
+<div id="cell-19" class="cell">
+<div class="cell-output cell-output-display cell-output-markdown">
+<div>
+<figure class="figure">
+<p><video src="cache/00_dense_storage/basic_hopfield_recovery.mp4" class="img-fluid" controls=""><a href="cache/00_dense_storage/basic_hopfield_recovery.mp4">Video</a></video></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="sec-inverted-retrievals" class="level3">
+<h3 class="anchored" data-anchor-id="sec-inverted-retrievals">Retrieving “inverted” images</h3>
+<p>If we initialize a query with <em>too much</em> noise, it’s possible to retrieve the negative of a stored pattern or an “inverted image”. Because the energy is quadratic, both <span class="math inline">\(\sigma\)</span> and <span class="math inline">\(-\sigma\)</span> produce the same small value of energy. Whether we retrieve the original <span class="math inline">\(\sigma\)</span> or the inverted <span class="math inline">\(-\sigma\)</span> is dependent on whether we initialize our query closer to the original or inverted pattern.</p>
+<p><span class="math display">\[
+E_\text{CHN}(-\sigma) = -\frac{1}{2} \left(\sum_{\mu} \xi^\mu_i (-\sigma_i)\right)^2 = E_\text{CHN}(\sigma)
+\]</span></p>
+<div id="cell-21" class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Loading cached recall data
+Accidentally retrieved the inverted pattern!</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="00_dense_storage_files/figure-html/cell-12-output-2.png" width="654" height="305" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display cell-output-markdown">
+<div>
+<figure class="figure">
+<p><video src="cache/00_dense_storage/hopfield_recovery_inverted.mp4" class="img-fluid" controls=""><a href="cache/00_dense_storage/hopfield_recovery_inverted.mp4">Video</a></video></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="memory-retrieval-failure" class="level3">
+<h3 class="anchored" data-anchor-id="memory-retrieval-failure">Memory retrieval failure</h3>
+<p>Unfortunately, the CHN is terrible at storing and retrieving multiple patterns. If we add even four more patterns into the synaptic memory, our network will fail to retrieve our eevee.</p>
+<div id="cell-23" class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[eevee_pichu_idxs]</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> jnp.concatenate([Xi, jr.choice(jr.PRNGKey(<span class="dv">10</span>), data, shape<span class="op">=</span>(<span class="dv">4</span>,), replace<span class="op">=</span><span class="va">False</span>)])</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> show_im(Xi, figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">4</span>))<span class="op">;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="ss">f"Stored patterns (K=</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="00_dense_storage_files/figure-html/cell-13-output-1.png" width="481" height="349" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="cell-24" class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Loading cached recall data
+CHN failed to retrieve the correct pattern!</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="00_dense_storage_files/figure-html/cell-14-output-2.png" width="654" height="305" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display cell-output-markdown">
+<div>
+<figure class="figure">
+<p><video src="cache/00_dense_storage/hopfield_recovery_fail.mp4" class="img-fluid" controls=""><a href="cache/00_dense_storage/hopfield_recovery_fail.mp4">Video</a></video></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="dense-associative-memory" class="level2">
+<h2 class="anchored" data-anchor-id="dense-associative-memory">Dense Associative Memory</h2>
+<p>The CHN has a <em>quadratic</em> energy, which is a special case of a more general class of models called <strong>Dense Associative Memory</strong> (DenseAM) <span class="citation" data-cites="krotov2016dense"><a href="#ref-krotov2016dense" role="doc-biblioref">[2]</a></span>. If we increase the degree of the polynomial used in the energy function, we strengthen the coupling between neurons and can store more patterns into the same synaptic matrix.</p>
+<p>The new energy function, written in terms of polynomials of degree <span class="math inline">\(n\)</span> and using the same notation for stored patterns <span class="math inline">\(\xi^\mu_i\)</span>, is</p>
+<p><span id="eq-dam-energy"><span class="math display">\[
+\begin{align*}
+E_\text{DAM}(\sigma) &amp;= -\sum_{\mu=1}^K F_n\left(\sum_{i=1}^D \xi^\mu_i \sigma_i\right),\\
+\text{where}\;F_n(x) &amp;= \begin{cases} \frac{x^n}{n} &amp; \text{if } x \geq 0 \\ 0 &amp; \text{if } x &lt; 0 \end{cases}.
+\end{align*}
+\tag{3}\]</span></span></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>We need <span class="math inline">\(F_n\)</span> to be convex for all <span class="math inline">\(n\)</span>, which is why we perform the rectification. We could alternatively limit ourselves to only even values of <span class="math inline">\(n\)</span>.</p>
+<p>Fun fact, rectified polynomials remove the “inverted” retrieval phenomenon seen in <a href="#sec-inverted-retrievals" class="quarto-xref">Section&nbsp;1.1</a>.</p>
+</div>
+</div>
+<p><a href="#eq-dam-energy" class="quarto-xref">Equation&nbsp;3</a> admits the following manual update rule for a single neuron <span class="math inline">\(i\)</span>:</p>
+<p><span id="eq-dam-update"><span class="math display">\[
+\begin{align*}
+\sigma_i^{(t+1)} &amp;\leftarrow \text{sgn}\left( \sum_{\mu} \xi^\mu_i f_n\left( \sum_{j \neq i} \xi^\mu_j \sigma_j^{(t)}\right)\right)\\
+\end{align*}.
+\tag{4}\]</span></span></p>
+<p>Here we introduced an activation function <span class="math inline">\(f_n(\cdot) = F_n'(\cdot)\)</span> that is the derivative of the rectified polynomial used to define the energy. This update can be viewed as the negative gradient of the energy function, ensuring that the network always moves toward lower energy states. Like before, this energy is bounded from below and we will eventually converge to a local minimum that corresponds to one of the stored patterns.</p>
+<p>Let’s implement the DenseAM model. The primary difference from the CHN is that now we generalize the quadratic energy to a (possibly rectified) polynomial energy.</p>
+<div id="cell-26" class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> PolynomialDenseAM(BinaryAM):</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    Xi: jax.Array <span class="co"># (K, D) Memory patterns </span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    n: <span class="bu">int</span> <span class="co"># Power of polynomial F</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    rectified: <span class="bu">bool</span> <span class="op">=</span> <span class="va">True</span> <span class="co"># Whether to rectify inputs to F</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> F_n(<span class="va">self</span>, sims): </span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Rectified polynomial of degree `n` for energy"""</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>        sims <span class="op">=</span> sims.clip(<span class="dv">0</span>) <span class="cf">if</span> <span class="va">self</span>.rectified <span class="cf">else</span> sims</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">1</span> <span class="op">/</span> <span class="va">self</span>.n <span class="op">*</span> sims <span class="op">**</span> <span class="va">self</span>.n</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(<span class="va">self</span>, sigma): </span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>jnp.<span class="bu">sum</span>(<span class="va">self</span>.F_n(<span class="va">self</span>.Xi <span class="op">@</span> sigma))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>A simple change to using a polynomial of degree <span class="math inline">\(6\)</span> instead of the CHN’s quadratic energy function allows us to store and retrieve our desired eevee even with up to <span class="math inline">\(K=100\)</span> patterns.</p>
+<div id="cell-28" class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Increase the number of stored patterns!</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[eevee_pichu_idxs]</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> jnp.concatenate([Xi, jr.choice(jr.PRNGKey(<span class="dv">10</span>), data, shape<span class="op">=</span>(<span class="dv">98</span>,), replace<span class="op">=</span><span class="va">False</span>)])</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>fig1, ax1 <span class="op">=</span> show_im(Xi, figsize<span class="op">=</span>(<span class="dv">7</span>,<span class="dv">7</span>))<span class="op">;</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>ax1.set_title(<span class="st">"Stored patterns"</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>dam <span class="op">=</span> PolynomialDenseAM(Xi, n<span class="op">=</span><span class="dv">6</span>, rectified<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>fname <span class="op">=</span> <span class="ss">f'dam_recovery_n_</span><span class="sc">{</span>dam<span class="sc">.</span>n<span class="sc">}</span><span class="ss">_K_</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">'</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>sigma_og <span class="op">=</span> Xi[<span class="dv">0</span>]</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>sigma_noisy <span class="op">=</span> flip_some_bits(jr.PRNGKey(<span class="dv">0</span>), sigma_og, <span class="fl">0.2</span>)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>sigma_final, frames, energies <span class="op">=</span> cached_recall(dam, fname, sigma_noisy, nsteps<span class="op">=</span><span class="dv">20000</span>, key<span class="op">=</span>jr.PRNGKey(<span class="dv">5</span>))</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>fig2, axes2 <span class="op">=</span> show_recall_output(sigma_og, sigma_noisy, sigma_final, energies, show_original<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>fig2.suptitle(<span class="ss">f"DenseAM(n=</span><span class="sc">{</span>dam<span class="sc">.</span>n<span class="sc">}</span><span class="ss">, K=</span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>plt.subplots_adjust(top<span class="op">=</span><span class="fl">0.75</span>)</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>video, video_fname <span class="op">=</span> show_cached_recall_animation(fname, steps_per_sample<span class="op">=</span><span class="dv">32</span>)</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>Markdown(<span class="ss">f"![](</span><span class="sc">{</span>video_fname<span class="sc">}</span><span class="ss">)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Loading cached recall data</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="00_dense_storage_files/figure-html/cell-16-output-2.png" width="558" height="580" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="00_dense_storage_files/figure-html/cell-16-output-3.png" width="650" height="295" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display cell-output-markdown">
+<div>
+<figure class="figure">
+<p><video src="cache/00_dense_storage/dam_recovery_n_6_K_100.mp4" class="img-fluid" controls=""><a href="cache/00_dense_storage/dam_recovery_n_6_K_100.mp4">Video</a></video></p>
+</figure>
+</div>
+</div>
+</div>
+<p>A higher degree polynomial gives us more <strong>storage capacity</strong>, which means that it is easier to retrieve the patterns we have stored in the network. Note that the higher the degree <span class="math inline">\(n\)</span>, the narrower the basins of attraction, which makes it easier to pack more patterns into the energy landscape.</p>
+</section>
+<section id="sec-gotta-catch-em-all" class="level2">
+<h2 class="anchored" data-anchor-id="sec-gotta-catch-em-all">Gotta catch ’em all!</h2>
+<p>Let’s try to store and retrieve all <code>1024</code> pokemon patterns into our network (though we will only show retrieval for a subset of them for computational reasons). To do this, we’ll need very large values of <span class="math inline">\(n\)</span>, which is bad for numeric overflow (computers don’t like working in really really large numbers i.e., <code>inf</code> energy regimes).</p>
+<p>We’ll implement an exponential version of the DenseAM <span class="citation" data-cites="demicirgil2017model"><a href="#ref-demicirgil2017model" role="doc-biblioref">[3]</a></span>. Specifically, we will use a numerically stable <code>logsumexp</code> version <span class="citation" data-cites="ramsauer2021hopfield"><a href="#ref-ramsauer2021hopfield" role="doc-biblioref">[4]</a></span>.</p>
+<p><span id="eq-dam-energy-logsumexp"><span class="math display">\[
+\begin{align*}
+E_\text{eDAM}(\sigma) &amp;= -\log \sum_{\mu=1}^K \exp \left(\beta \sum_{i=1}^D \xi^\mu_i \sigma_i\right)
+\end{align*}
+\tag{5}\]</span></span></p>
+<p>where increasing the inverse temperature <span class="math inline">\(\beta\)</span> has a similar effect to increasing <span class="math inline">\(n\)</span> in the DenseAM polynomial energy function. Because the <code>log</code> is a monotonically increasing function, the energy minima of the original energy function are preserved, while simultaneously making the energy function more numerically stable.</p>
+<div id="cell-30" class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ExponentialDenseAM(BinaryAM):</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    Xi: jax.Array <span class="co"># (K, D) Memory patterns </span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    beta: <span class="bu">float</span> <span class="op">=</span> <span class="fl">1.0</span> <span class="co"># Temperature parameter</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(<span class="va">self</span>, sigma):</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>jax.nn.logsumexp(<span class="va">self</span>.beta <span class="op">*</span> <span class="va">self</span>.Xi <span class="op">@</span> sigma, axis<span class="op">=-</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-31" class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Show larger batch retrieval</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> data[:<span class="dv">1024</span>]</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>Nshow <span class="op">=</span> <span class="dv">255</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>Xi_show <span class="op">=</span> jnp.concatenate([data[eevee_pichu_idxs], jr.choice(jr.PRNGKey(<span class="dv">10</span>), Xi, shape<span class="op">=</span>(Nshow <span class="op">-</span> <span class="bu">len</span>(eevee_pichu_idxs),), replace<span class="op">=</span><span class="va">False</span>)])</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>fig1, ax1 <span class="op">=</span> show_im(Xi_show, figsize<span class="op">=</span>(<span class="dv">8</span>,<span class="dv">8</span>))<span class="op">;</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>ax1.set_title(<span class="ss">f"Random sample of </span><span class="sc">{</span>Nshow<span class="sc">}</span><span class="ss"> stored patterns"</span>)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Storing </span><span class="sc">{</span>Xi<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> patterns"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Storing 1024 patterns</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="00_dense_storage_files/figure-html/cell-18-output-2.png" width="640" height="588" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Memory usage warning
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><strong>Depending on your RAM availability, the following cell may crash your session</strong>. Decrease to e.g., <code>nh = nw = 5</code> to avoid this (or upgrade your runtime on Colab for more resources).</p>
+<p><img src="assets/figs/ResourceExhaustedWarning.png" class="img-fluid"></p>
+</div>
+</div>
+</div>
+<div id="cell-33" class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>key1, key2 <span class="op">=</span> jr.split(jr.PRNGKey(<span class="dv">3</span>))</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>nh <span class="op">=</span> nw <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>N <span class="op">=</span> nh <span class="op">*</span> nw <span class="co"># Sample N patterns to show in grid</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>sigma_og <span class="op">=</span> jnp.concatenate([</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    data[eevee_pichu_idxs], </span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    jr.choice(jr.PRNGKey(<span class="dv">10</span>), data, shape<span class="op">=</span>(N <span class="op">-</span> <span class="bu">len</span>(eevee_pichu_idxs),), replace<span class="op">=</span><span class="va">False</span>)])</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>sigma_noisy <span class="op">=</span> flip_some_bits(key2, sigma_og, <span class="fl">0.25</span>)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>edam <span class="op">=</span> ExponentialDenseAM(Xi, beta<span class="op">=</span><span class="fl">50.</span>)</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>cache_name <span class="op">=</span> <span class="st">"logsumexp_batched"</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>keys <span class="op">=</span> jr.split(key2, sigma_noisy.shape[<span class="dv">0</span>])</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>npz_fname <span class="op">=</span> Path(CACHE_DIR) <span class="op">/</span> (cache_name <span class="op">+</span> <span class="st">".npz"</span>)</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> os.path.exists(npz_fname) <span class="kw">and</span> CACHE_RECALL:</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>    npz_data <span class="op">=</span> np.load(npz_fname)</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>    sigma_final, frames, energies <span class="op">=</span> npz_data[<span class="st">'sigma_final'</span>], npz_data[<span class="st">'frames'</span>], npz_data[<span class="st">'energies'</span>]</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>    sigma_final, frames, energies <span class="op">=</span> jax.vmap(ft.partial(cached_recall, nsteps<span class="op">=</span><span class="dv">16000</span>, save<span class="op">=</span><span class="va">False</span>), in_axes<span class="op">=</span>(<span class="va">None</span>, <span class="va">None</span>, <span class="dv">0</span>,<span class="dv">0</span>))(edam, cache_name, sigma_noisy, keys)</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>    np.savez(npz_fname, sigma_final<span class="op">=</span>sigma_final, frames<span class="op">=</span>frames, energies<span class="op">=</span>energies)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>And of course, what’s the fun if we can’t animate the retrieval process?</p>
+<pre><code>&lt;IPython.core.display.Image object&gt;</code></pre>
+<p><img src="cache/00_dense_storage/logsumexp_batched.gif" class="img-fluid"></p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body" data-entry-spacing="0" role="list">
+<div id="ref-hopfield1982neural" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline">J. J. Hopfield, <span>“Neural networks and physical systems with emergent collective computational abilities.”</span> <em>Proceedings of the national academy of sciences</em>, vol. 79, no. 8, pp. 2554–2558, 1982.</div>
+</div>
+<div id="ref-krotov2016dense" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline">D. Krotov and J. J. Hopfield, <span>“Dense associative memory for pattern recognition,”</span> <em>Advances in neural information processing systems</em>, vol. 29, 2016.</div>
+</div>
+<div id="ref-demicirgil2017model" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline">M. Demircigil, J. Heusel, M. Löwe, S. Upgang, and F. Vermet, <span>“On a model of associative memory with huge storage capacity,”</span> <em>Journal of Statistical Physics</em>, vol. 168, no. 2, pp. 288–299, May 2017, doi: <a href="https://doi.org/10.1007/s10955-017-1806-y">10.1007/s10955-017-1806-y</a>.</div>
+</div>
+<div id="ref-ramsauer2021hopfield" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[4] </div><div class="csl-right-inline">H. Ramsauer <em>et al.</em>, <span>“Hopfield networks is all you need,”</span> 2021, [Online]. Available: <a href="https://openreview.net/forum?id=tL89RnzIiCd">https://openreview.net/forum?id=tL89RnzIiCd</a>.</div>
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/bhoov\.github\.io\/amtutorial");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation column-body">
+  <div class="nav-page nav-page-previous">
+      <a href="../tutorial/index.html" class="pagination-link" aria-label="tutorial">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">tutorial</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../tutorial/energy_transformer.html" class="pagination-link" aria-label="Energy Transformer">
+        <span class="nav-page-text">Energy Transformer</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/bhoov/amtutorial/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

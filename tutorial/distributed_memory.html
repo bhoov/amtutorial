@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Random Features enable Dense Associative Memory to store patterns in a distributed manner across a large number of neurons.">
+
+<title>Distributed Memory – Tutorial on Associative Memories</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../tutorial/diffusion_as_memory.html" rel="prev">
+<link href="..//img/favicon_io/favicon.ico" rel="icon">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-2fef5ea3f8957b3e4ecc936fc74692ca.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-3778b8a0ae653903a65bdc64294d5334.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-19193a01f5d0326dec7c803ae5dcbca8.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-3778b8a0ae653903a65bdc64294d5334.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles/styles.css">
+<meta property="og:title" content="Distributed Memory – Tutorial on Associative Memories">
+<meta property="og:description" content="Random Features enable Dense Associative Memory to store patterns in a distributed manner across a large number of neurons.">
+<meta property="og:image" content="https://bhoov.github.io/amtutorial/tutorial/03_distributed_memory_files/figure-html/cell-4-output-2.png">
+<meta property="og:site_name" content="Tutorial on Associative Memories">
+<meta property="og:image:height" content="179">
+<meta property="og:image:width" content="640">
+<meta name="twitter:title" content="Distributed Memory – Tutorial on Associative Memories">
+<meta name="twitter:description" content="Random Features enable Dense Associative Memory to store patterns in a distributed manner across a large number of neurons.">
+<meta name="twitter:image" content="https://bhoov.github.io/amtutorial/tutorial/03_distributed_memory_files/figure-html/cell-4-output-2.png">
+<meta name="twitter:image-height" content="179">
+<meta name="twitter:image-width" content="640">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-sidebar floating nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../img/favicon_io/android-chrome-512x512.png" alt="" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Tutorial on Associative Memories</span>
+    </a>
+  </div>
+        <div class="quarto-navbar-tools tools-end">
+    <a href="https://github.com/bhoov/amtutorial" title="" class="quarto-navigation-tool px-1" aria-label=""><i class="bi bi-github"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+          <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <a class="flex-grow-1 no-decor" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+          <h1 class="quarto-secondary-nav-title">Distributed Memory</h1>
+        </a>     
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../lib/index.ipynb" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">lib</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../lib/data_utils.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pokemon Sprites</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a href="../tutorial/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">tutorial</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/dense_storage.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Binary Dense Storage</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/energy_transformer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Energy Transformer</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/diffusion_as_memory.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Memory and Diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../tutorial/distributed_memory.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Distributed Memory</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#exact-energy-function" id="toc-exact-energy-function" class="nav-link active" data-scroll-target="#exact-energy-function">Exact Energy Function</a>
+  <ul class="collapse">
+  <li><a href="#visualizing-the-energy-in-2d" id="toc-visualizing-the-energy-in-2d" class="nav-link" data-scroll-target="#visualizing-the-energy-in-2d">Visualizing the Energy in 2D</a></li>
+  <li><a href="#minimizing-the-energy-via-gradient-descent" id="toc-minimizing-the-energy-via-gradient-descent" class="nav-link" data-scroll-target="#minimizing-the-energy-via-gradient-descent">Minimizing the Energy via Gradient Descent</a></li>
+  </ul></li>
+  <li><a href="#viewing-energy-as-a-kernel-sum" id="toc-viewing-energy-as-a-kernel-sum" class="nav-link" data-scroll-target="#viewing-energy-as-a-kernel-sum">Viewing Energy as a Kernel Sum</a>
+  <ul class="collapse">
+  <li><a href="#simplifying-the-kernel-sum-with-random-features" id="toc-simplifying-the-kernel-sum-with-random-features" class="nav-link" data-scroll-target="#simplifying-the-kernel-sum-with-random-features">Simplifying the Kernel Sum with Random Features</a></li>
+  <li><a href="#examples-of-random-features" id="toc-examples-of-random-features" class="nav-link" data-scroll-target="#examples-of-random-features">Examples of Random Features</a></li>
+  </ul></li>
+  <li><a href="#approximating-the-energy-with-random-features" id="toc-approximating-the-energy-with-random-features" class="nav-link" data-scroll-target="#approximating-the-energy-with-random-features">Approximating the Energy with Random Features</a>
+  <ul class="collapse">
+  <li><a href="#approximate-energy-descent" id="toc-approximate-energy-descent" class="nav-link" data-scroll-target="#approximate-energy-descent">Approximate Energy Descent</a></li>
+  <li><a href="#drdam-class" id="toc-drdam-class" class="nav-link" data-scroll-target="#drdam-class">DrDAM class</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/bhoov/amtutorial/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="distributed_memory.html.md"><i class="bi bi-file-code"></i>CommonMark</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content column-body" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block">Distributed Memory</h1>
+</div>
+
+<div>
+  <div class="description">
+    Random Features enable Dense Associative Memory to store patterns in a distributed manner across a large number of neurons.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta column-body">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p><a target="_blank" href="https://colab.research.google.com/github/bhoov/amtutorial/blob/main/tutorial_ipynbs/03_distributed_memory.ipynb"> <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"> </a></p>
+<p>In this notebook, we demonstrate how we utilize random features to disentangle the size of the Dense Associative Memory network from the number of memories to be stored. Given the standard log-sum-exp energy <span class="math inline">\(E_\beta(\cdot; \boldsymbol{\Xi})\)</span>, corresponding to a model <span class="math inline">\(f_\boldsymbol{\Xi}\)</span> of size <span class="math inline">\(O(DK)\)</span>, we demonstrate how we can use the trigonometric random features to develop an approximate energy <span class="math inline">\(\tilde{E}_\beta(\cdot; \mathbf{T})\)</span> using a distributed representation <span class="math inline">\(\mathbf{T}\)</span> of the memories <span class="math inline">\(\boldsymbol{\Xi} = \{ \boldsymbol{\xi}^\mu, \mu \in [\![ K ]\!] \}\)</span>, thus giving us a model <span class="math inline">\(f_{\mathbf{T}}\)</span> of size <span class="math inline">\(O(Y)\)</span>.</p>
+<p>For further details on this work, please see <span class="citation" data-cites="hoover2024dense"><a href="#ref-hoover2024dense" role="doc-biblioref">[1]</a></span>.</p>
+<section id="exact-energy-function" class="level2">
+<h2 class="anchored" data-anchor-id="exact-energy-function">Exact Energy Function</h2>
+<p>Consider a set of memories <span class="math inline">\(\boldsymbol{\Xi} = \{ \boldsymbol{\xi}^1, \ldots, \boldsymbol{\xi}^K \}\)</span> where each memory <span class="math inline">\(\boldsymbol{\xi}^\mu \in \mathbb{R}^D\)</span> is a vector in a <span class="math inline">\(D\)</span>-dimensional Euclidean space. For a state vector <span class="math inline">\(\mathbf{v} \in \mathbb{R}^D\)</span>, the commonly used <em>log-sum-exp</em> energy is given by <span id="eq-l2-lse-energy"><span class="math display">\[
+E_\beta( \mathbf{v}; \boldsymbol{\Xi} ) = - \frac{1}{\beta} \log \sum_{\mu = 1}^K \exp \left(- \frac{\beta}{2} \left\Vert \mathbf{v} - \boldsymbol{\xi}^\mu \right \Vert^2 \right),
+\tag{1}\]</span></span></p>
+<p>where <span class="math inline">\(\beta &gt; 0\)</span> is the <em>inverse-temperature</em> controlling the sharpness of the energy near the memories, with larger values of <span class="math inline">\(\beta\)</span> implying sharper energy landscapes, while smaller values induce smoother ones.</p>
+<p>We can implement this energy function as follows</p>
+<div id="2cf026b0-7c89-49a5-b0b2-ca38f9f36585" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> lse_energy(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    state: Float[Array, <span class="st">"D"</span>],</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    memories: Float[Array, <span class="st">"K D"</span>],</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    beta: <span class="bu">float</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> Float[Array, <span class="st">""</span>]:</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">    Compute the standard log-sum-exp energy</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">    using the negative square Euclidean distance</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">    as the similarity</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">-</span>(<span class="dv">1</span> <span class="op">/</span> beta) <span class="op">*</span> jax.nn.logsumexp(</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>        <span class="op">-</span>beta <span class="op">/</span> <span class="dv">2</span> <span class="op">*</span> ((state <span class="op">-</span> memories) <span class="op">**</span> <span class="dv">2</span>).<span class="bu">sum</span>(<span class="op">-</span><span class="dv">1</span>),</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>        axis<span class="op">=</span><span class="dv">0</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="visualizing-the-energy-in-2d" class="level3">
+<h3 class="anchored" data-anchor-id="visualizing-the-energy-in-2d">Visualizing the Energy in 2D</h3>
+<p>First we randomly generate <span class="math inline">\(K=8\)</span> memories <span class="math inline">\(\boldsymbol{\Xi} = \{ \boldsymbol{\xi}^\mu, \mu = 1, \ldots, 8 \}\)</span> in <span class="math inline">\(D=2\)</span> dimensions.</p>
+<div id="978b25aa-081e-440d-98e1-1e1031ca6940" class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Randomly generate memories in </span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># the selected domain</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>rngidx <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>K <span class="op">=</span> <span class="dv">8</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>Xi <span class="op">=</span> jr.uniform(</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    rnglist[rngidx], (K, D)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>) <span class="op">*</span> <span class="dv">2</span> <span class="op">*</span> maxabs <span class="op">-</span> maxabs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Given this set <span class="math inline">\(\boldsymbol{\Xi}\)</span> of memories, we compute and visualize the 2D energy landscape defined by <a href="#eq-l2-lse-energy" class="quarto-xref">Equation&nbsp;1</a> for varying values of the inverse-temperature <span class="math inline">\(\beta \in \{10^{-2}, 10^{-1}, 1, 10 \}\)</span>. We also highlight the <span class="math inline">\(K = 8\)</span> memories on these landscapes with the <span class="math inline">\(\boldsymbol{\star}\)</span> symbol. We will also cache the energy landscapes for future visualizations.</p>
+<div id="96f6c10a-1095-448b-94b6-7572d5d94308" class="cell" data-execution_count="11">
+<details class="code-fold">
+<summary>Computing and visualizing the 2D energy landscape.</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>betas <span class="op">=</span> [<span class="fl">0.01</span>, <span class="fl">0.1</span>, <span class="dv">1</span>, <span class="dv">10</span>]</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>figscaler <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span>, <span class="bu">len</span>(betas), figsize<span class="op">=</span>(</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="bu">len</span>(betas) <span class="op">*</span> figscaler, </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        figscaler</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    sharex<span class="op">=</span><span class="va">True</span>, sharey<span class="op">=</span><span class="va">True</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>beta_en_cache <span class="op">=</span> {}</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> b, ax <span class="kw">in</span> tqdm(</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">zip</span>(betas, axs), total<span class="op">=</span><span class="bu">len</span>(betas),</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    colour<span class="op">=</span>TQDMCOLOR, ncols<span class="op">=</span><span class="dv">50</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    en <span class="op">=</span> np.zeros_like(V[<span class="dv">0</span>])</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, j <span class="kw">in</span> product(</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        <span class="bu">range</span>(nsteps),</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>        <span class="bu">range</span>(nsteps)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    ):</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>        en[i,j] <span class="op">=</span> lse_energy(</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>            V[:, i, j], Xi, b</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    beta_en_cache[b] <span class="op">=</span> en</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    plot_energy_landscape(</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>        en, ax, np.array([</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>            xmin, xmax, ymin, ymax</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>        ])</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    plot_states(</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>        Xi, ax, marker<span class="op">=</span><span class="st">'*'</span>, color<span class="op">=</span>MCOLOR</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    ax.set_title(</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>        <span class="vs">r"</span><span class="dv">$\b</span><span class="vs">eta</span><span class="dv">$</span><span class="vs">"</span> <span class="op">+</span> <span class="ss">f":</span><span class="sc">{</span>b<span class="sc">:0.2f}</span><span class="ss">"</span></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<div class="ansi-escaped-output">
+<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:04&lt;00:00,  1.09s/it]
+</pre>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03_distributed_memory_files/figure-html/cell-4-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="minimizing-the-energy-via-gradient-descent" class="level3">
+<h3 class="anchored" data-anchor-id="minimizing-the-energy-via-gradient-descent">Minimizing the Energy via Gradient Descent</h3>
+<p>For an initial state vector <span class="math inline">\(\mathbf{q} \in \mathbb{R}^D\)</span>, we can minimize its energy utilizing the energy gradient. Initializing the energy descent at the <span class="math inline">\(\mathbf{q}\)</span>, that is <span class="math inline">\(\mathbf{v}^{(0)} \gets \mathbf{q}\)</span>, we perform the following gradient descent steps for <span class="math inline">\(T\)</span> iterations: <span class="math display">\[
+\mathbf{v}^{(t)} \gets \mathbf{v}^{(t-1)} - \alpha \nabla_{\mathbf{v}} E_\beta( \mathbf{v}^{(t-1)}; \boldsymbol{\Xi} ),
+\]</span> for <span class="math inline">\(t = 1, \ldots, T\)</span> with <span class="math inline">\(\alpha &gt; 0\)</span> as the step-size (or learning rate) for the energy descent. The final <span class="math inline">\(\mathbf{v}^{(T)}\)</span> is the output of the model.</p>
+<p>We can implement this using auto-differentiation in JAX by computing the gradient of the <code>lse_energy</code> function with respect to its input <code>state</code>.</p>
+<div id="b47662d6-cbf1-487d-a6ea-84a3b93bb876" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> lse_energy_descent( </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    q: Float[Array, <span class="st">"D"</span>],</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    memories: Float[Array, <span class="st">"K D"</span>],</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    beta,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    energy_fn,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    depth: <span class="bu">int</span><span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    alpha: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.01</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    return_grads<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    clamp_idxs: Optional[Bool[Array, <span class="st">"D"</span>]]<span class="op">=</span><span class="va">None</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> Float[Array, <span class="st">"D"</span>]: </span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">    Energy descent with the LSE energy</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    dEdxf <span class="op">=</span> jax.jit(</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>        jax.value_and_grad(energy_fn)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    logs <span class="op">=</span> {}</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> step(x, i):</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>        E, dEdx <span class="op">=</span> dEdxf(x, memories, beta)</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> clamp_idxs <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>            dEdx <span class="op">=</span> jnp.where(clamp_idxs, <span class="dv">0</span>, dEdx)</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> x <span class="op">-</span> alpha <span class="op">*</span> dEdx</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>        aux <span class="op">=</span> (E, dEdx) <span class="cf">if</span> return_grads <span class="cf">else</span> (E,)</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> x, aux</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    x, aux <span class="op">=</span> jax.lax.scan(</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>        step, q, jnp.arange(depth)</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    logs[<span class="st">'energies'</span>] <span class="op">=</span> aux[<span class="dv">0</span>]</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> return_grads:</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>        logs[<span class="st">'grads'</span>] <span class="op">=</span> aux[<span class="dv">1</span>]</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x, logs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="energy-descent-with-the-lse-energy" class="level4">
+<h4 class="anchored" data-anchor-id="energy-descent-with-the-lse-energy">Energy Descent with the LSE Energy</h4>
+<p>As an example, we will use the previous set of memories to perform the energy descent for a randomly generated query <span class="math inline">\(\mathbf{q} \in \mathbb{R}^D\)</span> using the above function <code>lse_energy_descent</code>. We will note the intermediate states <span class="math inline">\(\mathbf{v}^{(0)}, \ldots, \mathbf{v}^{(T)}\)</span>, and the energy <span class="math inline">\(E_\beta(\mathbf{v}^{(t)}; \boldsymbol{\Xi}), t \in [\![ T ]\!]\)</span> at each layer of the DenseAM (equivalently, the energy at each iteration of the energy gradient descent).</p>
+<p>In the following example, the number of DenseAM layers (equivalently, the number of energy descent steps) is set at <span class="math inline">\(T = 1000\)</span>, and we use a step-size <span class="math inline">\(\alpha = 0.01\)</span>. We will plot the intermediate states at every <code>NUPDATES=25</code> layers. We show results for three randomly generated queries, where the first row of the plot visualizes their intermediate states of these three queries during the energy descent with the <span class="math inline">\(\textcolor{blue}{\bullet}\)</span> symbol, while the next three rows visualize their respective energy descent through the <span class="math inline">\(T\)</span> DenseAM layers. We will cache the intermediate states and energies of the exact energy descent for future visualizations.</p>
+<div id="0ce17f91-d300-4776-88ad-1558e6f8c310" class="cell" data-execution_count="13">
+<details class="code-fold">
+<summary>Performing and visualizing the energy-descent for three randomly generated queries (initial states).</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>NSTATES <span class="op">=</span> <span class="dv">20</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>NUPDATES <span class="op">=</span> <span class="dv">25</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>NQUERIES <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>ALPHA <span class="op">=</span> <span class="fl">0.01</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>rngidx <span class="op">=</span> <span class="dv">8</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    NQUERIES<span class="op">+</span><span class="dv">1</span>, <span class="bu">len</span>(betas), figsize<span class="op">=</span>(</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">len</span>(betas) <span class="op">*</span> figscaler, </span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        NQUERIES<span class="op">+</span><span class="dv">2</span> <span class="op">*</span> figscaler</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    sharex<span class="op">=</span><span class="st">"row"</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>beta_true_states_en_cache <span class="op">=</span> {}</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> bidx, b <span class="kw">in</span> tqdm(</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="bu">enumerate</span>(betas), total<span class="op">=</span><span class="bu">len</span>(betas),</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    colour<span class="op">=</span>TQDMCOLOR, ncols<span class="op">=</span><span class="dv">50</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    plot_energy_landscape(</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>        beta_en_cache[b], axs[<span class="dv">0</span>, bidx],</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>        np.array([xmin, xmax, ymin, ymax])</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    plot_states(</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>        Xi, axs[<span class="dv">0</span>, bidx],</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>        marker<span class="op">=</span><span class="st">'*'</span>, color<span class="op">=</span>MCOLOR</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    axs[<span class="dv">0</span>, bidx].set_title(</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>        <span class="vs">r"</span><span class="dv">$\b</span><span class="vs">eta</span><span class="dv">$</span><span class="vs">"</span> <span class="op">+</span> <span class="ss">f":</span><span class="sc">{</span>b<span class="sc">:0.2f}</span><span class="ss">"</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Randomly generating queries</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    queries <span class="op">=</span> jr.uniform(</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>        rnglist[rngidx], (NQUERIES, D)</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">*</span> <span class="dv">2</span> <span class="op">*</span> maxabs <span class="op">-</span> maxabs</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    beta_cache <span class="op">=</span> []</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> qidx, query <span class="kw">in</span> <span class="bu">enumerate</span>(queries):</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>        qstates <span class="op">=</span> [query]</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>        qens <span class="op">=</span> []</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Perform energy descent</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(NSTATES):</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>            query, logs <span class="op">=</span> lse_energy_descent(</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>                query, Xi, b, lse_energy,</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>                depth<span class="op">=</span>NUPDATES, alpha<span class="op">=</span>ALPHA</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>            qstates <span class="op">+=</span> [query]</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>            qens <span class="op">+=</span> [logs[<span class="st">'energies'</span>]]</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>        qstates <span class="op">=</span> np.array(qstates)</span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>        plot_states(</span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>            qstates, axs[<span class="dv">0</span>, bidx],</span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>            marker<span class="op">=</span><span class="st">'o'</span>, color<span class="op">=</span>QCOLOR</span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>        qens <span class="op">=</span> np.array(qens).reshape(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>        plot_energy_descent(</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>            qens, axs[qidx<span class="op">+</span><span class="dv">1</span>, bidx],</span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span>QCOLOR</span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>        axs[qidx<span class="op">+</span><span class="dv">1</span>, bidx].set_title(</span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>            <span class="ss">f"Query </span><span class="sc">{</span>qidx<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>        beta_cache <span class="op">+=</span> [(qstates, qens)]</span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>    beta_true_states_en_cache[b] <span class="op">=</span> beta_cache</span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<div class="ansi-escaped-output">
+<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:11&lt;00:00,  2.80s/it]
+</pre>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03_distributed_memory_files/figure-html/cell-6-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="viewing-energy-as-a-kernel-sum" class="level2">
+<h2 class="anchored" data-anchor-id="viewing-energy-as-a-kernel-sum">Viewing Energy as a Kernel Sum</h2>
+<p>It is easy to see that the aforemention energy function <a href="#eq-l2-lse-energy" class="quarto-xref">Equation&nbsp;1</a> can be viewed as a <em>kernel sum</em>. Specifying a kernel function <span class="math inline">\(\kappa: \mathbb{R}^D \times \mathbb{R}^D \to \mathbb{R}\)</span> such that <span class="math inline">\(\kappa(\mathbf{x}, \mathbf{x}') = \exp(-\frac{1}{2} \Vert \mathbf{x} - \mathbf{x}' \Vert^2 )\)</span>, the <em>radial basis function</em> or RBF kernel, we can reduce the energy function to a kernel sum as follows:</p>
+<p><span class="math display">\[\begin{align}
+E_\beta( \mathbf{v}; \boldsymbol{\Xi} )
+&amp; = - \frac{1}{\beta} \log \sum_{\mu = 1}^K \underbrace{
+  \exp \left(- \frac{\beta}{2} \left\Vert \mathbf{v} - \boldsymbol{\xi}^\mu \right \Vert^2 \right)
+}_{\kappa(\sqrt{\beta}\mathbf{v}, \sqrt{\beta}\boldsymbol{\xi}^\mu)}
+\\
+&amp; = - \frac{1}{\beta} \log \sum_{\mu = 1}^K \kappa \left(\sqrt{\beta}\mathbf{v}, \sqrt{\beta}\boldsymbol{\xi}^\mu \right),
+\end{align}\]</span></p>
+<p>In general, we need to keep around all the memories <span class="math inline">\(\boldsymbol{\Xi} = \left\{ \boldsymbol{\xi}^\mu \in \mathbb{R}^D, \mu \in [\![ K ]\!] \right\}\)</span> to compute this kernel sum, and thus the energy function.</p>
+<section id="simplifying-the-kernel-sum-with-random-features" class="level3">
+<h3 class="anchored" data-anchor-id="simplifying-the-kernel-sum-with-random-features">Simplifying the Kernel Sum with Random Features</h3>
+<p>However, if there exists a feature map <span class="math inline">\(\Phi: \mathbb{R}^D \to \mathbb{R}^Y\)</span>, such that, the dot-product in this feature space approximates the kernel function as follows:</p>
+<p><span class="math display">\[
+\kappa(\mathbf{x}, \mathbf{x}') \approx \left\langle \Phi(\mathbf{x}), \Phi(\mathbf{x}') \right\rangle,
+\]</span></p>
+<p>then the kernel sum can be simplified as (dropping the <span class="math inline">\(\beta\)</span> for now)</p>
+<p><span class="math display">\[\begin{align}
+\sum_{\mu = 1}^K \kappa(\mathbf{v}, \boldsymbol{\xi}^\mu)
+&amp; \approx \sum_{\mu = 1}^K \left\langle \Phi(\mathbf{v}), \Phi(\boldsymbol{\xi}^\mu) \right\rangle
+\\
+&amp; = \left\langle \Phi(\mathbf{v}), \sum_{\mu = 1}^K \Phi(\boldsymbol{\xi}^\mu) \right\rangle
+\\
+&amp; = \left\langle \Phi(\mathbf{v}), \mathbf{T} \right\rangle, \qquad \text{where} \quad
+\mathbf{T} = \sum_{\mu = 1}^K \Phi(\boldsymbol{\xi}^\mu).
+\end{align}\]</span></p>
+<p>In this case, we need to compute the vector – <em>the distributed memories</em> – <span class="math inline">\(\mathbf{T} \in \mathbb{R}^Y\)</span> using all the <span class="math inline">\(K\)</span> memories <span class="math inline">\(\left\{ \boldsymbol{\xi}^\mu, \mu \in [\![ K ]\!] \right\}\)</span> <strong>just once</strong>, and then use <span class="math inline">\(\mathbf{T}\)</span> for all subsequent kernel sum approximation without needing access to the original memories. Bringing the inverse-temperature <span class="math inline">\(\beta\)</span> into this, we would instead need to utilize <span class="math inline">\(\Phi(\sqrt{\beta}\mathbf{v})\)</span>, and compute the distributed memories as <span class="math inline">\(\mathbf{T} = \sum_\mu \Phi(\sqrt{\beta} \boldsymbol{\xi}^\mu)\)</span>.</p>
+</section>
+<section id="examples-of-random-features" class="level3">
+<h3 class="anchored" data-anchor-id="examples-of-random-features">Examples of Random Features</h3>
+<p>Various approximate feature maps have been developed for the RBF kernel. The first feature map proposed by <span class="citation" data-cites="rahimi2007random"><a href="#ref-rahimi2007random" role="doc-biblioref">[2]</a></span> utilizes random features and trigonometric function. More recently, <span class="citation" data-cites="choromanski2020rethinking"><a href="#ref-choromanski2020rethinking" role="doc-biblioref">[3]</a></span> have proposed positive random features utilizing the exponential function. Both these random features are presented below, where <span class="math inline">\(\boldsymbol{\omega}^i \sim \mathcal{N}(0, \mathbf{I}_D), i \in [\![ Y ]\!]\)</span> and <span class="math inline">\(\mathcal{N}(0, \mathbf{I}_D)\)</span> is the <span class="math inline">\(D\)</span>-dimensional multivariate isotropic standard normal distribution:</p>
+<p><span class="math display">\[
+\Phi(\mathbf{x}) = \frac{1}{\sqrt{Y}} \left[ \begin{array}{c}
+  \cos \langle \boldsymbol{\omega}^1, \mathbf{x} \rangle \\
+  \sin \langle \boldsymbol{\omega}^1, \mathbf{x} \rangle \\
+  \cos \langle \boldsymbol{\omega}^2, \mathbf{x} \rangle \\
+  \sin \langle \boldsymbol{\omega}^2, \mathbf{x} \rangle \\
+  \cdots \\
+  \cos \langle \boldsymbol{\omega}^Y, \mathbf{x} \rangle \\
+  \sin \langle \boldsymbol{\omega}^Y, \mathbf{x} \rangle \\
+\end{array}\right],
+\qquad
+\Phi(\mathbf{x}) = \frac{\exp(- \left\Vert \mathbf{x} \right\Vert^2)}{\sqrt{2Y}} \left[ \begin{array}{c}
+  \exp (+\langle \boldsymbol{\omega}^1, \mathbf{x} \rangle) \\
+  \exp (-\langle \boldsymbol{\omega}^1, \mathbf{x} \rangle) \\
+  \exp (+\langle \boldsymbol{\omega}^2, \mathbf{x} \rangle) \\
+  \exp (-\langle \boldsymbol{\omega}^2, \mathbf{x} \rangle) \\
+  \cdots \\
+  \exp (+\langle \boldsymbol{\omega}^Y, \mathbf{x} \rangle) \\
+  \exp (-\langle \boldsymbol{\omega}^Y, \mathbf{x} \rangle) \\
+\end{array}\right],
+\]</span></p>
+<p>Note that both these random features generate <span class="math inline">\(2Y\)</span>-dimensional feature map <span class="math inline">\(\Phi(\mathbf{x}) \in \mathbb{R}^{2Y}\)</span> with <span class="math inline">\(Y\)</span> random features <span class="math inline">\(\boldsymbol{\omega}^i, i \in [\![ Y ]\!]\)</span>. We implement the random features with trigonometric functions below.</p>
+<div id="02575f75-104f-45e9-84aa-a9dea5c7d076" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sin_cos_phi(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    x: Float[Array, <span class="st">"... D"</span>],</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    RF: Float[Array, <span class="st">"Y D"</span>],</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    beta: <span class="bu">float</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> Float[Array, <span class="st">"... 2Y"</span>]:</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">    Random features with trigonometric function</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    Y <span class="op">=</span> RF.shape[<span class="dv">0</span>]</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    h <span class="op">=</span> jnp.sqrt(beta) <span class="op">*</span> (x <span class="op">@</span> RF.T)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">1</span> <span class="op">/</span> jnp.sqrt(Y) <span class="op">*</span> jnp.concatenate(</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        [ jnp.cos(h), jnp.sin(h)], axis<span class="op">=-</span><span class="dv">1</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="approximating-the-kernel-value" class="level4">
+<h4 class="anchored" data-anchor-id="approximating-the-kernel-value">Approximating the Kernel Value</h4>
+<p>Here we will visualize the quality of the kernel value approximations obtained with the trigonometric random features. We randomly generate samples <span class="math inline">\(\mathbf{x} \in \mathbb{R}^D\)</span> from the domain, and compare their kernel values with the memories <span class="math inline">\(\boldsymbol{\xi}^\mu\)</span>. That is, we compare the true RBF kernel value <span class="math inline">\(\kappa(\sqrt{\beta}\mathbf{x}, \sqrt{\beta}\boldsymbol{\xi}^\mu) = \exp(-\frac{\beta}{2} \Vert \mathbf{x} - \boldsymbol{\xi}^\mu \Vert^2)\)</span> to approximated kernel value using the random features <span class="math inline">\(\left\langle \Phi(\sqrt{\beta}\mathbf{x}), \sqrt{\beta}\Phi(\boldsymbol{\xi}^\mu) \right\rangle\)</span> for different values of <span class="math inline">\(\beta\)</span>, <span class="math inline">\(\mu \in [\![ K ]\!]\)</span> and different random samples <span class="math inline">\(\mathbf{x}\)</span>.</p>
+<p>In the following, we compute the RBF kernel <span class="math inline">\(\kappa(\sqrt{\beta}\mathbf{x}, \sqrt{\beta}\boldsymbol{\xi}^\mu) = \exp(-\frac{\beta}{2} \Vert \mathbf{x} - \boldsymbol{\xi}^\mu \Vert^2)\)</span>.</p>
+<div id="fd26cbe5-fe16-463e-b57a-34b5b593df35" class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> rbfkernel(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    x: Float[Array, <span class="st">"D"</span>],</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    y: Float[Array, <span class="st">"D"</span>],</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    beta: <span class="bu">float</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> Float[Array, <span class="st">""</span>]:</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co">    Compute the standard RBF kernel</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">    between two vectors.</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> jnp.exp(</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>        <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> beta <span class="op">*</span> ((x <span class="op">-</span> y) <span class="op">**</span> <span class="dv">2</span>).<span class="bu">sum</span>()</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We generate <span class="math inline">\(Y=2^{15}\)</span> random features for the memories <span class="math inline">\(\boldsymbol{\Xi}\)</span> using the <code>sin_cos_phi</code> function.</p>
+<div id="5d321251-d245-48bd-a56c-74e420099775" class="cell" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>Y <span class="op">=</span> np.power(<span class="dv">2</span>, <span class="dv">15</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>rngidx <span class="op">=</span> <span class="dv">4</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>RF <span class="op">=</span> jr.normal(rnglist[rngidx], (Y, D))</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>phi_Xi <span class="op">=</span> sin_cos_phi(Xi, RF, <span class="fl">1.0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now we generate <code>NRANDS=100</code> random <span class="math inline">\(\mathbf{x} \in \mathbb{R}^D\)</span> and compare their exact and approximate kernel values with the memories.</p>
+<div id="f8244038-0894-4bf3-825e-a67c4c53084b" class="cell" data-execution_count="17">
+<details class="code-fold">
+<summary>Computing and comparing exact and approximate random-feature-based kernel function values.</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>rngidx <span class="op">=</span> <span class="dv">9</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>NRANDS <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>rxs <span class="op">=</span> jr.uniform(</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    rnglist[rngidx], (NRANDS, D)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>) <span class="op">*</span> <span class="dv">2</span> <span class="op">*</span> maxabs <span class="op">-</span> maxabs</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="dv">1</span>, <span class="bu">len</span>(betas), figsize<span class="op">=</span>(</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        <span class="bu">len</span>(betas) <span class="op">*</span> figscaler, </span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        figscaler</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    sharex<span class="op">=</span><span class="va">True</span>, sharey<span class="op">=</span><span class="va">True</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> b, ax <span class="kw">in</span> tqdm(</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    <span class="bu">zip</span>(betas, axs), total<span class="op">=</span><span class="bu">len</span>(betas),</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    colour<span class="op">=</span>TQDMCOLOR, ncols<span class="op">=</span><span class="dv">50</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    phi_rxs <span class="op">=</span> sin_cos_phi(rxs, RF, b)</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    true_kvals <span class="op">=</span> np.array([</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>        rbfkernel(x, y, b)</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> x <span class="kw">in</span> rxs <span class="cf">for</span> y <span class="kw">in</span> Xi</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    ])</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    approx_kvals <span class="op">=</span> np.array([</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>        x.dot(y) </span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> x <span class="kw">in</span> phi_rxs <span class="cf">for</span> y <span class="kw">in</span> phi_Xi</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>    ])</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    ax.scatter(true_kvals, approx_kvals)</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>        <span class="vs">r"</span><span class="dv">$</span><span class="er">\</span><span class="vs">kappa</span><span class="kw">(</span><span class="dv">\m</span><span class="vs">athbf{x},</span><span class="dv">$</span><span class="vs">"</span> </span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>        <span class="op">+</span> <span class="vs">r"</span><span class="dv">$\b</span><span class="vs">oldsymbol{</span><span class="er">\</span><span class="vs">xi}</span><span class="dv">^\m</span><span class="vs">u</span><span class="er">)</span><span class="dv">$</span><span class="vs">"</span></span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="vs">r"</span><span class="dv">$\b</span><span class="vs">eta</span><span class="dv">$</span><span class="vs">"</span> <span class="op">+</span> <span class="ss">f":</span><span class="sc">{</span>b<span class="sc">:0.2f}</span><span class="ss">"</span>)</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>    ax.axis(<span class="st">'square'</span>)</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].set_ylabel(</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>    <span class="vs">r"</span><span class="dv">$</span><span class="er">\</span><span class="vs">langle </span><span class="er">\</span><span class="vs">Phi</span><span class="kw">(</span><span class="dv">\m</span><span class="vs">athbf{x}</span><span class="kw">)</span><span class="vs">,</span><span class="dv">$</span><span class="vs">"</span> </span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>    <span class="op">+</span> <span class="vs">r"</span><span class="dv">$</span><span class="er">\</span><span class="vs">Phi</span><span class="kw">(</span><span class="dv">\b</span><span class="vs">oldsymbol{</span><span class="er">\</span><span class="vs">xi}</span><span class="dv">^\m</span><span class="vs">u</span><span class="kw">)</span><span class="vs"> </span><span class="ch">\r</span><span class="vs">angle</span><span class="dv">$</span><span class="vs">"</span></span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<div class="ansi-escaped-output">
+<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:00&lt;00:00,  4.12it/s]
+</pre>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03_distributed_memory_files/figure-html/cell-10-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>In the above figure, a good approximation would put all the points in the scatter plots on the diagonal. Based on these figures, we make the following observations with a fixed value of <span class="math inline">\(D, Y\)</span>: - Small values of <span class="math inline">\(\beta\)</span> push the RBF kernel values close to 1, and the random features do not approximate these values well, generally significantly underestimating the kernel values as all the points in the scatter plots concentrate in the lower corner. - As <span class="math inline">\(\beta\)</span> grows, the approximation quality improves, with <span class="math inline">\(\beta = 1\)</span> producing really good approximation of the exact kernel values. The true kernel values better span the range of <span class="math inline">\([0, 1]\)</span> and the random features produce high quality approximations. - When <span class="math inline">\(\beta\)</span> increases beyond a point, most pairwise RBF kernel values go close to zero, and approximation quality again falls.</p>
+<p>Note that overall performance will continue to improve as the ratio <span class="math inline">\(D/Y\)</span> decreases for any given value of <span class="math inline">\(\beta\)</span>. But it is a known issue that the trigonometric random features do not approximate kernel values close to zero or close to one very well.</p>
+</section>
+<section id="visualizing-the-random-features" class="level4">
+<h4 class="anchored" data-anchor-id="visualizing-the-random-features">Visualizing the Random Features</h4>
+<p>Here we visualize the first <code>NRFS=6</code> of the random features across the data domain for varying values of <span class="math inline">\(\beta\)</span>. The use of the trigonometric function is visible through the periodic nature of these random features, where larger values of <span class="math inline">\(\beta\)</span> lead to shorter periods.</p>
+<div id="678c7b8f-e3d6-4980-bd6b-69e5bf4f42eb" class="cell" data-execution_count="18">
+<details class="code-fold">
+<summary>Visualizing a subset of the random features over the input domain.</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>NRFS <span class="op">=</span> <span class="dv">6</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    NRFS, <span class="bu">len</span>(betas), figsize<span class="op">=</span>(</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">len</span>(betas) <span class="op">*</span> figscaler, </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        NRFS <span class="op">*</span> figscaler</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    sharex<span class="op">=</span><span class="va">True</span>, sharey<span class="op">=</span><span class="va">True</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> bidx, b <span class="kw">in</span> tqdm(</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">enumerate</span>(betas),</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    total<span class="op">=</span><span class="bu">len</span>(betas),</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    colour<span class="op">=</span>TQDMCOLOR,</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    ncols<span class="op">=</span><span class="dv">50</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    rfs <span class="op">=</span> np.zeros(</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>        [<span class="dv">2</span><span class="op">*</span>NRFS, V.shape[<span class="dv">1</span>], V.shape[<span class="dv">2</span>]]</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(nsteps):</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>        rfs[:, i, :] <span class="op">=</span> sin_cos_phi(</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>            V[:, i, :].T, RF[:NRFS, :], b</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>        ).T</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(NRFS):</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>        plot_energy_landscape(</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>            rfs[i, :, :], axs[i, bidx], </span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>            np.array([</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>                xmin, xmax, ymin, ymax</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>            ]),</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>            colormap<span class="op">=</span><span class="st">'YlGn'</span></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a>        plot_states(</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a>            Xi, axs[i, bidx],</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>            marker<span class="op">=</span><span class="st">'*'</span>, color<span class="op">=</span>MCOLOR)</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>    axs[<span class="dv">0</span>, bidx].set_title(</span>
+<span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a>        <span class="vs">r"</span><span class="dv">$\b</span><span class="vs">eta</span><span class="dv">$</span><span class="vs">"</span> <span class="op">+</span> <span class="ss">f":</span><span class="sc">{</span>b<span class="sc">:0.2f}</span><span class="ss">"</span></span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<div class="ansi-escaped-output">
+<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:00&lt;00:00, 10.49it/s]
+</pre>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03_distributed_memory_files/figure-html/cell-11-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="approximating-the-energy-with-random-features" class="level2">
+<h2 class="anchored" data-anchor-id="approximating-the-energy-with-random-features">Approximating the Energy with Random Features</h2>
+<p>Given the random features <span class="math inline">\(\Phi: \mathbb{R}^D \to \mathbb{R}^{2Y}\)</span>, we can approximate the energy as</p>
+<p><span class="math display">\[\begin{align}
+E_\beta( \mathbf{v}; \boldsymbol{\Xi} )
+&amp; = - \frac{1}{\beta} \log \sum_{\mu = 1}^K
+  \exp \left(- \frac{\beta}{2} \left\Vert \mathbf{v} - \boldsymbol{\xi}^\mu \right \Vert^2 \right)
+\\
+&amp; \approx - \frac{1}{\beta} \log \sum_{\mu = 1}^K \left\langle \Phi(\mathbf{v}), \Phi(\boldsymbol{\xi}^\mu) \right\rangle
+= - \frac{1}{\beta} \log \left\langle \Phi(\mathbf{v}), \sum_{\mu = 1}^K \Phi(\boldsymbol{\xi}^\mu) \right\rangle
+\\
+&amp; = - \frac{1}{\beta} \log \left\langle \Phi(\mathbf{v}), \mathbf{T} \right\rangle,
+\qquad \text{with} \quad
+\mathbf{T} = \sum_{\mu = 1}^K \Phi(\boldsymbol{\xi}^\mu).
+\end{align}\]</span></p>
+<p>Now we can define an approximate random-feature-based energy function <span class="math inline">\(\tilde{E}_\beta (\mathbf{v}; \mathbf{T}) \approx E_\beta (\mathbf{v}; \boldsymbol{\Xi})\)</span> as follows:</p>
+<p><span id="eq-l2-lse-rf-energy"><span class="math display">\[
+\tilde{E}_\beta (\mathbf{v}; \mathbf{T}) = - \frac{1}{\beta} \log \left\langle \Phi(\mathbf{v}), \mathbf{T} \right\rangle,
+\qquad \text{with} \quad
+\mathbf{T} = \sum_{\mu = 1}^K \Phi(\boldsymbol{\xi}^\mu)
+\tag{2}\]</span></span></p>
+<p>We implement this approximate energy below using random features below given the <span class="math inline">\(\{ \boldsymbol{\omega}^i, i \in [\![ Y ]\!] \}\)</span> and the distributed memories <span class="math inline">\(\mathbf{T} \in \mathbb{R}^{2Y}\)</span>.</p>
+<div id="11d730c1-a8e3-4e6e-83a7-1de6cb93a45e" class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> approx_lse_energy(</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    state: Float[Array, <span class="st">"... D"</span>],</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    RF: Float[Array, <span class="st">"Y D"</span>],</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    beta: <span class="bu">float</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    T: Float[Array, <span class="st">"2Y"</span>],</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    eps<span class="op">=</span><span class="fl">1e-10</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> Float[Array, <span class="st">"..."</span>]:</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co">    Compute the approx energy with</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="co">    random features</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    h <span class="op">=</span> sin_cos_phi(state, RF, beta) <span class="op">@</span> T </span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>    h <span class="op">=</span> jnp.clip(h,  a_min<span class="op">=</span>eps)</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">-</span>(<span class="dv">1</span> <span class="op">/</span> beta) <span class="op">*</span> jnp.log(h)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Here we compare the exact energy landscape to energy landscape approximated with random features for varying values of <span class="math inline">\(\beta\)</span> given the set of memories <span class="math inline">\(\boldsymbol{\Xi}\)</span>. For a given value of <span class="math inline">\(\beta\)</span>, we first compute <span class="math inline">\(\mathbf{T} = \sum_{\mu=1}^K \Phi(\sqrt{\beta} \boldsymbol{\xi}^\mu )\)</span>, and the use it to compute the approximate energy landscape.</p>
+<p>The first row of the plots show the (cached) true energy landscape, and the second row shows the energy landscape induced by the approximate energy computed using the distributed memories. Note that we highlight the original memories in the first row of the plots with the true energy landscape.</p>
+<div id="13491e5e-5b60-4263-9ffe-f95d7837ba00" class="cell" data-execution_count="20">
+<details class="code-fold">
+<summary>Computing and visualizing the approximate energy landscape, and comparing it to the exact energy landscape.</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="dv">2</span>, <span class="bu">len</span>(betas), figsize<span class="op">=</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">len</span>(betas) <span class="op">*</span> figscaler, </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>        <span class="dv">2</span> <span class="op">*</span> figscaler</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    sharex<span class="op">=</span><span class="va">True</span>, sharey<span class="op">=</span><span class="va">True</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> bidx, b <span class="kw">in</span> tqdm(</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">enumerate</span>(betas), total<span class="op">=</span><span class="bu">len</span>(betas),</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    colour<span class="op">=</span>TQDMCOLOR, ncols<span class="op">=</span><span class="dv">50</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Computing the T tensor, </span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># summing the random features</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># over all memories</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    T_Xi <span class="op">=</span> sin_cos_phi(Xi, RF, b).<span class="bu">sum</span>(<span class="dv">0</span>)</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Computing the approx energy </span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># over the domain</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>    app_en <span class="op">=</span> np.zeros_like(V[<span class="dv">0</span>])</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(nsteps):</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>        app_en[i, :] <span class="op">=</span> approx_lse_energy(</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>            V[:, i, :].T, RF, b, T_Xi</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plotting the exact and approx energy</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>    plot_energy_landscape(</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>        beta_en_cache[b], axs[<span class="dv">0</span>, bidx],</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>        np.array([xmin, xmax, ymin, ymax])</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>    plot_states(</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>        Xi, axs[<span class="dv">0</span>, bidx],</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>        marker<span class="op">=</span><span class="st">'*'</span>, color<span class="op">=</span>MCOLOR</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>    plot_energy_landscape(</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>        app_en, axs[<span class="dv">1</span>, bidx],</span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>        np.array([xmin, xmax, ymin, ymax])</span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>    axs[<span class="dv">0</span>, bidx].set_title(</span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>        <span class="vs">r"</span><span class="dv">$\b</span><span class="vs">eta</span><span class="dv">$</span><span class="vs">"</span> <span class="op">+</span> <span class="ss">f":</span><span class="sc">{</span>b<span class="sc">:0.2f}</span><span class="ss">"</span></span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<div class="ansi-escaped-output">
+<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:02&lt;00:00,  1.79it/s]
+</pre>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03_distributed_memory_files/figure-html/cell-13-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>For small values of <span class="math inline">\(\beta\)</span>, the exact and approximate energy landscapes appear visually similar. However, for larger values of <span class="math inline">\(\beta\)</span>, the energy landscapes start differing significantly, especially farther away from the memories. However, note how the approximate energy still forms a local minima around each of the original memories even though the actual basins of attraction of this approximate energy are significantly smaller. For <span class="math inline">\(\beta = 10\)</span>, there are 8 local minima, matching the total number of <span class="math inline">\(K=8\)</span> original memories.</p>
+<section id="approximate-energy-descent" class="level3">
+<h3 class="anchored" data-anchor-id="approximate-energy-descent">Approximate Energy Descent</h3>
+<p>For a state vector <span class="math inline">\(\mathbf{v} \in \mathbb{R}^D\)</span>, we can approximately reduce its energy <span class="math inline">\(E_\beta(\mathbf{v}; \boldsymbol{\Xi})\)</span> by utilizing the gradient <span class="math inline">\(\nabla_{\mathbf{v}} \tilde{E}_\beta(\mathbf{v}; \mathbf{T})\)</span> of the random-feature based approximate energy <span class="math inline">\(\tilde{E}_\beta(\mathbf{v}; \mathbf{T})\)</span>. Initializing the energy descent at the input <span class="math inline">\(\mathbf{q}\)</span>, that is <span class="math inline">\(\tilde{\mathbf{v}}^{(0)} \gets \mathbf{q}\)</span>, we perform the following gradient descent steps for <span class="math inline">\(T\)</span> iterations: <span class="math display">\[
+\tilde{\mathbf{v}}^{(t)} \gets \tilde{\mathbf{v}}^{(t-1)} - \alpha \nabla_{\mathbf{v}} \tilde{E}_\beta( \tilde{\mathbf{v}}^{(t-1)}; \mathbf{T} ),
+\]</span> for <span class="math inline">\(t = 1, \ldots, T\)</span> with <span class="math inline">\(\alpha &gt; 0\)</span> as the step-size (or learning rate) for the energy descent. The final <span class="math inline">\(\tilde{\mathbf{v}}^{(T)}\)</span> is the output of this model. This output will be different than the output <span class="math inline">\(\mathbf{v}^{(T)}\)</span> obtained using the exact energy gradient <span class="math inline">\(\nabla_{\mathbf{v}} E_\beta( \mathbf{v}; \boldsymbol{\Xi} )\)</span>.</p>
+<p>The gradient of the approximate energy in <a href="#eq-l2-lse-rf-energy" class="quarto-xref">Equation&nbsp;2</a> does not require access to the original memories <span class="math inline">\(\boldsymbol{\Xi}\)</span>, and can be computed solely using the random features <span class="math inline">\(\{ \boldsymbol{\omega}^i, i \in [\![ Y ]\!] \}\)</span> and the consolidated memories <span class="math inline">\(\mathbf{T} \in \mathbb{R}^{2Y}\)</span>: <span class="math display">\[
+\nabla_{\mathbf{v}} \tilde{E}_\beta ( \mathbf{v}; \mathbf{T} )
+= - \frac{1}{\beta} \nabla_{\mathbf{v}} \log \left\langle \Phi(\mathbf{v}), \mathbf{T} \right\rangle
+= - \frac{1}{\beta \left\langle \Phi(\mathbf{v}), \mathbf{T} \right\rangle} \left[ \nabla_{\mathbf{v}} \Phi(\mathbf{v}) \right]^\top \mathbf{T}.
+\]</span> The gradient <span class="math inline">\(\nabla_{\mathbf{v}} \Phi(\mathbf{v})\)</span> of the random feature map <span class="math inline">\(\Phi: \mathbb{R}^D \to \mathbb{R}^{2Y}\)</span> with respect to its input is a <span class="math inline">\((2Y \times D)\)</span> matrix.</p>
+<p>We can implement this using auto-differentiation in JAX by computing the gradient of the <code>approx_lse_energy</code> function with respect to its input <code>state</code>.</p>
+<div id="a54b88ba-9548-4653-bb9f-015b719a02dd" class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> approx_lse_energy_descent(</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    q: Float[Array, <span class="st">"D"</span>],</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    RF: Float[Array, <span class="st">"Y D"</span>],</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    beta: <span class="bu">float</span>,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    T: Float[Array, <span class="st">"2Y"</span>],</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    energy_fn,</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    depth: <span class="bu">int</span><span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    alpha: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.01</span>, </span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    return_grads<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    clamp_idxs: Optional[Bool[Array, <span class="st">"D"</span>]]<span class="op">=</span><span class="va">None</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>) <span class="op">-&gt;</span> Float[Array, <span class="st">"D"</span>]: </span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="co">    Using the approx random feature energy.</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="co">    run energy descent</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    dEdxf <span class="op">=</span> jax.jit(</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>        jax.value_and_grad(energy_fn)</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    logs <span class="op">=</span> {}</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">@jax.jit</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> step(x, i):</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>        E, dEdx <span class="op">=</span> dEdxf(x, RF, beta, T)</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> clamp_idxs <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>            dEdx <span class="op">=</span> jnp.where(clamp_idxs, <span class="dv">0</span>, dEdx)</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> x <span class="op">-</span> alpha <span class="op">*</span> dEdx</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>        aux <span class="op">=</span> (E, dEdx) <span class="cf">if</span> return_grads <span class="cf">else</span> (E,)</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> x, aux</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>    x, aux <span class="op">=</span> jax.lax.scan(</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>        step, q, jnp.arange(depth)</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>    logs[<span class="st">'energies'</span>] <span class="op">=</span> aux[<span class="dv">0</span>]</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> return_grads:</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>        logs[<span class="st">'grads'</span>] <span class="op">=</span> aux[<span class="dv">1</span>]</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> x, logs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We will now compare the energy descent dynamics of this gradient using the random-feature based approximate energy to the exact energy gradient from earlier. We keep the step-size <span class="math inline">\(\alpha\)</span> and the number of DenseAM layers <span class="math inline">\(T\)</span> the same as the exact energy descent with <span class="math inline">\(\alpha = 0.01\)</span> and <span class="math inline">\(T = 1000\)</span>. For each of the intermediate states obtained with this approximate energy descent, we compute the exact energy to check how it decreases through the distributed-memory DenseAM layers.</p>
+<p>We will use the cached energy landscapes and the cached intermediate states and energies for the exact energy descent to highlight the similarities and differences. The intermediate states for the three queries with exact energy descent will be shown with the <span class="math inline">\(\textcolor{blue}{\bullet}\)</span> symbol, while the intermediate states with the approximate random-features-based energy will be show with the <span class="math inline">\(\textcolor{orange}{\bullet}\)</span> symbol.</p>
+<div id="2f33a412-ff66-4c51-a43b-a728508d939e" class="cell" data-execution_count="22">
+<details class="code-fold">
+<summary>Performing and visualizing the exact &amp; approximate energy-descent for three randomly generated queries.</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>rngidx <span class="op">=</span> <span class="dv">8</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    NQUERIES<span class="op">+</span><span class="dv">1</span>, <span class="bu">len</span>(betas), figsize<span class="op">=</span>(</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">len</span>(betas) <span class="op">*</span> figscaler, </span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>        NQUERIES<span class="op">+</span><span class="dv">2</span> <span class="op">*</span> figscaler</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    sharex<span class="op">=</span><span class="st">"row"</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> bidx, b <span class="kw">in</span> tqdm(</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">enumerate</span>(betas), total<span class="op">=</span><span class="bu">len</span>(betas),</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    colour<span class="op">=</span>TQDMCOLOR, ncols<span class="op">=</span><span class="dv">50</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>):</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># using cached energy landscape</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    plot_energy_landscape(</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>        beta_en_cache[b], axs[<span class="dv">0</span>, bidx],</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>        np.array([xmin, xmax, ymin, ymax])</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    plot_states(</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>        Xi, axs[<span class="dv">0</span>, bidx],</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>        marker<span class="op">=</span><span class="st">'*'</span>, color<span class="op">=</span>MCOLOR</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>    axs[<span class="dv">0</span>, bidx].set_title(</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>        <span class="vs">r"</span><span class="dv">$\b</span><span class="vs">eta</span><span class="dv">$</span><span class="vs">"</span> <span class="op">+</span> <span class="ss">f":</span><span class="sc">{</span>b<span class="sc">:0.2f}</span><span class="ss">"</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Computing the T tensor, </span></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>    <span class="co"># summing the random features</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># over all memories</span></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>    T_Xi <span class="op">=</span> sin_cos_phi(Xi, RF, b).<span class="bu">sum</span>(<span class="dv">0</span>)</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Randomly generating queries</span></span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>    queries <span class="op">=</span> jr.uniform(</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>        rnglist[rngidx], (NQUERIES, D)</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">*</span> <span class="dv">2</span> <span class="op">*</span> maxabs <span class="op">-</span> maxabs</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>    beta_cache <span class="op">=</span> []</span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> qidx, query <span class="kw">in</span> <span class="bu">enumerate</span>(queries):    </span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>        qstates <span class="op">=</span> [query]</span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a>        qens <span class="op">=</span> []</span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Perform energy descent using </span></span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a>        <span class="co"># the approx gradient</span></span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(NSTATES):</span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a>            query, logs <span class="op">=</span> approx_lse_energy_descent(</span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a>                query, RF, b, T_Xi, approx_lse_energy,</span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a>                depth<span class="op">=</span>NUPDATES, alpha<span class="op">=</span>ALPHA</span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a>            )</span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a>            qstates <span class="op">+=</span> [query]</span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a>            qens <span class="op">+=</span> [logs[<span class="st">'energies'</span>]]</span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>        <span class="co"># using cached exact descent stats</span></span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a>        ex_qstates, ex_qens <span class="op">=</span> beta_true_states_en_cache[b][qidx]</span>
+<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a>        plot_states(</span>
+<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>            ex_qstates, axs[<span class="dv">0</span>, bidx],</span>
+<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a>            marker<span class="op">=</span><span class="st">'o'</span>, color<span class="op">=</span>QCOLOR</span>
+<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a>        plot_energy_descent(</span>
+<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a>            ex_qens, axs[qidx<span class="op">+</span><span class="dv">1</span>, bidx],</span>
+<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span>QCOLOR</span>
+<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a>        axs[qidx<span class="op">+</span><span class="dv">1</span>, bidx].set_title(</span>
+<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a>            <span class="ss">f"Query </span><span class="sc">{</span>qidx<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a>        qstates <span class="op">=</span> np.array(qstates)</span>
+<span id="cb14-60"><a href="#cb14-60" aria-hidden="true" tabindex="-1"></a>        plot_states(</span>
+<span id="cb14-61"><a href="#cb14-61" aria-hidden="true" tabindex="-1"></a>            qstates, axs[<span class="dv">0</span>, bidx],</span>
+<span id="cb14-62"><a href="#cb14-62" aria-hidden="true" tabindex="-1"></a>            marker<span class="op">=</span><span class="st">'.'</span>, color<span class="op">=</span>AQCOLOR</span>
+<span id="cb14-63"><a href="#cb14-63" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb14-64"><a href="#cb14-64" aria-hidden="true" tabindex="-1"></a>        qens <span class="op">=</span> np.array([</span>
+<span id="cb14-65"><a href="#cb14-65" aria-hidden="true" tabindex="-1"></a>            [lse_energy(qs, Xi, b)]<span class="op">*</span>NUPDATES</span>
+<span id="cb14-66"><a href="#cb14-66" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> qs <span class="kw">in</span> qstates</span>
+<span id="cb14-67"><a href="#cb14-67" aria-hidden="true" tabindex="-1"></a>        ]).reshape(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb14-68"><a href="#cb14-68" aria-hidden="true" tabindex="-1"></a>        plot_energy_descent(</span>
+<span id="cb14-69"><a href="#cb14-69" aria-hidden="true" tabindex="-1"></a>            qens, axs[qidx<span class="op">+</span><span class="dv">1</span>, bidx], </span>
+<span id="cb14-70"><a href="#cb14-70" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span>AQCOLOR</span>
+<span id="cb14-71"><a href="#cb14-71" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb14-72"><a href="#cb14-72" aria-hidden="true" tabindex="-1"></a>fig.tight_layout()</span>
+<span id="cb14-73"><a href="#cb14-73" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<div class="ansi-escaped-output">
+<pre>100%|<span class="ansi-magenta-fg">███████████████</span>| 4/4 [00:12&lt;00:00,  3.07s/it]
+</pre>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03_distributed_memory_files/figure-html/cell-15-output-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The above results show that, for small to moderately large <span class="math inline">\(\beta\)</span>, with sufficiently large number of random features <span class="math inline">\(Y\)</span>, the gradient of the random-feature based approximate energy matches the dynamics of the exact energy gradient. See how the <span class="math inline">\(\textcolor{orange}{\bullet}\)</span> symbols for the approximate energy gradient are completely overlapping with <span class="math inline">\(\textcolor{blue}{\bullet}\)</span> symbol for the exact energy descent. However, for large <span class="math inline">\(\beta\)</span>, the gradient of the approximate energy is no longer able to reduce the energy of the initial state if the initial state happens to be quite far from all the memories, implying a large initial energy <span class="math inline">\(E_\beta ( \mathbf{v}^{(0)}; \boldsymbol{\Xi} )\)</span>. Note that one or the three queries is able to reduce its energy and match the exact energy descent.</p>
+<p>Our previous results showed that the random-feature based kernel approximation does not perform well if <span class="math inline">\(\beta\)</span> is too small, or too large. However, the approximate kernel based energy gradient is sufficient for low <span class="math inline">\(\beta\)</span> regime, highlighting that energy descent is possible even if the kernel approximation is poor. This is because the energy of the initial state at low <span class="math inline">\(\beta\)</span> is already quite low.</p>
+<p>More precisely, we can bound the divergence between the output of the exact model with memory representation <span class="math inline">\(f_{\boldsymbol{\Xi}}( \mathbf{q} ) = \mathbf{v}^{(T)}\)</span> and the output of the approximate model with distributed representations <span class="math inline">\(f_{\mathbf{T}}( \mathbf{q} ) = \tilde{\mathbf{v}}^{(T)}\)</span> under the following conditions: - For any <span class="math inline">\(\mathbf{x}, \mathbf{x}' \in \mathbb{R}^D\)</span>, there is a universal constant <span class="math inline">\(C_1 &gt; 0\)</span> such that <span class="math display">\[\left| \kappa(\mathbf{x}, \mathbf{x}') - \left\langle \Phi(\mathbf{x}) , \Phi(\mathbf{x}') \right\rangle \right| \leq C_1 \sqrt{\frac{D}{Y}}.\]</span> - The step-size <span class="math inline">\(\alpha\)</span> is selected, such that, for a universal constant <span class="math inline">\(C_2 \in (0, 1)\)</span> <span class="math display">\[ \alpha \leq \frac{C_2}{T (1 + 2K \beta \exp(\beta/2))}.\]</span></p>
+<p>Then the divergence is bounded as <span class="citation" data-cites="hoover2024dense">see <a href="#ref-hoover2024dense" role="doc-biblioref">[1]</a>, Corollary 1</span>: <span class="math display">\[
+\left\Vert f_{\boldsymbol{\Xi}}(\mathbf{q}) - f_{\mathbf{T}}(\mathbf{q}) \right\Vert
+= \left\Vert \mathbf{v}^{(T)} - \tilde{\mathbf{v}}^{(T)} \right\Vert
+\leq \frac{C_1 C_2 \exp(E_\beta(\mathbf{q}; \boldsymbol{\Xi}) - 1/2)}{\beta (1 - C_2)}
+\]</span></p>
+<p>We can also show a more general result without the restriction on the step-size <span class="math inline">\(\alpha\)</span> <span class="citation" data-cites="hoover2024dense">see <a href="#ref-hoover2024dense" role="doc-biblioref">[1]</a>, Theorem 1</span>.</p>
+</section>
+<section id="drdam-class" class="level3">
+<h3 class="anchored" data-anchor-id="drdam-class">DrDAM class</h3>
+<p>We can put together <strong>D</strong>istributed <strong>r</strong>epresentation <strong>D</strong>ense<strong>AM</strong> or <strong>DrDAM</strong> into a single class for convenience.</p>
+<div id="f506321c-c859-4056-a592-5a9a7a582872" class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> DrDAM:</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">    DenseAM through the Lens of Random Features</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, key, D, Y, beta):</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.RF <span class="op">=</span> jr.normal(key, (Y, D))</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.beta <span class="op">=</span> beta</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.Y <span class="op">=</span> Y</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.Tdim <span class="op">=</span> <span class="dv">2</span><span class="op">*</span>Y</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.D <span class="op">=</span> D</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> phi(</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, x: Float[Array, <span class="st">"... D"</span>]</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> Float[Array, <span class="st">"... 2Y"</span>]:</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Compute the random features """</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> sin_cos_phi(x, <span class="va">self</span>.RF, <span class="va">self</span>.beta)</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> sim(</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, x: Float[Array, <span class="st">"D"</span>],</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>        y: Float[Array, <span class="st">"D"</span>]</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> Float[Array, <span class="st">""</span>]:</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a><span class="co">        Compute the exact RBF kernel for two vectors</span></span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> rbfkernel(x, y, <span class="va">self</span>.beta)</span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy(</span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, x: Float[Array, <span class="st">"D"</span>],</span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>        memories: Float[Array, <span class="st">"M D"</span>]</span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> Float[Array, <span class="st">""</span>]:</span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Compute the standard LSE energy"""</span></span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> lse_energy(x, memories, <span class="va">self</span>.beta)</span>
+<span id="cb15-33"><a href="#cb15-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-34"><a href="#cb15-34" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> rf_approx_energy(</span>
+<span id="cb15-35"><a href="#cb15-35" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, x: Float[Array, <span class="st">"D"</span>],</span>
+<span id="cb15-36"><a href="#cb15-36" aria-hidden="true" tabindex="-1"></a>        T: Float[Array, <span class="st">"2Y"</span>], eps<span class="op">=</span><span class="fl">1e-10</span></span>
+<span id="cb15-37"><a href="#cb15-37" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> Float[Array, <span class="st">""</span>]:</span>
+<span id="cb15-38"><a href="#cb15-38" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb15-39"><a href="#cb15-39" aria-hidden="true" tabindex="-1"></a><span class="co">        Compute the approx LSE energy with random features</span></span>
+<span id="cb15-40"><a href="#cb15-40" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb15-41"><a href="#cb15-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> approx_lse_energy(x, <span class="va">self</span>.RF, <span class="va">self</span>.beta, T)</span>
+<span id="cb15-42"><a href="#cb15-42" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb15-43"><a href="#cb15-43" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> rf_approx_sim(</span>
+<span id="cb15-44"><a href="#cb15-44" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, x: Float[Array, <span class="st">"D"</span>],</span>
+<span id="cb15-45"><a href="#cb15-45" aria-hidden="true" tabindex="-1"></a>        y: Float[Array, <span class="st">"D"</span>]</span>
+<span id="cb15-46"><a href="#cb15-46" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> Float[Array, <span class="st">""</span>]:</span>
+<span id="cb15-47"><a href="#cb15-47" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Compute the approx RBF kernel for two vector"""</span></span>
+<span id="cb15-48"><a href="#cb15-48" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.phi(x) <span class="op">@</span> <span class="va">self</span>.phi(y)</span>
+<span id="cb15-49"><a href="#cb15-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-50"><a href="#cb15-50" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> dist_memories(</span>
+<span id="cb15-51"><a href="#cb15-51" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, memories: Float[Array, <span class="st">"M D"</span>]</span>
+<span id="cb15-52"><a href="#cb15-52" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> Float[Array, <span class="st">"2Y"</span>]:</span>
+<span id="cb15-53"><a href="#cb15-53" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb15-54"><a href="#cb15-54" aria-hidden="true" tabindex="-1"></a><span class="co">        Compute the random-feature based distributed</span></span>
+<span id="cb15-55"><a href="#cb15-55" aria-hidden="true" tabindex="-1"></a><span class="co">        representation of the memories</span></span>
+<span id="cb15-56"><a href="#cb15-56" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb15-57"><a href="#cb15-57" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.phi(memories).<span class="bu">sum</span>(<span class="dv">0</span>)</span>
+<span id="cb15-58"><a href="#cb15-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-59"><a href="#cb15-59" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> energy_descent( </span>
+<span id="cb15-60"><a href="#cb15-60" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, q: Float[Array, <span class="st">"D"</span>], </span>
+<span id="cb15-61"><a href="#cb15-61" aria-hidden="true" tabindex="-1"></a>        memories: Float[Array, <span class="st">"M D"</span>], </span>
+<span id="cb15-62"><a href="#cb15-62" aria-hidden="true" tabindex="-1"></a>        depth: <span class="bu">int</span><span class="op">=</span><span class="dv">1000</span>, alpha: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span id="cb15-63"><a href="#cb15-63" aria-hidden="true" tabindex="-1"></a>        return_grads<span class="op">=</span><span class="va">False</span>, </span>
+<span id="cb15-64"><a href="#cb15-64" aria-hidden="true" tabindex="-1"></a>        clamp_idxs: Optional[Bool[Array, <span class="st">"D"</span>]]<span class="op">=</span><span class="va">None</span></span>
+<span id="cb15-65"><a href="#cb15-65" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> Float[Array, <span class="st">"D"</span>]: </span>
+<span id="cb15-66"><a href="#cb15-66" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Run exact energy descent"""</span></span>
+<span id="cb15-67"><a href="#cb15-67" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> lse_energy_descent( </span>
+<span id="cb15-68"><a href="#cb15-68" aria-hidden="true" tabindex="-1"></a>            q, memories, <span class="va">self</span>.beta, lse_energy,</span>
+<span id="cb15-69"><a href="#cb15-69" aria-hidden="true" tabindex="-1"></a>            depth, alpha, return_grads, clamp_idxs</span>
+<span id="cb15-70"><a href="#cb15-70" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb15-71"><a href="#cb15-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-72"><a href="#cb15-72" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> rf_approx_energy_descent(</span>
+<span id="cb15-73"><a href="#cb15-73" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>, q: Float[Array, <span class="st">"D"</span>],</span>
+<span id="cb15-74"><a href="#cb15-74" aria-hidden="true" tabindex="-1"></a>        T: Float[Array, <span class="st">"2Y"</span>], </span>
+<span id="cb15-75"><a href="#cb15-75" aria-hidden="true" tabindex="-1"></a>        depth: <span class="bu">int</span><span class="op">=</span><span class="dv">1000</span>, alpha: <span class="bu">float</span> <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span id="cb15-76"><a href="#cb15-76" aria-hidden="true" tabindex="-1"></a>        return_grads<span class="op">=</span><span class="va">False</span>,</span>
+<span id="cb15-77"><a href="#cb15-77" aria-hidden="true" tabindex="-1"></a>        clamp_idxs: Optional[Bool[Array, <span class="st">"D"</span>]]<span class="op">=</span><span class="va">None</span></span>
+<span id="cb15-78"><a href="#cb15-78" aria-hidden="true" tabindex="-1"></a>    ) <span class="op">-&gt;</span> Float[Array, <span class="st">"D"</span>]: </span>
+<span id="cb15-79"><a href="#cb15-79" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Run approx energy descent"""</span></span>
+<span id="cb15-80"><a href="#cb15-80" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> approx_lse_energy_descent(</span>
+<span id="cb15-81"><a href="#cb15-81" aria-hidden="true" tabindex="-1"></a>            q, <span class="va">self</span>.RF, <span class="va">self</span>.beta, T, approx_lse_energy,</span>
+<span id="cb15-82"><a href="#cb15-82" aria-hidden="true" tabindex="-1"></a>            depth, alpha, return_grads, clamp_idxs</span>
+<span id="cb15-83"><a href="#cb15-83" aria-hidden="true" tabindex="-1"></a>        )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We will demonstrate the use of this class with <span class="math inline">\(K = 20\)</span> memories in <span class="math inline">\(D=10\)</span> dimensions and <span class="math inline">\(Y=10^4\)</span> random features. We will use the LSE energy with an inverse-temperature <span class="math inline">\(\beta=25\)</span> and create an instance of the <code>DrDAM</code> class.</p>
+<div id="fe721ff1-f393-484e-a880-a7fa46194871" class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>rngidx <span class="op">=</span> <span class="dv">9</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> <span class="dv">30</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>Y <span class="op">=</span> <span class="dv">100_000</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>n_memories <span class="op">=</span> <span class="dv">20</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>n_queries <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>beta <span class="op">=</span> <span class="dv">25</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>kdam <span class="op">=</span> DrDAM(</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    rnglist[rngidx], D<span class="op">=</span>D, Y<span class="op">=</span>Y, beta<span class="op">=</span>beta</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Comparing the exact and approximate RBF kernel values for a pair of points.</p>
+<div id="ff49876b-f660-4c5f-9aed-ca38f5dac250" class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>rngidx <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>xpair <span class="op">=</span> (</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    jr.uniform(rnglist[rngidx], (D,<span class="dv">2</span> )) <span class="op">&gt;</span> <span class="fl">0.5</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>) <span class="op">/</span> jnp.sqrt(D)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"Exact RBF kernel value: "</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span>kdam<span class="sc">.</span>sim(xpair[:, <span class="dv">0</span>], xpair[:, <span class="dv">1</span>])<span class="sc">:0.4f}</span><span class="ss">"</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"Approx RBF kernel value: "</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span>kdam<span class="sc">.</span>rf_approx_sim(xpair[:, <span class="dv">0</span>], xpair[:, <span class="dv">1</span>])<span class="sc">:.04f}</span><span class="ss">"</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Exact RBF kernel value: 0.0013
+Approx RBF kernel value: 0.0030</code></pre>
+</div>
+</div>
+<p>Generating some memories, and their distribution representation along with some random initial states.</p>
+<div id="05d0073a-5814-4818-bdcf-b12f6a582742" class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>rngidx <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>memories <span class="op">=</span> (</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    jr.uniform(rnglist[rngidx], (n_memories, D)) <span class="op">&gt;</span> <span class="fl">0.5</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>) <span class="op">/</span> jnp.sqrt(D)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>rngidx <span class="op">=</span> <span class="dv">6</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>queries <span class="op">=</span> (</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    jr.uniform(rnglist[rngidx], (n_queries, D)) <span class="op">&gt;</span> <span class="fl">0.5</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>) <span class="op">/</span> jnp.sqrt(D)</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"Generated </span><span class="sc">{</span>memories<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> memories"</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f" in </span><span class="sc">{</span>memories<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss"> dimensions"</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>T <span class="op">=</span> kdam.dist_memories(memories)</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"Distributed representation of "</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"these memories in </span><span class="sc">{</span>T<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> dimensions"</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"Generated </span><span class="sc">{</span>queries<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> initial "</span></span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"states in </span><span class="sc">{</span>queries<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss"> dimensions"</span></span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Generated 20 memories in 30 dimensions
+Distributed representation of these memories in 200000 dimensions
+Generated 100 initial states in 30 dimensions</code></pre>
+</div>
+</div>
+<p>We will compare the exact and the approximate energy using the distributed memory</p>
+<div id="73a8a374-ea82-435c-911b-228f0aca2be0" class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"Exact energy for a point: "</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span>kdam<span class="sc">.</span>energy(xpair[:, <span class="dv">0</span>], memories)<span class="sc">:0.4f}</span><span class="ss">"</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"Approx energy for the same point: "</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    <span class="ss">f"</span><span class="sc">{</span>kdam<span class="sc">.</span>rf_approx_energy(xpair[:, <span class="dv">0</span>], T)<span class="sc">:0.4f}</span><span class="ss">"</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Exact energy for a point: 0.0847
+Approx energy for the same point: 0.0886</code></pre>
+</div>
+</div>
+<p>This is a comparison of the exact and approximate energies of all initial states. Better approximation is denoted by the points on the scatter plot lying on the diagonal.</p>
+<div id="5b3fbc4c-059d-4036-8225-33fbdf0b06ad" class="cell" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>exact_energies <span class="op">=</span> jnp.array([</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    kdam.energy(q, memories).item() </span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> q <span class="kw">in</span> queries</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>rf_approx_energies <span class="op">=</span> kdam.rf_approx_energy(</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    queries, T</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">4</span>,<span class="dv">4</span>))</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>plt.scatter(</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>    exact_energies,</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>    rf_approx_energies</span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>plt.xlabel(</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Exact Energy "</span> <span class="op">+</span> </span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>    <span class="vs">r"</span><span class="dv">$</span><span class="vs">E_</span><span class="dv">\b</span><span class="vs">eta</span><span class="kw">(</span><span class="dv">\m</span><span class="vs">athbf{q}; </span><span class="dv">\b</span><span class="vs">oldsymbol{</span><span class="dv">\X</span><span class="vs">i}</span><span class="kw">)</span><span class="dv">$</span><span class="vs">"</span></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>plt.ylabel(</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Approx Energy "</span> <span class="op">+</span> </span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>    <span class="vs">r"</span><span class="dv">$</span><span class="ch">\t</span><span class="vs">ilde{E}_</span><span class="dv">\b</span><span class="vs">eta</span><span class="kw">(</span><span class="dv">\m</span><span class="vs">athbf{q}; </span><span class="dv">\m</span><span class="vs">athbf{T}</span><span class="kw">)</span><span class="dv">$</span><span class="vs">"</span></span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>plt.axis(<span class="st">'square'</span>)</span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Exact energy vs Approx energy"</span>)</span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03_distributed_memory_files/figure-html/cell-21-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>For 10 queries, we will perform the inference through a <span class="math inline">\(T=10\)</span> layer DenseAM and compute and report the divergence between the exact energy descent model and the distributed memory DenseAM.</p>
+<div id="b3741306-4beb-44c0-9f55-e0555187dc06" class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> qidx <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">10</span>):</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    exact_out, _ <span class="op">=</span> kdam.energy_descent(</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>        queries[qidx], memories, depth<span class="op">=</span><span class="dv">10</span>, alpha<span class="op">=</span><span class="fl">0.1</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    approx_out, _ <span class="op">=</span> kdam.rf_approx_energy_descent(</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>        queries[qidx], T, depth<span class="op">=</span><span class="dv">10</span>, alpha<span class="op">=</span><span class="fl">0.1</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"Initial state </span><span class="sc">{</span>qidx<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">: "</span></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f" Initial energy: "</span></span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"</span><span class="sc">{</span>kdam<span class="sc">.</span>energy(queries[qidx], memories)<span class="sc">:0.4f}</span><span class="ss">, "</span></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"Divergence in the output: "</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>        <span class="ss">f"</span><span class="sc">{</span>jnp<span class="sc">.</span>sqrt(((exact_out <span class="op">-</span> approx_out)<span class="op">**</span><span class="dv">2</span>).<span class="bu">sum</span>())<span class="sc">:0.4f}</span><span class="ss">"</span></span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Initial state 1:  Initial energy: 0.0950, Divergence in the output: 0.0238
+Initial state 2:  Initial energy: 0.1262, Divergence in the output: 0.0269
+Initial state 3:  Initial energy: 0.1140, Divergence in the output: 0.0436
+Initial state 4:  Initial energy: 0.0997, Divergence in the output: 0.0285
+Initial state 5:  Initial energy: 0.1023, Divergence in the output: 0.0306
+Initial state 6:  Initial energy: 0.1107, Divergence in the output: 0.0352
+Initial state 7:  Initial energy: 0.0991, Divergence in the output: 0.0269
+Initial state 8:  Initial energy: 0.1278, Divergence in the output: 0.0383
+Initial state 9:  Initial energy: 0.1082, Divergence in the output: 0.0325
+Initial state 10:  Initial energy: 0.1035, Divergence in the output: 0.0356</code></pre>
+</div>
+</div>
+
+
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body" data-entry-spacing="0" role="list">
+<div id="ref-hoover2024dense" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[1] </div><div class="csl-right-inline">B. Hoover, D. H. Chau, H. Strobelt, P. Ram, and D. Krotov, <span>“Dense associative memory through the lens of random features,”</span> 2024, [Online]. Available: <a href="https://proceedings.neurips.cc/paper_files/paper/2024/file/29ff36c8fbed10819b2e50267862a52a-Paper-Conference.pdf">https://proceedings.neurips.cc/paper_files/paper/2024/file/29ff36c8fbed10819b2e50267862a52a-Paper-Conference.pdf</a>.</div>
+</div>
+<div id="ref-rahimi2007random" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[2] </div><div class="csl-right-inline">A. Rahimi and B. Recht, <span>“Random features for large-scale kernel machines,”</span> <em>Advances in neural information processing systems</em>, 2007, [Online]. Available: <a href="https://proceedings.neurips.cc/paper/2007/file/013a006f03dbc5392effeb8f18fda755-Paper.pdf">https://proceedings.neurips.cc/paper/2007/file/013a006f03dbc5392effeb8f18fda755-Paper.pdf</a>.</div>
+</div>
+<div id="ref-choromanski2020rethinking" class="csl-entry" role="listitem">
+<div class="csl-left-margin">[3] </div><div class="csl-right-inline">K. Choromanski <em>et al.</em>, <span>“Rethinking attention with performers,”</span> <em>Proceedings of ICLR</em>, 2020, [Online]. Available: <a href="https://arxiv.org/pdf/2009.14794.pdf">https://arxiv.org/pdf/2009.14794.pdf</a>.</div>
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/bhoov\.github\.io\/amtutorial");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation column-body">
+  <div class="nav-page nav-page-previous">
+      <a href="../tutorial/diffusion_as_memory.html" class="pagination-link" aria-label="Memory and Diffusion">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Memory and Diffusion</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/bhoov/amtutorial/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

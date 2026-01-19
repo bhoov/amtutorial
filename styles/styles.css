@@ -1,0 +1,144 @@
+.cell {
+  margin-bottom: 1rem;
+}
+
+.cell > .sourceCode {
+  margin-bottom: 0;
+}
+
+.cell-output > pre {
+  margin-bottom: 0;
+}
+
+.cell-output > pre, .cell-output > .sourceCode > pre, .cell-output-stdout > pre {
+  margin-left: 0.8rem;
+  margin-top: 0;
+  background: none;
+  border-left: 2px solid lightsalmon;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.cell-output > .sourceCode {
+  border: none;
+}
+
+.cell-output > .sourceCode {
+  background: none;
+  margin-top: 0;
+}
+
+div.description {
+  padding-left: 2px;
+  padding-top: 5px;
+  font-style: italic;
+  font-size: 135%;
+  opacity: 70%;
+}
+
+.navbar {
+    padding: 0.3rem 1rem;
+}
+
+.navbar-logo {
+    width: 100% !important;
+    max-width: 50px !important;
+    max-height: unset !important;
+    aspect-ratio: 1 / 1;
+    margin-right: 0.5rem;
+}
+
+.quarto-light .side-comment {
+    color: #AAAAAA;
+}
+
+.quarto-dark .side-comment {
+    color: #888888;
+}
+
+.wip {
+    opacity: 0.4;
+}
+
+.wip:after {
+    content: "";
+    opacity: 1;
+    /* font-size: 0.8em; */
+    /* color: #888888; */
+}
+
+.side-comment a {
+    opacity: 0.6;
+}
+
+.image-color {
+    color: #4A8BB9
+}
+
+.label-color {
+    color: #C169A7
+}
+
+.memory-color {
+    color: #8F8F8F
+}
+
+.pagination-link {
+    color: blue;
+}
+
+
+dd {
+    padding-left: 1rem;
+    border-left: #707070 2px solid;
+    margin: 0.5rem 0;
+}
+
+dt {
+    margin-top: 1rem
+}
+
+.body-footer {
+    font-size: small;
+    margin: 4rem 0 0 0;
+    color: #888888
+}
+
+blockquote p{
+    font-size: large;
+    line-height: 2.25rem;
+}
+
+.neuron-color {
+    color: #6495ED;
+}
+
+.synapse-color {
+    color: #FF6B00;
+}
+
+.navbar-logo {
+}
+
+@media only screen and (max-width: 768px) {
+    .big-container {
+        display: block;
+        width: 90vw;
+    }
+
+    .people-list {
+        display: none;
+    }
+
+    .small-select {
+        display: inline;
+    }
+
+    select {
+        color: black;
+    }
+
+    .navbar-logo {
+        max-width: 100px !important;
+    }
+}
