@@ -2,7 +2,7 @@
 authors:
   - name: Dmitry Krotov
     email: krotov@ibm.com
-    affiliations: IBM Research, MIT
+    affiliations: 
   - name: Benjamin Hoover
     email: bhoov@gatech.edu
     affiliations: IBM Research, Georgia Tech
